@@ -85,8 +85,54 @@ class TestSubjectPrevious:
 				"Target should be pre-selected to be rotated")
 		assert_true(target.is_faceup,
 				"Target should be pre-selected to be flipped")
-		pending("Test:" + SP.KEY_FILTER_EACH_REVIOUS_SUBJECT)
 
+	func test_subject_previous_filter_each():
+		# The deck order is random, so we look for two cards of different types
+		# among the hand cards which are not the script owner (cards[0])
+		var target2: Card = null
+		target = cards[1]
+		for c in cards.slice(2):
+			if c.properties["Type"] != target.properties["Type"]:
+				target2 = c
+				break
+		assert_not_null(target2, "Test needs two cards of different types")
+		if target2 == null:
+			return
+		var ttype : String = target.properties["Type"]
+		await table_move(target, Vector2(500,200))
+		await table_move(target2, Vector2(800,200))
+		var seek_task := {"name": "rotate_card",
+				"subject": "boardseek",
+				"subject_count": "all",
+				"degrees": 90}
+		# Without filter_each_previous_subject, one non-matching previous subject
+		# invalidates the whole task, so no subject is flipped.
+		card.scripts = {"manual": {"hand": [
+				seek_task,
+				{"name": "flip_card",
+				"subject": "previous",
+				"filter_state_subject": [{"filter_properties": {"Type": ttype}}],
+				"set_faceup": false}]}}
+		await execute_with_yield(card)
+		await wait_card_settled(target)
+		assert_true(target.is_faceup,
+				"Task is invalid when not all previous subjects match the filter")
+		assert_true(target2.is_faceup,
+				"Task is invalid when not all previous subjects match the filter")
+		# With filter_each_previous_subject, only the matching previous subjects are affected.
+		card.scripts = {"manual": {"hand": [
+				seek_task,
+				{"name": "flip_card",
+				"subject": "previous",
+				SP.KEY_FILTER_EACH_REVIOUS_SUBJECT: true,
+				"filter_state_subject": [{"filter_properties": {"Type": ttype}}],
+				"set_faceup": false}]}}
+		await execute_with_yield(card)
+		await wait_card_settled(target)
+		assert_false(target.is_faceup,
+				"Previous subject matching the filter should be flipped")
+		assert_true(target2.is_faceup,
+				"Previous subject not matching the filter should be left alone")
 
 	func test_subject_boardseek_previous():
 		var target2: Card = cards[2]

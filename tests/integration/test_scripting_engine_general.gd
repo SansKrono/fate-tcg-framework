@@ -14,9 +14,18 @@ class TestBasics:
 				"Script should not work from a different state")
 		await wait_seconds(0.5)
 		# The below tests _common_target == false
-		card.scripts = {"hand": [{}]}
-		card.execute_scripts()
-		pending("Empty does not create a ScriptingEngine object")
+		card.scripts = {"manual": {"board": []}}
+		var sceng = await card.execute_scripts()
+		assert_null(sceng,
+				"Empty scripts for the current state should not create a ScriptingEngine object")
+		assert_false(card.is_executing_scripts,
+				"Empty scripts should not mark the card as executing scripts")
+		card.scripts = {"manual": {"hand": [{"name": "rotate_card",
+				"subject": "self",
+				"degrees": 90}]}}
+		sceng = await card.execute_scripts()
+		assert_null(sceng,
+				"Scripts for a different state should not create a ScriptingEngine object")
 		card.is_faceup = false
 		await wait_for_signal(target._flip_tween.tween_all_completed, 0.5)
 		await wait_for_signal(target._flip_tween.tween_all_completed, 0.5)

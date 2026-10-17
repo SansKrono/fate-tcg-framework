@@ -117,9 +117,8 @@ func _on_ViewPopup_popup_hide() -> void:
 	for card in pre_sorted_order:
 		# For each card we have hosted, we check if it's hosted in the popup.
 		# If it is, we move it to the root.
-		# In Godot 4 only the first slot keeps the name "CardPopUpSlot"; further
-		# ones are auto-renamed (e.g. "@Control@12"), so we detect the slots by
-		# their parent being the popup grid instead of by name.
+		# We detect the slots by their parent being the popup grid instead of by
+		# name, which does not depend on how Godot named the slot node.
 		if card.get_parent() != self and card.get_parent().get_parent() == _popup_grid:
 			card.get_parent().remove_child(card)
 			add_child(card)

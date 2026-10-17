@@ -98,7 +98,13 @@ class TestPopupView:
 				"Hosting a card in the pile, while popup is open, puts it in the popup")
 		assert_eq(Vector2(0.75,0.75),cards[1].scale,
 				"Moving a card into the popup, should scale it")
-		pending("Drawing a card from the pile, picks it from the popup")
+		var drawn: Card = hand.draw_card(discard)
+		assert_not_null(drawn, "A card can be drawn from a pile while its popup is open")
+		await wait_seconds(1)
+		assert_eq(hand, drawn.get_parent(),
+				"Card drawn from the pile, while popup is open, ends up in the hand")
+		assert_eq(12,discard.get_node("ViewPopup/CardView").get_child_count(),
+				"Card drawn from the pile, is picked from the popup")
 		assert_false(discard.get_node("Control/ManipulationButtons").visible,
 				"Manipulation Buttons should be hidden while popup is active")
 		discard.get_node("ViewPopup").hide()

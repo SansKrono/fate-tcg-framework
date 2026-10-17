@@ -143,7 +143,76 @@ class TestExecuteScriptsWithTempModCounter:
 		assert_eq(hand.get_card_count(), 8,
 			"Ensure temp property modifiers don't remain")
 
+	func _setup_unpayable_target_costs() -> void:
+		board.counters.mod_counter("credits", 10, true)
+		board.counters.mod_counter("research", 0, true)
+		# The target has a cost which cannot be paid, as there's no research
+		target.scripts = {"manual": {
+			"hand": [
+				{"name": "mod_counter",
+				"is_cost": true,
+				"modification": -5,
+				"counter_name": "research"},
+				{"name": "mod_counter",
+				"modification": 3,
+				"counter_name": "credits"}],
+			"board": [
+				{"name": "mod_counter",
+				"is_cost": true,
+				"modification": -5,
+				"counter_name": "research"},
+				{"name": "mod_counter",
+				"modification": 3,
+				"counter_name": "credits"}]}}
+
 	func test_no_costs_are_paid_when_target_costs_cannot_be_paid():
-		pending("is_cost == true execute_tasks: No costs were paid because target card could not pay costs")
-		pending("is_cost == false execute_tasks: Cost were paid because target card could not pay costs")
-		pending("is_cost == true execute_tasks: costs were paid when subject == boardseek")
+		_setup_unpayable_target_costs()
+		card.scripts = {"manual": {"hand": [
+				{"name": "mod_counter",
+				"is_cost": true,
+				"modification": -2,
+				"counter_name": "credits"},
+				{"name": "execute_scripts",
+				"is_cost": true,
+				"subject": "target",
+				"exec_trigger": "manual"}]}}
+		await execute_with_target(card, target)
+		assert_eq(board.counters.get_counter("credits"), 10,
+				"No costs were paid because the target card could not pay its costs")
+		assert_eq(board.counters.get_counter("research"), 0,
+				"Target's task was not executed")
+
+	func test_costs_are_paid_when_execute_scripts_is_not_a_cost():
+		_setup_unpayable_target_costs()
+		card.scripts = {"manual": {"hand": [
+				{"name": "mod_counter",
+				"is_cost": true,
+				"modification": -2,
+				"counter_name": "credits"},
+				{"name": "execute_scripts",
+				"subject": "target",
+				"exec_trigger": "manual"}]}}
+		await execute_with_target(card, target)
+		assert_eq(board.counters.get_counter("credits"), 8,
+				"Costs were paid because executing the target's scripts is not a cost")
+		assert_eq(board.counters.get_counter("research"), 0,
+				"Target's task was not executed as it could not pay its costs")
+
+	func test_costs_are_paid_when_target_costs_cannot_be_paid_with_boardseek():
+		_setup_unpayable_target_costs()
+		await table_move(target, Vector2(500,200))
+		card.scripts = {"manual": {"hand": [
+				{"name": "mod_counter",
+				"is_cost": true,
+				"modification": -2,
+				"counter_name": "credits"},
+				{"name": "execute_scripts",
+				"is_cost": true,
+				"subject": "boardseek",
+				"subject_count": "all",
+				"exec_trigger": "manual"}]}}
+		await execute_with_yield(card)
+		assert_eq(board.counters.get_counter("credits"), 8,
+				"Costs were paid because a boardseek subject can't fail the cost check")
+		assert_eq(board.counters.get_counter("research"), 0,
+				"Target's task was not executed as it could not pay its costs")
