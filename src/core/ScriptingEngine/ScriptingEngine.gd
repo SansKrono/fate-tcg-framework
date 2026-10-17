@@ -299,11 +299,18 @@ func move_card_to_container(script: ScriptTask) -> int:
 		elif str(dest_index) == SP.KEY_SUBJECT_INDEX_V_RANDOM:
 			dest_index = dest_container.get_card_index(dest_container.get_random_card())
 		for card in script.subjects:
+			# Cards can be freed while we await between moves (e.g. the board
+			# being torn down, or a custom script destroying a subject)
+			if not is_instance_valid(card):
+				continue
 			# We don't allow to draw more cards than the hand size
 			# But we don't consider it a failed cost (as most games allow you
 			# to try and draw more cards when you're full but just won't draw any)
 			card.move_to(dest_container,dest_index, null, tags)
-			await script.owner.get_tree().create_timer(0.05).timeout
+			# The owner might be freed too, so we use the autoload's tree
+			await cfc.get_tree().create_timer(0.05).timeout
+			if not is_instance_valid(dest_container):
+				break
 	if script.get_property(SP.KEY_STORE_INTEGER):
 		stored_integer = script.subjects.size()
 	return(retcode)
@@ -467,9 +474,16 @@ func spawn_card(script: ScriptTask) -> void:
 		grid = cfc.NMAP.board.get_grid(grid_name)
 		if grid:
 			for _iter in range(count + alteration):
+				# The grid (and its board) can be freed while we await between
+				# spawns, e.g. when the board is torn down mid-script.
+				if not is_instance_valid(grid):
+					break
 				slot = grid.find_available_slot()
 				# We need a small delay, to allow a potential new slot to instance
-				await script.owner.get_tree().create_timer(0.05).timeout
+				# The owner might be freed too, so we use the autoload's tree
+				await cfc.get_tree().create_timer(0.05).timeout
+				if not is_instance_valid(grid) or not is_instance_valid(cfc.NMAP.board):
+					break
 				if slot:
 					card = cfc.instance_card(canonical_name)
 					cfc.NMAP.board.add_child(card)
@@ -496,7 +510,7 @@ func spawn_card(script: ScriptTask) -> void:
 	script.subjects = spawned_cards
 	# Adding a small delay to allow the cards to finish instancing and setting their
 	# properties
-	await script.owner.get_tree().create_timer(0.1).timeout
+	await cfc.get_tree().create_timer(0.1).timeout
 
 
 # Task from creating a new card instance in a CardContainer
@@ -597,6 +611,11 @@ func shuffle_container(script: ScriptTask) -> void:
 	while container.are_cards_still_animating():
 		await container.get_tree().create_timer(0.2).timeout
 	container.shuffle_cards()
+	# Containers without a shuffle animation emit shuffle_completed synchronously.
+	# Anything awaiting that signal (e.g. a test) can then free the container
+	# before we get back here.
+	if not is_instance_valid(container):
+		return
 	# If there's no shuffle aniumation, we will get stuck if we yield.
 	if container.is_in_group("piles") and container.shuffle_style != CFConst.ShuffleStyle.NONE:
 		await container.shuffle_completed

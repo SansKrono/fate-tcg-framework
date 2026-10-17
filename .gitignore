@@ -12,3 +12,6 @@ export.cfg
 demo.txt
 reference.json
 .vscode
+
+# Godot 4 generated cache (editor state, imports, shader caches)
+.godot/**

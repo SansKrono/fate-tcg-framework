@@ -5,7 +5,22 @@ var cards := []
 func before_each():
 	await setup_main()
 	cards = draw_test_cards(5)
-	await wait_seconds(0.1)
+	await _wait_for_cards_to_settle()
+
+
+# Hand cards only start sliding to their fan layout some frames after being
+# drawn. The tests hover the mouse over a card's position, so reading it
+# before the cards stop moving would hover a different card (or none).
+func _wait_for_cards_to_settle() -> void:
+	var previous := []
+	for _iter in range(50):
+		await wait_seconds(0.1)
+		var current := []
+		for c in cards:
+			current.append(c.global_position)
+		if current == previous:
+			return
+		previous = current
 
 func test_single_card_focus():
 	var card : Card = cards[0]

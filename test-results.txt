@@ -1,0 +1,1542 @@
+
+
+res://tests/unit/test_AskInteger_scene.gd
+* test_title_and_highlights
+* test_on_LineEdit_text_changed
+* test_submit
+3/3 passed.
+
+
+res://tests/unit/test_BoardPlacementGrid_class.gd
+* test_get_all_slots
+* test_get_slot_count
+* test_get_highlighted_slot
+* test_get_slot
+* test_add_slot
+5/5 passed.
+
+
+res://tests/unit/test_CardChoices_scene.gd
+* test_title_and_signal
+* test_choices_text
+2/2 passed.
+
+
+res://tests/unit/test_DeckBuilder.gd
+* test_setup
+* test_quantity_button_add_remove
+* test_plus_minus_freeform_add_remove
+* test_save_load_reset
+    --- Awaiting 0.5 seconds  ---
+* test_filters
+* test_name_randomize
+6/6 passed.
+
+
+res://tests/unit/test_OptionalConfirmation_scene.gd
+* test_title_and_buttons
+* test_no
+* test_yes
+3/3 passed.
+
+
+res://tests/unit/test_card_class.gd
+* test_methods
+* test_focus_setget
+* test_move_to
+* test_init_card_name
+    [Failed]:  Expected 'Test Card 8' to contain 'Test Card 1', match_case=true
+      at line 69
+    [Failed]:  Expected 'Test Card 9' to contain 'Test Card 2', match_case=true
+      at line 74
+    [Failed]:  Expected 'Test Card 10' to contain 'Test Card 3', match_case=true
+      at line 79
+* test_card_name_setget
+    [Failed]:  ["Testing Name Change 1"] expected to equal ["Multiple Choices Test Card"]:  card_name variable is set correctly
+      at line 87
+    [Failed]:  ["Testing Name Change 1"] expected to equal ["Multiple Choices Test Card"]:  Name Label text is set correctly
+      at line 90
+* test_CardDefinition_properties
+    [Failed]:  ["0"] expected to equal ["10"]:  Integer properties are converted into strings
+      at line 118
+* test_font_size
+* test_number_properties_with_string_value
+    [Failed]:  ["0"] expected to equal ["X"]:  Numerical array allowed string value
+      at line 144
+* test_number_properties_adjust
+* test_refresh_card_front
+    [Failed]:  ["This is the card ability text.
+    "] expected to equal ["Property Refreshed"]:  Abilities refreshed
+      at line 214
+5/10 passed.
+
+
+res://tests/unit/test_cardcontainer_class.gd
+* test_methods
+* test_get_card_methods
+* test_manipulation_buttons
+* test_init_signal
+* test_update_manipulation_buttons
+5/5 passed.
+
+
+res://tests/unit/test_cardfilter.gd
+* test_init
+* test_comparison_int_as_string_convert
+* test_string_eq_comparison
+* test_string_ne_comparison
+* test_int_eq_comparison
+* test_int_ne_comparison
+* test_int_lt_comparison
+* test_int_gt_comparison
+* test_int_ge_comparison
+* test_int_le_comparison
+* test_str_bad_comparison_fallback
+* test_int_bad_comparison_fallback
+* test_string_number_to_string_eq_comparison_with_string_filter_considered_0
+* test_string_number_to_string_ne_comparison_with_string_filter_considered_0
+* test_string_number_to_string_eq_comparison_with_string_filter_not_considered_0
+* test_string_number_to_string_ne_comparison_with_string_filter_not_considered_0
+* test_int_to_int_string_comparison
+* test_null_to_int_comparison
+* test_array_eq_comparison
+* test_array_ne_comparison
+20/20 passed.
+
+
+res://tests/unit/test_pile_class.gd
+* test_get_card_methods
+* test_facedown_cards
+* test_faceup_cards
+* test_popup_view
+    --- Awaiting 0.7 seconds  ---
+    --- Awaiting 0.7 seconds  ---
+    --- Awaiting 0.7 seconds  ---
+    [Failed]:  ARRAY(["Multiple Choices Test Card", "Multiple Choices Test Card", "Test Card 2", "Test Ca... Card 3"]) != ARRAY(["Test Card 3", "Test Card 3", "Test Card 3", "Test Card 2", "Test Card 2", "Test Ca...st Card"]).
+    ["Multiple Choices Test Card", "Multiple...t Card 3"] != ["Test Card 3", "Test Card 3", "Test Car...est Card"]  14 of 17 indexes do not match.  Cards are ordered in view popup
+      at line 65
+    --- Awaiting 0.7 seconds  ---
+    [Failed]:  ARRAY([Multiple Choices Test Card5:<Area2D#2412882431486>]) != ARRAY([Multiple Choices Test Card:<Area2D#2392967877747>, Test Card 2:<Area2D#239431005292...2431486>]).
+    [Multiple Choices Test Card5:<Area2D#241...82431486>] != [Multiple Choices Test Card:<Area2D#2392...82431486>]  17 of 17 indexes do not match.  Pile order resumed after being viewed ordered
+      at line 69
+* test_set_pile_name
+* test_shuffle_signal
+5/6 passed.
+
+
+res://tests/unit/test_token_class.gd
+* test_count_setget
+* test_expand_retract
+* test_buttons
+* test_get_token_name
+4/4 passed.
+
+
+res://tests/unit/test_utils.gd
+* test_array_join
+* test_list_files_in_directory
+* test_load_card_definitions
+3/3 passed.
+
+
+res://tests/integration/test_anchors.gd
+* test_anchor_positioning_and_groups
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1130.0, 480.0)] +/- [(5.0, 5.0)]:  Bottom right anchor placement works
+      at line 20
+    [Failed]:  [VECTOR2(1174.90454101562500000000, 240.00000000000000000000)] expected to equal [VECTOR2(966.5, 240.0)] +/- [(5.0, 5.0)]:  Hand correct size not to overlap with piles
+      at line 27
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct size to not overlap with piles
+      at line 29
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct position to not overlap with piles
+      at line 32
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1127.0, 0.0)] +/- [(5.0, 5.0)]:  Top Right anchor placement works
+      at line 45
+    [Failed]:  [VECTOR2(669.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(562.0, 0.0)] +/- [(5.0, 5.0)]:  Top Middle anchor placement works
+      at line 51
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 239.50000000000000000000)] expected to equal [VECTOR2(1127.0, 237.0)] +/- [(5.0, 5.0)]:  Right Middle anchor placement works
+      at line 56
+* test_overlap_shift_up
+    [Failed]:  [VECTOR2(1174.90454101562500000000, 240.00000000000000000000)] expected to equal [VECTOR2(966.5, 240.0)] +/- [(5.0, 5.0)]:  Hand not shrunk when overlap was displaced upwards
+      at line 78
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size not shrunk when overlap was displaced upwards
+      at line 80
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position not shrunk when overlap was displaced upwards
+      at line 83
+* test_overlap_shift_left
+    [Failed]:  [VECTOR2(1186.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(977.0, 480.0)] +/- [(5.0, 5.0)]:  overlapping deck2 shifted left
+      at line 95
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1130.0, 480.0)] +/- [(5.0, 5.0)]:  OverlapShiftDirection == NONE allowed the discard to stay where it is
+      at line 97
+    [Failed]:  [VECTOR2(1021.90460205078125000000, 240.00000000000000000000)] expected to equal [VECTOR2(813.5, 240.0)] +/- [(5.0, 5.0)]:  Hand shrunk when overlap was displaced left
+      at line 101
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size shrunk when overlap was displaced left
+      at line 103
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position shrunk when overlap was displaced left
+      at line 106
+* test_overlap_shift_right
+    [Failed]:  [VECTOR2(1021.90460205078125000000, 240.00000000000000000000)] expected to equal [VECTOR2(813.5, 240.0)] +/- [(5.0, 5.0)]:  Hand shrunk when overlap was displaced left
+      at line 124
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size shrunk when overlap was displaced left
+      at line 126
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position shrunk when overlap was displaced left
+      at line 129
+* test_changing_viewport_size
+    [Failed]:  [VECTOR2(0.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(0.0, 840.0)] +/- [(5.0, 5.0)]:  Bottom left anchor placement works
+      at line 136
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1770.0, 840.0)] +/- [(5.0, 5.0)]:  Bottom right anchor placement works
+      at line 138
+    [Failed]:  [VECTOR2(153.00000000000000000000, 599.00000000000000000000)] expected to equal [VECTOR2(160.5, 960.0)] +/- [(5.0, 5.0)]:  Bottom middle anchor placement works
+      at line 140
+    [Failed]:  [VECTOR2(1183.00000000000000000000, 240.00000000000000000000)] expected to equal [VECTOR2(1606.5, 240.0)] +/- [(5.0, 5.0)]:  Hand correct size not to overlap with piles
+      at line 142
+    [Failed]:  [VECTOR2(591.50000000000000000000, 120.00000000000000000000)] expected to equal [VECTOR2(803.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct size to not overlap with piles
+      at line 144
+    [Failed]:  [VECTOR2(591.50000000000000000000, 120.00000000000000000000)] expected to equal [VECTOR2(803.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct position to not overlap with piles
+      at line 147
+0/5 passed.
+
+
+res://tests/integration/test_attachments.gd.TestAttachAndSwitch
+* test_attaching_and_switching_parent
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 1s  ---
+    --- Awaiting signal tween_all_completed or 1s  ---
+    [Failed]:  Expected [Multiple Choices Test Card5:<Area2D#3205891102336>(CGFCardTemplate.gd)] to be NULL:  Attachment clears out correctly when removed from table
+      at line 95
+    [Failed]:  [2] expected to equal [3]:  Attachment clears out correctly when removed from table
+      at line 97
+    [Failed]:  [VECTOR2(95.00000000000000000000, -49.00000000000000000000)] expected to equal [VECTOR2(95.0, -1.0)] +/- [(2.0, 2.0)]:  Removing an attachment reorganizes other attachments
+      at line 99
+    [Failed]:  [1] expected to equal [2]:  Old host's attachments array is the right size
+      at line 117
+    [Failed]:  [3] expected to equal [4]:  New host's attachments array has hosted all old ex-host's cards
+      at line 127
+    --- Awaiting 1 seconds  ---
+    [Failed]:  [0] expected to equal [4]:  Card leaving the table clears out attachment variables in it
+      at line 139
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+      at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+      at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+      at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+      at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+      at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+      at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+      at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+      at line 144
+0/1 passed.
+
+
+res://tests/integration/test_attachments.gd.TestMultiHostHover
+* test_multi_host_hover
+1/1 passed.
+
+
+res://tests/integration/test_attachments.gd.TestAttachmentNodeOrder
+* test_attachment_node_order
+    --- Awaiting 0.5 seconds  ---
+    [Failed]:  Multiple attachments in front of host are correctly ordered relative to host in parent node heirarchy
+      at line 254
+    [Failed]:  Multiple attachments in front of host are correctly ordered relative to host in parent node heirarchy
+      at line 256
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+    [Failed]:  Multiple attachments are correctly ordered relative to host when dragging
+      at line 275
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 1s  ---
+0/1 passed.
+
+
+res://tests/integration/test_board_use.gd.TestCardBoardDrop
+* test_card_table_drop_location_and_rotation_use_rectangle
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_card_table_drop_location_use_oval
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    [Failed]:  [12.46100000000000029843] expected to equal [180.0] +/- [2.0]:  Rotation reset to a hand angle when card moved back to hand
+      at line 64
+* test_fast_card_table_drop
+2/3 passed.
+
+
+res://tests/integration/test_board_use.gd.TestDropRecovery
+* test_card_hand_drop_recovery
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    [Failed]:  [4] expected to equal [5]:  Card dragged back in hand remains in hand
+      at line 87
+0/1 passed.
+
+
+res://tests/integration/test_board_use.gd.TestBoardBorderBlock
+* test_card_drag_block_by_board_borders
+    [Failed]:  [VECTOR2(1215.00000000000000000000, 295.00000000000000000000)] expected to equal [VECTOR2(1295.0, 295.0)] +/- [(2.0, 2.0)]:  Dragged outside right viewport borders stays inside viewport
+      at line 99
+    [Failed]:  [VECTOR2(495.00000000000000000000, 619.00000000000000000000)] expected to equal [VECTOR2(495.0, 795.0)] +/- [(2.0, 2.0)]:  Dragged outside bottom viewport borders stays inside viewport
+      at line 105
+0/1 passed.
+
+
+res://tests/integration/test_board_use.gd.TestBoardToBoardMove
+* test_board_to_board_move
+1/1 passed.
+
+
+res://tests/integration/test_board_use.gd.TestBoardPause
+* test_pause
+1/1 passed.
+
+
+res://tests/integration/test_card_draw.gd
+* test_single_card_draw_use_rectangle
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Card position x is recalculated correctly
+      at line 16
+* test_single_card_draw_use_oval
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Card position x is recalculated correctly
+      at line 37
+* test_draw_multiple_cards_slow_use_rectangle
+    [Failed]:  [250.00000000000000000000] expected to equal [574.0] +/- [5.0]:  Index 0 card position x is recalculated correctly
+      at line 64
+    [Failed]:  [415.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Index 1 card position x is recalculated correctly
+      at line 68
+    [Failed]:  [580.00000000000000000000] expected to equal [904.0] +/- [5.0]:  Index 2 card position x is recalculated correctly
+      at line 72
+* test_draw_multiple_cards_slow_use_oval
+    [Failed]:  [238.00000000000000000000] expected to equal [432.432739257812] +/- [5.0]:  Index 0 card position x is recalculated correctly
+      at line 100
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Index 1 card position x is recalculated correctly
+      at line 104
+    [Failed]:  [585.00000000000000000000] expected to equal [1045.56726074219] +/- [5.0]:  Index 2 card position x is recalculated correctly
+      at line 108
+* test_draw_multiple_cards_fast
+    --- Awaiting 0.5 seconds  ---
+* test_container_custom_card_functions
+* test_card_does_not_become_focused_during_movement
+* test_card_not_draggable_without_focus_first
+* test_excess_cards_disallowed
+* test_excess_cards_allowed
+* test_excess_cards_discard_drawn
+* test_excess_cards_discard_oldest
+8/12 passed.
+
+
+res://tests/integration/test_card_index.gd
+* test_hand_z_index
+    --- Awaiting 1 seconds  ---
+* test_table_hand_z_index
+    --- Awaiting 1 seconds  ---
+    --- Awaiting 0.7 seconds  ---
+    [Failed]:  [8] expected to equal [6]:  Correct amount of cards in hand
+      at line 34
+1/2 passed.
+
+
+res://tests/integration/test_facedown.gd
+* test_board_facedown
+    [Failed]:  Dupe is visible after moving mouse in and out to restart focus
+      at line 115
+* test_off_board_facedown
+1/2 passed.
+
+
+res://tests/integration/test_manipulation_buttons.gd.TestManipulationButtons
+* test_manipulation_buttons_not_messing_hand_focus
+    [Failed]:  [VECTOR2(103.00000000000000000000, -240.50000000000000000000)] expected to equal [VECTOR2(220.4931, -240.8971)] +/- [(2.0, 2.0)]:  Card focused and in correct global position
+      at line 17
+0/1 passed.
+
+
+res://tests/integration/test_mouse_pointer.gd
+* test_highlight_priority
+    [Failed]:  Potential host not highlighted when mouse over CardContainer
+      at line 25
+    [Failed]:  Hand higlighted for placement
+      at line 27
+    [Failed]:  Expected [BoardPlacementSlot2:<Control#5196038016862>(BoardPlacementSlot.gd)] to be NULL:  No slot highlighted when potential host highlighted
+      at line 30
+    [Failed]:  Hand higlighted for placement
+      at line 32
+* test_specific_grid_highlight
+* test_no_board_placement_highlight
+2/3 passed.
+
+
+res://tests/integration/test_piles.gd.TestMoveToContainer
+* test_move_to_container
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_move_to_multiple_container
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_move_from_board_to_deck_to_hand
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+3/3 passed.
+
+
+res://tests/integration/test_piles.gd.TestPileFacing
+* test_pile_facing
+1/1 passed.
+
+
+res://tests/integration/test_piles.gd.TestPopupView
+* test_popup_discard_view
+    --- Awaiting 1 seconds  ---
+    --- Awaiting 1 seconds  ---
+    --- Awaiting 1 seconds  ---
+    [Failed]:  [VECTOR2(0.75, 0.75)] expected to equal [VECTOR2(0.8, 0.8)]:  Moving a card into the popup, should scale it
+      at line 99
+    [Pending]:  Drawing a card from the pile, picks it from the popup
+    --- Awaiting 1 seconds  ---
+* test_popup_deck_view
+    --- Awaiting 1 seconds  ---
+    [Failed]:  Cards returning from popup should respect piles card facing
+      at line 124
+0/2 passed.
+
+
+res://tests/integration/test_piles.gd.TestStacking
+* test_stacking
+1/1 passed.
+
+
+res://tests/integration/test_piles.gd.TestShuffleRng
+* test_shuffle_rng
+    --- Awaiting 1 seconds  ---
+    --- Awaiting 1 seconds  ---
+    --- Awaiting 1 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_placement_grid.gd
+* test_placement_slots
+* test_any_grid_placement
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_specific_grid_placement
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_occupied_slot
+* test_move_script_placed_card_out_of_grid
+    4
+* test_grid_auto_placement
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+6/6 passed.
+
+
+res://tests/integration/test_reshuffle_all.gd
+* test_fancy_reshuffle_all
+    --- Awaiting signal tween_all_completed or 1s  ---
+* test_basic_reshuffle_all
+    --- Awaiting signal tween_all_completed or 1s  ---
+2/2 passed.
+
+
+res://tests/integration/test_rng_seed.gd
+* test_game_seed_consistency
+* test_game_seed_randomization
+2/2 passed.
+
+
+res://tests/integration/test_scaling_focus.gd.TestSingleCardFocus
+* test_single_card_focus_use_rectangle
+    [Failed]:  [VECTOR2(44.50000000000000000000, -240.00000000000000000000)] expected to equal [VECTOR2(371.5, -240.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 10
+* test_single_card_focus_use_oval
+    [Failed]:  [VECTOR2(103.00000000000000000000, -240.00000000000000000000)] expected to equal [VECTOR2(220.4931, -240.8971)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 26
+0/2 passed.
+
+
+res://tests/integration/test_scaling_focus.gd.TestNeightbourPush
+* test_card_focus_neighbour_push_use_rectangle
+    --- Awaiting 1 seconds  ---
+    [Failed]:  [VECTOR2(25.75000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(352.75, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 45
+    [Failed]:  [VECTOR2(134.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(461.5, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 47
+    [Failed]:  [VECTOR2(689.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1016.5, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 49
+    [Failed]:  [VECTOR2(798.25000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1125.25, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 51
+* test_card_focus_neighbour_push_use_oval
+    --- Awaiting 1 seconds  ---
+    [Failed]:  [VECTOR2(102.71800231933593750000, -22.39200019836425781250)] expected to equal [VECTOR2(188.8794, -20.01379)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 58
+    [Failed]:  [VECTOR2(180.00000000000000000000, -40.00000000000000000000)] expected to equal [VECTOR2(329.3672, -38.45251)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 60
+    [Failed]:  [VECTOR2(643.50000000000000000000, -40.00000000000000000000)] expected to equal [VECTOR2(1148.633, -38.45251)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 62
+    [Failed]:  [VECTOR2(722.00000000000000000000, -22.50000000000000000000)] expected to equal [VECTOR2(1289.121, -20.01379)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+      at line 64
+0/2 passed.
+
+
+res://tests/integration/test_scaling_focus.gd.TestChangeFocusNeighbour
+* test_card_change_focus_to_neighbour
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scaling_focus.gd.TestHandCardSlide
+* test_card_hand_mouseslide
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestCostsWithAlterants
+* test_is_cost_with_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsRespectState
+* test_alterants_respect_state
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestSelfAlterants
+* test_self_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsPer
+* test_alterants_per
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsRespectSingleTag
+* test_alterants_respect_single_tag
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsRespectMultipleTags
+* test_alterants_respect_muliple_tags
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestDifferentAlterants
+* test_different_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsRespectFilterState
+* test_alterants_respect_filter_state
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestAlterantsRespectPolarity
+* test_alterants_respect_polarity
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestCounterAlterants
+* test_counter_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestTokenAlterants
+* test_tokens_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestSpawnCardAlterants
+* test_spawn_card_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestGetCounterAlterants
+* test_get_counter_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestGetTokenAlterants
+* test_get_token_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestGetPropertyAlterants
+* test_get_property_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestPropertiesAlterants
+* test_properties_alterants
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_alterants.gd.TestPropertiesWithPolarity
+* test_properties_alterants_with_polarity
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestSelfandRotate
+* test_self_and_rotate_costs
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestTargetCosts
+* test_target_costs
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestMultipleCosts
+* test_multiple_costs
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestFlipCost
+* test_flip_cost
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestTokenCost
+* test_token_cost
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestModifyProperties
+* test_modify_properties_cost
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestMoveCardContToCont
+* test_move_card_cont_to_cont_cost
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestMoveCardContToBoard
+* test_move_card_cont_to_board_cost
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestMoveCardToGrid
+* test_move_card_to_grid_cost
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_costs.gd.TestCountersCost
+* test_counters_cost
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_else.gd.TestElse
+* test_else
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_filter_extras.gd.TestFailCostOnSkip
+* test_fail_cost_on_skip_false
+* test_fail_cost_on_skip_true
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_filter_extras.gd.TestFilterStringNumberProperty
+* test_filter_string_number_poperty
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestFilterGtGeLtLe
+* test_property_filter_gt_ge_lt_le
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestTokensFilterGtGeLtLe
+* test_tokens_filter_gt_ge_lt_le
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestAnd
+* test_and
+* test_or
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestStateFilterRotation
+* test_state_filter_rotation
+* test_state_filter_faceup
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestFilterTokens
+* test_state_filter_tokens
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestFilterParent
+* test_state_filter_parent
+* test_counter_comparison
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_filters.gd.TestPerCounter
+* test_per_counter
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_general.gd.TestBasics
+* test_basics
+    --- Awaiting 0.5 seconds  ---
+    [Pending]:  Empty does not create a ScriptingEngine object
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+0/1 passed.
+
+
+res://tests/integration/test_scripting_engine_general.gd.TestStateExecutions
+* test_state_executions
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting 1 seconds  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    [Failed]:  [VECTOR2(100.0, 100.0)] expected to equal [VECTOR2(0.0, 0.0)]:  Card should have moved to specified position
+      at line 101
+0/1 passed.
+
+
+res://tests/integration/test_scripting_engine_general.gd.TestCardScripts
+* test_CardScripts
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_general.gd.TestTargetScriptOnDragFromHand
+* test_target_script_on_drag_from_hand
+    --- Awaiting 0.5 seconds  ---
+    [Failed]:  Targeting started because targeting is_cost
+      at line 181
+0/1 passed.
+
+
+res://tests/integration/test_scripting_engine_needs_subject.gd.TestNeedSubjectWithPrevious
+* test_need_subject_with_previous
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_need_subject_with_cost
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_nested.gd.TestDrawMoreCardsThanPileMax
+* test_draw_more_cards_than_pile_max
+    [Pending]:  Test good execution of nested tasks
+    [Pending]:  Test failing cost in nested cost task aborts parent script
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerToken
+* test_per_token_and_modify_token_per
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerProperty
+* test_per_property
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestTutor
+* test_per_tutor_and_spawn_card_per
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerBoardseek
+* test_per_boardseek
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerCounter
+* test_per_counter
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestFilterPerBoardseek
+* test_filter_per_boardseek
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestFilterPerTutor
+* test_filter_per_tutor
+* test_filter_per_tutor_in_hand
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerPrevious
+* test_per_previous
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestPerInverted
+* test_per_inverted
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestFilterPerUnique
+* test_filter_per_count_unique
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestModifyPropertiesPer
+* test_modify_properties_per
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_per.gd.TestOriginalPrevious
+* test_original_previous
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_popups.gd.TestFilteredMultipleChoice
+* test_filtered_multiple_choice
+* test_task_confirm_dialog
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_popups.gd.TestTaskConfimDialogueTarget
+* test_task_confirm_cost_dialog_cancelled_target
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+* test_task_confirm_cost_dialogue_accepted_target
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_popups.gd.TestScriptConfirmDialog
+* test_script_confirm_dialog
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_popups.gd.TestAskIntegerWithCardMoves
+* test_ask_integer_with_card_moves
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_popups.gd.TestAskIntegerWithModTokens
+* test_ask_integer_with_mod_tokens
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_repeat.gd.TestRepeat
+* test_repeat
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_repeat.gd.TestRepeatWithTarget
+* test_repeat_with_target
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_shuffle.gd.TestShuffle
+* test_shuffle
+    --- Awaiting signal shuffle_completed or 1.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signal_tags.gd.TestCardMovedToSignalTags
+* test_card_moved_to_signal_tags
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signal_tags.gd.TestCardRotatedTags
+* test_card_rotated_tags
+    --- Awaiting signal tween_all_completed or 1s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signal_tags.gd.TestCardFlippedTags
+* test_card_flipped_tags
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signal_tags.gd.TestCardTokenModifiedTags
+* test_card_token_modified_tags
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signal_tags.gd.TestCounterModifiedTags
+* test_counter_modified_tags
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestSignals
+* test_signals
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardPropertiesFilter
+* test_card_properties_filter
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 1s  ---
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting signal tween_all_completed or 1s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardRotates
+* test_card_rotated
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardFlipped
+* test_card_flipped
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardViewed
+* test_card_viewed
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardMovedToHand
+* test_card_moved_to_hand
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardMovedToBoard
+* test_card_moved_to_board
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardMovedToPile
+* test_card_moved_to_pile
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardTokenModified
+* test_card_token_modified
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCounterModified
+* test_counter_modified
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardTargeted
+* test_card_targeted
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardUnattached
+* test_card_un_attached
+    --- Awaiting 1 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestCardPropertiesModified
+* test_card_properties_modified
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_signals.gd.TestSameSignalDiffTargets
+* test_same_signal_different_trigger
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_store_integer.gd.TestStoreIntegetInverted
+* test_store_integer_inverted
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_store_integer.gd.TestStoreIntegerWithCounters
+* test_store_integer_with_counters
+    --- Awaiting 0.5 seconds  ---
+* test_store_integer_with_tokens
+    --- Awaiting 0.5 seconds  ---
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_store_integer.gd.TestRetrieveIntegerTempModProperties
+* test_retrieve_integer_temp_mod_properties
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_store_integer.gd.TestRetrieveIntegerTempModCounter
+* test_retrieve_integer_temp_mod_counter
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_store_integer.gd.TestAdjustRetrievedInteger
+* test_adjust_retrieved_integer
+    --- Awaiting 0.5 seconds  ---
+* test_adjust_retrieved_integer_inverted
+    --- Awaiting 0.5 seconds  ---
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_subject_count.gd.TestBoardseekWithSubjectCount
+* test_boardseek_with_subject_count
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subject_count.gd.TestTutorWithSubjectCount
+* test_tutor_with_subject_count
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subject_count.gd.TestIndexWithSubjectCount
+* test_index_with_subject_count_from_top
+* test_index_with_subject_count_from_bottom
+* test_index_with_subject_count_from_index
+3/3 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectTarget
+* test_subject_target
+    [Failed]:  [0] expected to equal [270]:  First rotation should happen before targetting second time
+      at line 23
+    [Failed]:  [270] expected to equal [90]:  Second rotation should also happen
+      at line 27
+0/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectBoardseek
+* test_subject_boardseek
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectPrevious
+* test_subject_previous
+    [Pending]:  Test:filter_each_previous_subject
+* test_subject_boardseek_previous
+1/2 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectTutor
+* test_subject_tutor
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectIndex
+* test_subject_index
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectPreviousWithFilters
+* test_subject_previous_with_filters
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectsNext
+* test_subject_next
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestCustomScript
+* test_custom_script
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestRotateCard
+* test_rotate_card
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestFlipCard
+* test_flip_card
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestViewCard
+* test_view_card
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestMoveCardToContainer
+* test_move_card_to_container
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestMoveCardHandToBoard
+* test_move_card_hand_to_board
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestMoveCard
+* test_move_card_cont_to_cont
+* test_move_card_cont_to_board
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestModToken
+* test_mod_tokens
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestShuffleContainer
+* test_shuffle_container
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestAttachCard
+* test_attach_to_card
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestHostCard
+* test_host_card
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestCreateGrid
+* test_create_grid
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks.gd.TestModCounters
+* test_mod_counter
+* test_draw_more_cards_than_pile_max
+    --- Awaiting signal tween_all_completed or 1s  ---
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_execute_scripts.gd.TestExecuteScripts
+* test_execute_scripts
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_execute_scripts.gd.TestExecuteScriptsWithTempModProp
+* test_execute_scripts_with_temp_mod_property
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_execute_scripts.gd.TestExecuteScriptsWithTempModCounter
+* test_execute_scripts_with_temp_mod_counter
+    --- Awaiting 0.5 seconds  ---
+    --- Awaiting 0.5 seconds  ---
+* test_no_costs_are_paid_when_target_costs_cannot_be_paid
+    [Pending]:  is_cost == true execute_tasks: No costs were paid because target card could not pay costs
+    [Pending]:  is_cost == false execute_tasks: Cost were paid because target card could not pay costs
+    [Pending]:  is_cost == true execute_tasks: costs were paid when subject == boardseek
+1/2 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_modify_properties.gd.TestModifyProperties
+* test_modify_properties
+    --- Awaiting 0.5 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_modify_properties.gd.TestModifyPropertiesPerProperty
+* test_modify_properties_per_property
+    [Failed]:  ["5"] expected to equal ["7"]:  Number property label adjusted properly
+      at line 87
+0/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_modify_properties.gd.TestModifyTagProperty
+* test_modify_tag_property
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_modify_properties.gd.TestModifyStringNumberProperty
+* test_modify_string_number_property
+* test_modify_string_number_property2
+2/2 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_spawn_card.gd.TestSpawnCard
+* test_spawn_card
+1/1 passed.
+
+
+res://tests/integration/test_scripting_engine_tasks_spawn_card.gd.TestSpawnAndModifyCard
+* test_spawn_and_modify_card
+* test_spawn_and_modify_card_properies
+2/2 passed.
+
+
+res://tests/integration/test_targetting.gd
+* test_targetting
+    [Failed]:  Test that a target arrow hovering over another card, highlights it
+      at line 26
+    [Failed]:  [COLOR(1.0, 1.0, 1.0, 1.0)] expected to equal [COLOR(0.0, 0.52, 1.3, 1.3)]:  Test that a hovered target has the right colour highlight
+      at line 28
+    [Failed]:  [<null>] expected to equal [Shaking Card:<Area2D#17539253936199>(CGFCardTemplate.gd)]:  Test that card in hand can target card in hand
+      at line 31
+    --- Awaiting 0.6 seconds  ---
+    --- Awaiting 0.6 seconds  ---
+    --- Awaiting 0.6 seconds  ---
+    --- Awaiting 0.6 seconds  ---
+* test_signals
+1/2 passed.
+
+
+res://tests/integration/test_tokens.gd.TestBoardTokens
+* test_board_tokens
+    --- Awaiting 0.6 seconds  ---
+    --- Awaiting signal tween_all_completed or 0.5s  ---
+    --- Awaiting 0.8 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_tokens.gd.TestOffBoardTokens
+* test_off_board_tokens
+    --- Awaiting 0.8 seconds  ---
+1/1 passed.
+
+
+res://tests/integration/test_viewport_focus.gd
+* test_single_card_focus
+    [Failed]:  [0.36175620555878] expected to equal [0.0]:  Duplicate card is rotated correctly
+      at line 34
+    [GUT WARNING]:  Warn:  Float/Int comparison.  Got FLOAT but expected INT
+* test_for_leftover_focus_objects
+    --- Awaiting 0.5 seconds  ---
+* test_card_back_focus
+    [GUT WARNING]:  Warn:  Float/Int comparison.  Got FLOAT but expected INT
+* test_viewed_card_in_pile
+* test_retain_properties
+* test_FocusInfoPanel
+5/6 passed.
+
+
+
+
+==============================================
+= Run Summary
+==============================================
+
+res://tests/unit/test_card_class.gd
+- test_init_card_name
+    [Failed]:  Expected 'Test Card 8' to contain 'Test Card 1', match_case=true
+          at line 69
+    [Failed]:  Expected 'Test Card 9' to contain 'Test Card 2', match_case=true
+          at line 74
+    [Failed]:  Expected 'Test Card 10' to contain 'Test Card 3', match_case=true
+          at line 79
+- test_card_name_setget
+    [Failed]:  ["Testing Name Change 1"] expected to equal ["Multiple Choices Test Card"]:  card_name variable is set correctly
+          at line 87
+    [Failed]:  ["Testing Name Change 1"] expected to equal ["Multiple Choices Test Card"]:  Name Label text is set correctly
+          at line 90
+- test_CardDefinition_properties
+    [Failed]:  ["0"] expected to equal ["10"]:  Integer properties are converted into strings
+          at line 118
+- test_number_properties_with_string_value
+    [Failed]:  ["0"] expected to equal ["X"]:  Numerical array allowed string value
+          at line 144
+- test_refresh_card_front
+    [Failed]:  ["This is the card ability text.
+    "] expected to equal ["Property Refreshed"]:  Abilities refreshed
+          at line 214
+
+res://tests/unit/test_pile_class.gd
+- test_popup_view
+    [Failed]:  ARRAY(["Multiple Choices Test Card", "Multiple Choices Test Card", "Test Card 2", "Test Ca... Card 3"]) != ARRAY(["Test Card 3", "Test Card 3", "Test Card 3", "Test Card 2", "Test Card 2", "Test Ca...st Card"]).
+    ["Multiple Choices Test Card", "Multiple...t Card 3"] != ["Test Card 3", "Test Card 3", "Test Car...est Card"]  14 of 17 indexes do not match.  Cards are ordered in view popup
+          at line 65
+    [Failed]:  ARRAY([Multiple Choices Test Card5:<Area2D#2412882431486>]) != ARRAY([Multiple Choices Test Card:<Area2D#2392967877747>, Test Card 2:<Area2D#239431005292...2431486>]).
+    [Multiple Choices Test Card5:<Area2D#241...82431486>] != [Multiple Choices Test Card:<Area2D#2392...82431486>]  17 of 17 indexes do not match.  Pile order resumed after being viewed ordered
+          at line 69
+
+res://tests/integration/test_anchors.gd
+- test_anchor_positioning_and_groups
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1130.0, 480.0)] +/- [(5.0, 5.0)]:  Bottom right anchor placement works
+          at line 20
+    [Failed]:  [VECTOR2(1174.90454101562500000000, 240.00000000000000000000)] expected to equal [VECTOR2(966.5, 240.0)] +/- [(5.0, 5.0)]:  Hand correct size not to overlap with piles
+          at line 27
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct size to not overlap with piles
+          at line 29
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct position to not overlap with piles
+          at line 32
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1127.0, 0.0)] +/- [(5.0, 5.0)]:  Top Right anchor placement works
+          at line 45
+    [Failed]:  [VECTOR2(669.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(562.0, 0.0)] +/- [(5.0, 5.0)]:  Top Middle anchor placement works
+          at line 51
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 239.50000000000000000000)] expected to equal [VECTOR2(1127.0, 237.0)] +/- [(5.0, 5.0)]:  Right Middle anchor placement works
+          at line 56
+- test_overlap_shift_up
+    [Failed]:  [VECTOR2(1174.90454101562500000000, 240.00000000000000000000)] expected to equal [VECTOR2(966.5, 240.0)] +/- [(5.0, 5.0)]:  Hand not shrunk when overlap was displaced upwards
+          at line 78
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size not shrunk when overlap was displaced upwards
+          at line 80
+    [Failed]:  [VECTOR2(587.45227050781250000000, 120.00000000000000000000)] expected to equal [VECTOR2(483.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position not shrunk when overlap was displaced upwards
+          at line 83
+- test_overlap_shift_left
+    [Failed]:  [VECTOR2(1186.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(977.0, 480.0)] +/- [(5.0, 5.0)]:  overlapping deck2 shifted left
+          at line 95
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1130.0, 480.0)] +/- [(5.0, 5.0)]:  OverlapShiftDirection == NONE allowed the discard to stay where it is
+          at line 97
+    [Failed]:  [VECTOR2(1021.90460205078125000000, 240.00000000000000000000)] expected to equal [VECTOR2(813.5, 240.0)] +/- [(5.0, 5.0)]:  Hand shrunk when overlap was displaced left
+          at line 101
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size shrunk when overlap was displaced left
+          at line 103
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position shrunk when overlap was displaced left
+          at line 106
+- test_overlap_shift_right
+    [Failed]:  [VECTOR2(1021.90460205078125000000, 240.00000000000000000000)] expected to equal [VECTOR2(813.5, 240.0)] +/- [(5.0, 5.0)]:  Hand shrunk when overlap was displaced left
+          at line 124
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision size shrunk when overlap was displaced left
+          at line 126
+    [Failed]:  [VECTOR2(510.95230102539062500000, 120.00000000000000000000)] expected to equal [VECTOR2(406.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision position shrunk when overlap was displaced left
+          at line 129
+- test_changing_viewport_size
+    [Failed]:  [VECTOR2(0.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(0.0, 840.0)] +/- [(5.0, 5.0)]:  Bottom left anchor placement works
+          at line 136
+    [Failed]:  [VECTOR2(1339.00000000000000000000, 479.00000000000000000000)] expected to equal [VECTOR2(1770.0, 840.0)] +/- [(5.0, 5.0)]:  Bottom right anchor placement works
+          at line 138
+    [Failed]:  [VECTOR2(153.00000000000000000000, 599.00000000000000000000)] expected to equal [VECTOR2(160.5, 960.0)] +/- [(5.0, 5.0)]:  Bottom middle anchor placement works
+          at line 140
+    [Failed]:  [VECTOR2(1183.00000000000000000000, 240.00000000000000000000)] expected to equal [VECTOR2(1606.5, 240.0)] +/- [(5.0, 5.0)]:  Hand correct size not to overlap with piles
+          at line 142
+    [Failed]:  [VECTOR2(591.50000000000000000000, 120.00000000000000000000)] expected to equal [VECTOR2(803.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct size to not overlap with piles
+          at line 144
+    [Failed]:  [VECTOR2(591.50000000000000000000, 120.00000000000000000000)] expected to equal [VECTOR2(803.25, 120.0)] +/- [(5.0, 5.0)]:  Hand collision shape correct position to not overlap with piles
+          at line 147
+
+res://tests/integration/test_attachments.gd.TestAttachAndSwitch
+- test_attaching_and_switching_parent
+    [Failed]:  Expected [Multiple Choices Test Card5:<Area2D#3205891102336>(CGFCardTemplate.gd)] to be NULL:  Attachment clears out correctly when removed from table
+          at line 95
+    [Failed]:  [2] expected to equal [3]:  Attachment clears out correctly when removed from table
+          at line 97
+    [Failed]:  [VECTOR2(95.00000000000000000000, -49.00000000000000000000)] expected to equal [VECTOR2(95.0, -1.0)] +/- [(2.0, 2.0)]:  Removing an attachment reorganizes other attachments
+          at line 99
+    [Failed]:  [1] expected to equal [2]:  Old host's attachments array is the right size
+          at line 117
+    [Failed]:  [3] expected to equal [4]:  New host's attachments array has hosted all old ex-host's cards
+          at line 127
+    [Failed]:  [0] expected to equal [4]:  Card leaving the table clears out attachment variables in it
+          at line 139
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+          at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+          at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+          at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+          at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+          at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+          at line 144
+    [Failed]:  Expected [Shaking Card:<Area2D#3201126372176>(CGFCardTemplate.gd)] to be NULL:  Attachment of a host that left play clears out correctly
+          at line 142
+    [Failed]:  [Deck:<Area2D#3172303115426>(CGFDeck.gd)] expected to equal [Board:<Control#3172252784423>(CGFBoard.gd)]:  Attachment of a host that left play follows it to the same target
+          at line 144
+
+res://tests/integration/test_attachments.gd.TestAttachmentNodeOrder
+- test_attachment_node_order
+    [Failed]:  Multiple attachments in front of host are correctly ordered relative to host in parent node heirarchy
+          at line 254
+    [Failed]:  Multiple attachments in front of host are correctly ordered relative to host in parent node heirarchy
+          at line 256
+    [Failed]:  Multiple attachments are correctly ordered relative to host when dragging
+          at line 275
+
+res://tests/integration/test_board_use.gd.TestCardBoardDrop
+- test_card_table_drop_location_use_oval
+    [Failed]:  [12.46100000000000029843] expected to equal [180.0] +/- [2.0]:  Rotation reset to a hand angle when card moved back to hand
+          at line 64
+
+res://tests/integration/test_board_use.gd.TestDropRecovery
+- test_card_hand_drop_recovery
+    [Failed]:  [4] expected to equal [5]:  Card dragged back in hand remains in hand
+          at line 87
+
+res://tests/integration/test_board_use.gd.TestBoardBorderBlock
+- test_card_drag_block_by_board_borders
+    [Failed]:  [VECTOR2(1215.00000000000000000000, 295.00000000000000000000)] expected to equal [VECTOR2(1295.0, 295.0)] +/- [(2.0, 2.0)]:  Dragged outside right viewport borders stays inside viewport
+          at line 99
+    [Failed]:  [VECTOR2(495.00000000000000000000, 619.00000000000000000000)] expected to equal [VECTOR2(495.0, 795.0)] +/- [(2.0, 2.0)]:  Dragged outside bottom viewport borders stays inside viewport
+          at line 105
+
+res://tests/integration/test_card_draw.gd
+- test_single_card_draw_use_rectangle
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Card position x is recalculated correctly
+          at line 16
+- test_single_card_draw_use_oval
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Card position x is recalculated correctly
+          at line 37
+- test_draw_multiple_cards_slow_use_rectangle
+    [Failed]:  [250.00000000000000000000] expected to equal [574.0] +/- [5.0]:  Index 0 card position x is recalculated correctly
+          at line 64
+    [Failed]:  [415.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Index 1 card position x is recalculated correctly
+          at line 68
+    [Failed]:  [580.00000000000000000000] expected to equal [904.0] +/- [5.0]:  Index 2 card position x is recalculated correctly
+          at line 72
+- test_draw_multiple_cards_slow_use_oval
+    [Failed]:  [238.00000000000000000000] expected to equal [432.432739257812] +/- [5.0]:  Index 0 card position x is recalculated correctly
+          at line 100
+    [Failed]:  [412.00000000000000000000] expected to equal [739.0] +/- [5.0]:  Index 1 card position x is recalculated correctly
+          at line 104
+    [Failed]:  [585.00000000000000000000] expected to equal [1045.56726074219] +/- [5.0]:  Index 2 card position x is recalculated correctly
+          at line 108
+
+res://tests/integration/test_card_index.gd
+- test_table_hand_z_index
+    [Failed]:  [8] expected to equal [6]:  Correct amount of cards in hand
+          at line 34
+
+res://tests/integration/test_facedown.gd
+- test_board_facedown
+    [Failed]:  Dupe is visible after moving mouse in and out to restart focus
+          at line 115
+
+res://tests/integration/test_manipulation_buttons.gd.TestManipulationButtons
+- test_manipulation_buttons_not_messing_hand_focus
+    [Failed]:  [VECTOR2(103.00000000000000000000, -240.50000000000000000000)] expected to equal [VECTOR2(220.4931, -240.8971)] +/- [(2.0, 2.0)]:  Card focused and in correct global position
+          at line 17
+
+res://tests/integration/test_mouse_pointer.gd
+- test_highlight_priority
+    [Failed]:  Potential host not highlighted when mouse over CardContainer
+          at line 25
+    [Failed]:  Hand higlighted for placement
+          at line 27
+    [Failed]:  Expected [BoardPlacementSlot2:<Control#5196038016862>(BoardPlacementSlot.gd)] to be NULL:  No slot highlighted when potential host highlighted
+          at line 30
+    [Failed]:  Hand higlighted for placement
+          at line 32
+
+res://tests/integration/test_piles.gd.TestPopupView
+- test_popup_discard_view
+    [Failed]:  [VECTOR2(0.75, 0.75)] expected to equal [VECTOR2(0.8, 0.8)]:  Moving a card into the popup, should scale it
+          at line 99
+    [Pending]:  Drawing a card from the pile, picks it from the popup
+- test_popup_deck_view
+    [Failed]:  Cards returning from popup should respect piles card facing
+          at line 124
+
+res://tests/integration/test_scaling_focus.gd.TestSingleCardFocus
+- test_single_card_focus_use_rectangle
+    [Failed]:  [VECTOR2(44.50000000000000000000, -240.00000000000000000000)] expected to equal [VECTOR2(371.5, -240.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 10
+- test_single_card_focus_use_oval
+    [Failed]:  [VECTOR2(103.00000000000000000000, -240.00000000000000000000)] expected to equal [VECTOR2(220.4931, -240.8971)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 26
+
+res://tests/integration/test_scaling_focus.gd.TestNeightbourPush
+- test_card_focus_neighbour_push_use_rectangle
+    [Failed]:  [VECTOR2(25.75000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(352.75, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 45
+    [Failed]:  [VECTOR2(134.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(461.5, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 47
+    [Failed]:  [VECTOR2(689.50000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1016.5, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 49
+    [Failed]:  [VECTOR2(798.25000000000000000000, 0.00000000000000000000)] expected to equal [VECTOR2(1125.25, 0.0)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 51
+- test_card_focus_neighbour_push_use_oval
+    [Failed]:  [VECTOR2(102.71800231933593750000, -22.39200019836425781250)] expected to equal [VECTOR2(188.8794, -20.01379)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 58
+    [Failed]:  [VECTOR2(180.00000000000000000000, -40.00000000000000000000)] expected to equal [VECTOR2(329.3672, -38.45251)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 60
+    [Failed]:  [VECTOR2(643.50000000000000000000, -40.00000000000000000000)] expected to equal [VECTOR2(1148.633, -38.45251)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 62
+    [Failed]:  [VECTOR2(722.00000000000000000000, -22.50000000000000000000)] expected to equal [VECTOR2(1289.121, -20.01379)] +/- [(2.0, 2.0)]:  Card dragged in correct global position
+          at line 64
+
+res://tests/integration/test_scripting_engine_general.gd.TestBasics
+- test_basics
+    [Pending]:  Empty does not create a ScriptingEngine object
+
+res://tests/integration/test_scripting_engine_general.gd.TestStateExecutions
+- test_state_executions
+    [Failed]:  [VECTOR2(100.0, 100.0)] expected to equal [VECTOR2(0.0, 0.0)]:  Card should have moved to specified position
+          at line 101
+
+res://tests/integration/test_scripting_engine_general.gd.TestTargetScriptOnDragFromHand
+- test_target_script_on_drag_from_hand
+    [Failed]:  Targeting started because targeting is_cost
+          at line 181
+
+res://tests/integration/test_scripting_engine_nested.gd.TestDrawMoreCardsThanPileMax
+- test_draw_more_cards_than_pile_max
+    [Pending]:  Test good execution of nested tasks
+    [Pending]:  Test failing cost in nested cost task aborts parent script
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectTarget
+- test_subject_target
+    [Failed]:  [0] expected to equal [270]:  First rotation should happen before targetting second time
+          at line 23
+    [Failed]:  [270] expected to equal [90]:  Second rotation should also happen
+          at line 27
+
+res://tests/integration/test_scripting_engine_subjects.gd.TestSubjectPrevious
+- test_subject_previous
+    [Pending]:  Test:filter_each_previous_subject
+
+res://tests/integration/test_scripting_engine_tasks_execute_scripts.gd.TestExecuteScriptsWithTempModCounter
+- test_no_costs_are_paid_when_target_costs_cannot_be_paid
+    [Pending]:  is_cost == true execute_tasks: No costs were paid because target card could not pay costs
+    [Pending]:  is_cost == false execute_tasks: Cost were paid because target card could not pay costs
+    [Pending]:  is_cost == true execute_tasks: costs were paid when subject == boardseek
+
+res://tests/integration/test_scripting_engine_tasks_modify_properties.gd.TestModifyPropertiesPerProperty
+- test_modify_properties_per_property
+    [Failed]:  ["5"] expected to equal ["7"]:  Number property label adjusted properly
+          at line 87
+
+res://tests/integration/test_targetting.gd
+- test_targetting
+    [Failed]:  Test that a target arrow hovering over another card, highlights it
+          at line 26
+    [Failed]:  [COLOR(1.0, 1.0, 1.0, 1.0)] expected to equal [COLOR(0.0, 0.52, 1.3, 1.3)]:  Test that a hovered target has the right colour highlight
+          at line 28
+    [Failed]:  [<null>] expected to equal [Shaking Card:<Area2D#17539253936199>(CGFCardTemplate.gd)]:  Test that card in hand can target card in hand
+          at line 31
+
+res://tests/integration/test_viewport_focus.gd
+- test_single_card_focus
+    [Failed]:  [0.36175620555878] expected to equal [0.0]:  Duplicate card is rotated correctly
+          at line 34
+
+Totals
+------
+Warnings              2
+
+Scripts             188
+Tests               273
+Passing Tests       233
+Failing Tests        36
+Risky/Pending         8
+Asserts           1125/1216
+Time              386.913s
+
+
+---- 36 failing tests ----
+

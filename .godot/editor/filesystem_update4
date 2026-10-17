@@ -1,5 +1,0 @@
-res://default_env.tres
-res://src/core/BoardTemplate.gd
-res://INSTALL.md
-res://tests/UTcommon.gd
-res://tests/tests_runner.gd

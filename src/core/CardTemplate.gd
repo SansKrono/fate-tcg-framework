@@ -1401,9 +1401,9 @@ func move_to(targetHost,
 			# Checking if this is an attachment and we're looking for a new host
 			if potential_host:
 				attach_to_host(potential_host)
+				set_state(CardState.DROPPING_TO_BOARD)
 			# If we are an attachment and were moved elsewhere
 			# We reset the position.
-				set_state(CardState.ON_PLAY_BOARD)
 			elif current_host_card:
 				var attach_index = current_host_card.attachments.find(self)
 				_target_position = (current_host_card.global_position
@@ -1412,7 +1412,7 @@ func move_to(targetHost,
 						* CFConst.ATTACHMENT_OFFSET[attachment_offset].x,
 						(attach_index + 1)* card_size.y
 						* CFConst.ATTACHMENT_OFFSET[attachment_offset].y))
-				set_state(CardState.ON_PLAY_BOARD)
+				set_state(CardState.DROPPING_TO_BOARD)
 			else:
 				# When we drop from board to board
 				# We need to ensure the card respects its
@@ -1540,6 +1540,9 @@ func execute_scripts(
 			sceng.execute()
 			if not sceng.all_tasks_completed:
 				await sceng.tasks_completed
+			# The card might have been freed while the scripts were running
+			if not is_instance_valid(self):
+				return
 			# We make sure this function does to return until all
 			# custom post execution scripts have also finished
 			await common_post_execution_scripts(trigger)
@@ -1631,6 +1634,8 @@ func attach_to_host(
 		# also became an attachment here.
 		if current_host_card and not is_following_previous_host:
 			current_host_card.attachments.erase(self)
+			# The old host needs to re-slot its remaining attachments
+			current_host_card.state_finalized = false
 			emit_signal("card_unattached",
 					self,
 					"card_unattached",
@@ -2136,6 +2141,8 @@ func _clear_attachment_status(tags := ["Manual"]) -> void:
 				"card_unattached",
 				{"host": current_host_card, "tags": tags})
 		current_host_card.attachments.erase(self)
+		# The old host needs to re-slot its remaining attachments
+		current_host_card.state_finalized = false
 		current_host_card = null
 	for card in attachments:
 		card.current_host_card = null

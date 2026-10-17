@@ -48,5 +48,9 @@ func get_class() -> String:
 
 # Resizes the grid container so that the preview cards fix snuggly.
 func _on_viewport_resized() -> void:
+	# The viewport can resize (e.g. during startup) while setup() is still
+	# instancing the card, or before it was called. setup() sizes us afterwards.
+	if not is_instance_valid(display_card):
+		return
 	custom_minimum_size = display_card.canonical_size * display_card.thumbnail_scale * cfc.curr_scale
 	size = custom_minimum_size
