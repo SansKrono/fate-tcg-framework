@@ -103,7 +103,7 @@ __meta__ = {
 offset_top = 37.0
 offset_right = 192.0
 offset_bottom = 64.0
-text = "Multiplayer Demo"
+text = "Fate Two-Player PoC"
 
 [node name="Deckbuilder" type="Button" parent="MainMenu/VBox/Center/VButtons"]
 offset_top = 74.0

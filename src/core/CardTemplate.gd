@@ -1820,6 +1820,23 @@ func set_control_mouse_filters(value = true) -> void:
 		monitorable = value
 
 
+# Returns the part of the viewport the player can see, in the coordinates cards
+# are positioned with.
+#
+# The viewport can be bigger than the area the game is drawn on,
+# as the window's content scaling is not part of the viewport's own transforms.
+# Therefore we undo it here.
+func _get_visible_area() -> Rect2:
+	var viewport := get_viewport()
+	var area: Rect2 = viewport.get_canvas_transform().affine_inverse() \
+			* viewport.get_visible_rect()
+	var content_scale: Vector2 = get_tree().root.get_final_transform().get_scale()
+	if content_scale.x > 0.0 and content_scale.y > 0.0:
+		area.position /= content_scale
+		area.size /= content_scale
+	return area
+
+
 # Get card position in hand by index
 # if use oval shape, the card has a certain offset according to the angle
 func recalculate_position(index_diff = null) -> Vector2:
@@ -2361,20 +2378,17 @@ func _process_card_state() -> void:
 				_target_position = expected_position \
 						- Vector2(card_size.x \
 						* 0.25,0)
-				# Enough with the fancy calculations. I'm just brute-forcing
-				# The card to stay at the fully within the viewport.
-				if get_parent().placement == get_parent().Anchors.CONTROL:
-					while  get_parent().get_parent().global_position.y\
-							+ get_parent().bottom_margin \
-							+ _target_position.y \
-							+ card_size.y * 1.5 > get_viewport().get_visible_rect().size.y:
-						_target_position.y -= 1
-				else:
-					while get_parent().position.y \
-						+ get_parent().bottom_margin \
-						+ _target_position.y \
-						+ card_size.y > get_viewport().get_visible_rect().size.y:
-						_target_position.y -= 1
+				# Keep the enlarged card fully within the visible area
+				var visible_area := _get_visible_area().grow(-card_size.y * 0.05)
+				var hand_top: float = get_parent().global_position.y
+				var focused_height: float = card_size.y * focused_scale
+				# Lift cards hanging below the bottom edge...
+				_target_position.y = min(_target_position.y,
+						visible_area.end.y - focused_height - hand_top)
+				# ...and lower the ones hanging above the top edge,
+				# (a hand at the top of the screen)
+				_target_position.y = max(_target_position.y,
+						visible_area.position.y - hand_top)
 				# We need to bump up the y postion a bit based on the rotation
 				# We subtract 13 if there is no rotation
 				_target_rotation = expected_rotation

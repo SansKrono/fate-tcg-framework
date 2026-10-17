@@ -31,7 +31,9 @@ func on_button_pressed(_button_name : String) -> void:
 			# warning-ignore:return_value_discarded
 			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'CGFMain.tscn')
 		"Multiplayer":
-			pass
+			# The Fate proof of concept: a hotseat two-player table
+			# warning-ignore:return_value_discarded
+			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'fate/FateMain.tscn')
 		"GUT":
 			# warning-ignore:return_value_discarded
 			get_tree().change_scene_to_file("res://tests/tests.tscn")

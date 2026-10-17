@@ -12,9 +12,11 @@ class_name CardConfig
 extends RefCounted
 
 # Properties which are placed as they are in appropriate labels
-const PROPERTIES_STRINGS := ["Type", "Requirements", "Abilities"]
+# "Domain" and "Pips" are used by the Fate cards (see src/custom/fate/FateData.gd)
+const PROPERTIES_STRINGS := ["Type", "Requirements", "Abilities", "Domain", "Pips"]
 # Properties which are converted into string using a format defined in setup()
-const PROPERTIES_NUMBERS := ["Cost","Power"]
+# "Strike" and "Guard" are the Fate creature stats. "Power" remains for the demo sets.
+const PROPERTIES_NUMBERS := ["Cost","Power","Strike","Guard"]
 # The name of these properties will be prepended before their value to their label.
 const NUMBER_WITH_LABEL := []
 # Properties provided in a list which are converted into a string for the
