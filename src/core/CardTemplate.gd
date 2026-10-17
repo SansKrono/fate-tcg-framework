@@ -1034,6 +1034,12 @@ func _set_canonical_name_property(value: String) -> void:
 # Overwrites the built-in set name, so that it also sets canonical_name
 #
 # It's preferrable to set canonical_name instead.
+#
+# Godot 4 does not dispatch statically typed calls (e.g. `var card: Card`) to
+# this override of a native method, so `card.set_name()` on a typed variable
+# runs the native version and leaves canonical_name untouched. Only dynamic
+# calls (untyped variables, call()) reach it. Use canonical_name or
+# set_card_name() instead.
 @warning_ignore("native_method_override")
 func set_name(value : StringName) -> void:
 	super.set_name(value)
@@ -2657,9 +2663,15 @@ func _process_card_state() -> void:
 			set_focus(false)
 			set_control_mouse_filters(false)
 			buttons.set_active(false)
+			# The duplicate inherits the original's rotation (e.g. a hand fan angle).
+			# We snap it to 0 and drop any rotation tween before calling
+			# set_card_rotation(), otherwise that would start a 0.3s ease from the
+			# inherited angle and the focus card would be visibly rotated while it
+			# plays.
+			$Tween.remove($Control, 'rotation_degrees')
+			$Control.rotation_degrees = 0
 			# warning-ignore:return_value_discarded
 			set_card_rotation(0)
-			$Control.rotation_degrees = 0
 			targeting_arrow.complete_targeting()
 			$Control/Tokens.visible = false
 			# We scale the card dupe to allow the player a better viewing experience

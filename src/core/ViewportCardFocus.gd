@@ -107,6 +107,10 @@ func focus_card(card: Card, show_preview := true) -> void:
 			# warning-ignore:return_value_discarded
 			dupe_focus.set_is_faceup(card.is_faceup, true)
 			dupe_focus.is_viewed = card.is_viewed
+			# A face-down card which the player has viewed shows its front in the dupe.
+			# set_is_faceup() above flipped the dupe to its back, so we flip it back
+			if dupe_focus.is_viewed and not dupe_focus.is_faceup:
+				dupe_focus._flip_card(dupe_focus._card_back_container, dupe_focus._card_front_container, true)
 		else:
 			dupe_focus = card.duplicate(DUPLICATE_USE_INSTANTIATION)
 			dupe_focus.remove_from_group("cards")

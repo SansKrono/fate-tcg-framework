@@ -66,23 +66,40 @@ func test_init_card_name():
 	var test1 = cfc.NMAP.deck.get_card(13)
 	assert_eq("Test Card 1",test1.canonical_name,
 			'card_name variable is set correctly')
-	assert_string_contains(str(test1.name), "Test Card 1")
+	# Godot makes sibling node names unique by changing a trailing number
+	# (e.g. "Test Card 1" becomes "Test Card 8"), so we ignore trailing digits.
+	assert_eq(_strip_trailing_digits(test1.canonical_name),
+			_strip_trailing_digits(str(test1.name)),
+			'Node name matches the card name, ignoring Godot\'s unique suffix')
 	assert_eq("Test Card 1",test1.card_front.card_labels["Name"].text,
 			'Name Label text is set correctly')
 	assert_eq("Test Card 2",test2.canonical_name,
 			'card_name variable is set correctly')
-	assert_string_contains(str(test2.name), "Test Card 2")
+	# Godot makes sibling node names unique by changing a trailing number
+	# (e.g. "Test Card 1" becomes "Test Card 8"), so we ignore trailing digits.
+	assert_eq(_strip_trailing_digits(test2.canonical_name),
+			_strip_trailing_digits(str(test2.name)),
+			'Node name matches the card name, ignoring Godot\'s unique suffix')
 	assert_eq("Test Card 2",test2.card_front.card_labels["Name"].text,
 			'Name Label text is set correctly')
 	assert_eq("Test Card 3",test3.canonical_name,
 			'card_name variable is set correctly')
-	assert_string_contains(str(test3.name), "Test Card 3")
+	# Godot makes sibling node names unique by changing a trailing number
+	# (e.g. "Test Card 1" becomes "Test Card 8"), so we ignore trailing digits.
+	assert_eq(_strip_trailing_digits(test3.canonical_name),
+			_strip_trailing_digits(str(test3.name)),
+			'Node name matches the card name, ignoring Godot\'s unique suffix')
 	assert_eq("Test Card 3",test3.card_front.card_labels["Name"].text,
 			'Name Label text is set correctly')
 
+func _strip_trailing_digits(value: String) -> String:
+	return value.rstrip("0123456789")
+
 func test_card_name_setget():
 	await wait_seconds(0.1)
-	card.set_name("Testing Name Change 1")
+	# A statically typed call to the native Node.set_name() bypasses the
+	# CardTemplate.set_name() script override, so we call it dynamically here.
+	card.call("set_name", "Testing Name Change 1")
 	# We need a yield to allow the richtextlabel setup complete
 	assert_eq("Testing Name Change 1",card.canonical_name,
 			'card_name variable is set correctly')
@@ -211,5 +228,8 @@ func test_refresh_card_front():
 			"String refreshed to int")
 	assert_eq(new_card.card_front.card_labels["Tags"].text, "Tag 3 - Tag 4",
 			"Tags refreshed")
-	assert_eq(new_card.card_front.card_labels["Abilities"].text, "Property Refreshed",
+	# Abilities is a RichTextLabel. CardFront fills it with append_text(), which in
+	# Godot 4 does not update the "text" property (it keeps the scene default).
+	# The displayed content is read with get_parsed_text().
+	assert_eq(new_card.card_front.card_labels["Abilities"].get_parsed_text(), "Property Refreshed",
 			"Abilities refreshed")

@@ -103,9 +103,21 @@ func fake_click(pressed, position, flags=0) -> InputEvent:
 	return ev
 
 
+# The tests hard-code positions for a 1280x720 viewport. Headless runs give
+# the root window a 64x64 size, and the editor-embedded game window ignores
+# attempts to resize it, so we also fix the size of the "visible rect" (what
+# the game code uses for layout) through the content scale. That works
+# regardless of the real window size.
+func force_test_viewport(size := Vector2i(1280, 720)) -> void:
+	var root := get_tree().root
+	root.size = size
+	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	root.content_scale_size = size
+
+
 func setup_main() -> void:
-	# Headless runs give the root window a 64x64 size, which breaks layout maths
-	get_tree().root.size = Vector2i(1280, 720)
+	force_test_viewport()
 	cfc.is_testing = true
 	cfc._setup()
 	main = autoqfree(MAIN_SCENE.instantiate())
@@ -121,8 +133,7 @@ func setup_main() -> void:
 
 
 func setup_board() -> void:
-	# Headless runs give the root window a 64x64 size, which breaks layout maths
-	get_tree().root.size = Vector2i(1280, 720)
+	force_test_viewport()
 	cfc.is_testing = true
 	cfc._setup()
 	board = add_child_autofree(BOARD_SCENE.instantiate())
@@ -197,6 +208,16 @@ func drag_card(card: Card, target_position: Vector2, interpolation_speed := "fas
 	board._UT_interpolate_mouse_move(card.global_position + extra_offset,
 			board._UT_mouse_position,mouse_speed)
 	await _helper_wait(mouse_yield_wait)
+	# Other cards in the hand can still be moving back to their places when
+	# the mouse leaves them, so the card might have shifted from where we
+	# aimed. We re-aim until the card is actually hovered, otherwise the click
+	# below would not reach it.
+	var repeat := 0
+	while board.mouse_pointer.current_focused_card != card and repeat < 3:
+		board._UT_interpolate_mouse_move(card.global_position + extra_offset,
+				board._UT_mouse_position,mouse_speed)
+		await _helper_wait(mouse_yield_wait)
+		repeat += 1
 	click_card(card)
 	if interpolation_speed == "debug":
 		await _helper_wait(4) # Allow for review

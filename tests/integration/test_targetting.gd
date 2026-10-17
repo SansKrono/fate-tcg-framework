@@ -11,7 +11,10 @@ func after_all():
 func before_each():
 	await setup_board()
 	cards = draw_test_cards(5)
-	await wait_seconds(0.1)
+	# The hand re-organization tween must finish, otherwise the cards keep
+	# moving away from the positions the virtual mouse is aimed at.
+	for c in cards:
+		await wait_card_settled(c)
 
 
 func test_targetting():

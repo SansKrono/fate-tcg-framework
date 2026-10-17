@@ -117,8 +117,10 @@ func _on_ViewPopup_popup_hide() -> void:
 	for card in pre_sorted_order:
 		# For each card we have hosted, we check if it's hosted in the popup.
 		# If it is, we move it to the root.
-#		print_debug(card.canonical_name, card.get_parent().name)
-		if "CardPopUpSlot" in card.get_parent().name:
+		# In Godot 4 only the first slot keeps the name "CardPopUpSlot"; further
+		# ones are auto-renamed (e.g. "@Control@12"), so we detect the slots by
+		# their parent being the popup grid instead of by name.
+		if card.get_parent() != self and card.get_parent().get_parent() == _popup_grid:
 			card.get_parent().remove_child(card)
 			add_child(card)
 			# We need to remember that cards in piles should be left invisible
@@ -239,6 +241,10 @@ func reorganize_stack() -> void:
 #	while are_cards_still_animating():
 #		yield(get_tree().create_timer(0.3), "timeout")
 	for c in get_all_cards():
+		# With the popup open, get_all_cards() returns pre_sorted_order, which
+		# can still hold cards that have since left this pile (e.g. moved to the board)
+		if not is_instance_valid(c) or not is_ancestor_of(c):
+			continue
 		if c.position != get_stack_position(c):
 			c.position = get_stack_position(c)
 	# The size of the panel has to be modified to be as large as the size
@@ -328,7 +334,10 @@ func _slot_card_into_popup(card: Card) -> void:
 	# We set the control container size to be equal
 	# to the card size to which the card will scale.
 	card_slot.custom_minimum_size = card.get_node("Control").custom_minimum_size * card.scale
-	$ViewPopup/CardView.add_child(card_slot)
+	# In Godot 4, a plain add_child() renames a clashing node to "@Control@N",
+	# which breaks the "CardPopUpSlot" in name checks in CardTemplate.
+	# Legible unique names keep the prefix ("CardPopUpSlot2" etc.)
+	$ViewPopup/CardView.add_child(card_slot, true)
 	# Finally, the card is added to the temporary control node parent.
 	card_slot.add_child(card)
 	# warning-ignore:return_value_discarded

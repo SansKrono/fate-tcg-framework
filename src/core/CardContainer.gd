@@ -333,12 +333,12 @@ func re_place():
 			# Right position always start from the right-side of the viewport
 			# minus the width of the container
 			Anchors.TOP_RIGHT, Anchors.RIGHT_MIDDLE, Anchors.BOTTOM_RIGHT:
-				place.x = get_viewport().size.x - (card_size.x * scale.x)
+				place.x = get_viewport().get_visible_rect().size.x - (card_size.x * scale.x)
 				add_to_group("right")
 			# Middle placement is the middle of the viewport width,
 			# minues half the height of the container
 			Anchors.TOP_MIDDLE, Anchors.BOTTOM_MIDDLE:
-				place.x = get_viewport().size.x / 2.0 - (card_size.x / 2 * scale.x)
+				place.x = get_viewport().get_visible_rect().size.x / 2.0 - (card_size.x / 2 * scale.x)
 		# Now we adjust the y position. Same logic for
 		match placement:
 			# Top position always start from y == 0,
@@ -349,12 +349,12 @@ func re_place():
 			# Bottom position always start from the bottom of the viewport
 			# minus the height of the container
 			Anchors.BOTTOM_LEFT, Anchors.BOTTOM_MIDDLE, Anchors.BOTTOM_RIGHT:
-				place.y = get_viewport().size.y - (card_size.y * scale.y)
+				place.y = get_viewport().get_visible_rect().size.y - (card_size.y * scale.y)
 				add_to_group("bottom")
 			# Middle placement is the middle of the viewport height
 			# minus half the height of the container
 			Anchors.RIGHT_MIDDLE, Anchors.LEFT_MIDDLE:
-				place.y = get_viewport().size.y / 2.0 - (card_size.y / 2 * scale.y)
+				place.y = get_viewport().get_visible_rect().size.y / 2.0 - (card_size.y / 2 * scale.y)
 		# Now we try to discover if more than one CardContainer share
 		# the same anchor and the figure out which to displace.
 		var duplicate_anchors := {}

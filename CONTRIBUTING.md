@@ -26,6 +26,14 @@ This is where Unit and Integration tests come in. This Framework comes with [GUT
 
 To do this, run the scene res://tests/tests.tcsn and press the play button. You should get no failures. If you do, your changes have changed some functionality unexpectedly and introduced a bug. You need to fix it before you sent to us, because we're going to check using the same process!
 
+The supported way to run the suite is headless from the repository root. Strip the colour codes so the output is greppable:
+
+    godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit,res://tests/integration -gexit 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E "Failed\]|Passing Tests|Failing Tests"
+
+To run a single test script, use `-gdir` together with `-gselect` (`-gtest` is ignored), e.g. `-gdir=res://tests/integration -gselect=test_anchors`. See `TEST_FAILURES.md` for more examples.
+
+The layout tests assume a 1280x720 viewport. `setup_board()` and `setup_main()` in `tests/UTcommon.gd` force it (window size plus content scale size), so running the suite from the editor's GUT panel or from an editor-embedded game window depends on that setup, as the embedded window cannot be resized from a script.
+
 ## Create tests for your changes
 
 If you introducted new functionality, you need to adapt the existing unit or integration tests to test that it always works as expected. This will prevent anyone (including yourself) from breaking existing functionality in the future without noticing.

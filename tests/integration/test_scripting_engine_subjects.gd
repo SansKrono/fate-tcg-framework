@@ -17,12 +17,17 @@ class TestSubjectTarget:
 		if scripting_engine.is_running: # Still seeking...
 			await wait_for_signal(card.targeting_arrow.initiated_targeting, 0.2)
 		#watch_signals(scripting_engine)
-		await wait_for_signal(start_coroutine(target_card.bind(card,card)).completed, 0.1)
-	#	yield(target_card(card,card), "completed")
+		# target_card() takes a while when targeting the source itself, so we
+		# wait for it to finish, instead of for a fixed short time.
+		var targeting := start_coroutine(target_card.bind(card,card))
+		if targeting.is_running:
+			await _helper_wait_for_signal(targeting.completed, 5)
 		await wait_for_signal(card._tween.tween_all_completed, 0.4)
 		assert_eq(card.card_rotation, 270,
 				"First rotation should happen before targetting second time")
-		await wait_for_signal(start_coroutine(target_card.bind(card,card)).completed, 0.1)
+		targeting = start_coroutine(target_card.bind(card,card))
+		if targeting.is_running:
+			await _helper_wait_for_signal(targeting.completed, 5)
 		await wait_for_signal(card._tween.tween_all_completed, 0.4)
 		assert_eq(card.card_rotation, 90,
 				"Second rotation should also happen")

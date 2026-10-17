@@ -33,6 +33,10 @@ var scaled_fonts : Dictionary
 var bbcode_texts := {}
 var rich_text_font_size_variations := {}
 var resizing_labels := []
+# Stores the newest request that arrived for a label while it was already
+# resizing, so that it can be applied once the in-flight resize finishes.
+# Maps the label node to an array with the arguments of the dropped call.
+var pending_label_requests := {}
 
 var font_thread: Thread
 
@@ -54,9 +58,17 @@ func set_label_text(node: Label, value, scale: float = 1):
 ## warning-ignore:return_value_discarded
 #	font_thread.start(self, "_set_label_text", [node,value], Thread.PRIORITY_LOW)
 	if node in resizing_labels:
+		# Do not lose this update. Show it immediately and remember it
+		# so that the font is also resized for it when the current resize ends.
+		pending_label_requests[node] = [value, scale]
+		node.text = _check_for_replacements(node, value)
 		return
 	resizing_labels.append(node)
 	value = _check_for_replacements(node, value)
+	# The text is applied right away. Only the font resizing is deferred
+	# (see the await below), so that callers and observers see the new text
+	# without having to wait for the label to finish resizing.
+	node.text = value
 	var label_font :Font = get_card_label_font(node)
 	# In Godot 4, fonts do not carry their size anymore.
 	# The size is a separate theme property, which we track here.
@@ -93,8 +105,11 @@ func set_label_text(node: Label, value, scale: float = 1):
 	set_card_label_font(node, label_font)
 	label_font_size = max(1, label_font_size)
 	set_card_label_font_size(node, label_font_size)
-	node.text = value
 	resizing_labels.erase(node)
+	if pending_label_requests.has(node):
+		var request: Array = pending_label_requests[node]
+		pending_label_requests.erase(node)
+		set_label_text(node, request[0], request[1])
 
 
 # Returns the font used by the current label
@@ -163,6 +178,11 @@ func set_rich_label_text(node: RichTextLabel, value: String, is_resize := false,
 	# while it's already resizing, as due to all the yields
 	# it causes a mess
 	if node in resizing_labels:
+		# Do not lose this update. Remember it, and apply it once the current
+		# resize ends.
+		if not is_resize:
+			bbcode_texts[node] = _check_for_replacements(node, value)
+		pending_label_requests[node] = [value, is_resize, scale]
 		return
 	resizing_labels.append(node)
 	value = _check_for_replacements(node, value)
@@ -175,10 +195,12 @@ func set_rich_label_text(node: RichTextLabel, value: String, is_resize := false,
 	modulate.a = 0
 	# I had to add this cache, because I cannot seem to get the bbcode_text
 	# out of the label once I set it
-	if not bbcode_texts.has(node) and not is_resize:
+	if not is_resize:
 		bbcode_texts[node] = value
-	elif is_resize:
+	else:
 		if not bbcode_texts.has(node):
+			modulate.a = 1
+			resizing_labels.erase(node)
 			return
 		value = bbcode_texts[node]
 	var label_fonts := _get_card_rtl_fonts(node)
@@ -272,6 +294,10 @@ func set_rich_label_text(node: RichTextLabel, value: String, is_resize := false,
 		_cache_font_size(node,value,starting_font_size + font_adjustment, scale)
 	modulate.a = 1
 	resizing_labels.erase(node)
+	if pending_label_requests.has(node):
+		var request: Array = pending_label_requests[node]
+		pending_label_requests.erase(node)
+		set_rich_label_text(node, request[0], request[1], request[2])
 
 
 func _cache_font_size(label: Control, text: String, font_size: int, scale : float) -> void:

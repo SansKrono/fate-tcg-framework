@@ -131,7 +131,8 @@ func test_overlap_shift_right():
 			"Hand collision position shrunk when overlap was displaced left")
 
 func test_changing_viewport_size():
-	get_viewport().size = Vector2(1920, 1080)
+	# Window.size cannot be changed in an editor-embedded game window
+	get_tree().root.content_scale_size = Vector2i(1920, 1080)
 	await wait_seconds(0.1)
 	assert_almost_eq(deck.position, Vector2(0,840), Vector2(5,5),
 			"Bottom left anchor placement works")
@@ -148,4 +149,4 @@ func test_changing_viewport_size():
 			Vector2(803.25,120), Vector2(5,5),
 			"Hand collision shape correct position to not overlap with piles")
 	assert_true("bottom" in hand.get_groups(), "bottom Position group assigned")
-	get_viewport().size = Vector2(1280, 720)
+	get_tree().root.content_scale_size = Vector2i(1280, 720)
