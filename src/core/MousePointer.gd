@@ -23,16 +23,20 @@ var current_focused_card : Card = null
 # Instead we populate according to signals,which are more immediate
 var overlaps := []
 # When set to false, prevents the player from disable interacting with the game.
-var is_disabled := false setget set_disabled
+# In Godot 4 the setter is also called from inside this class, so we use
+# a backing variable to allow disable()/enable() to bypass the setter,
+# as they did in Godot 3.
+var is_disabled: bool: set = set_disabled, get = _get_is_disabled
+var _is_disabled := false
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	$CollisionShape2D.shape.radius = MOUSE_RADIUS
 	# warning-ignore:return_value_discarded
-	connect("area_entered",self,"_on_MousePointer_area_entered")
+	connect("area_entered", Callable(self, "_on_MousePointer_area_entered"))
 	# warning-ignore:return_value_discarded
-	connect("area_exited",self,"_on_MousePointer_area_exited")
+	connect("area_exited", Callable(self, "_on_MousePointer_area_exited"))
 	if cfc._debug:
 		$DebugShape.visible = true
 
@@ -87,7 +91,7 @@ func _check_for_stale_overlaps() -> void:
 	# to be overlaping, and then trigger this workaround
 	if reset_mouse:
 		set_deferred("monitoring", false)
-		yield(get_tree().create_timer(0.1), "timeout")
+		await get_tree().create_timer(0.1).timeout
 		set_deferred("monitoring", true)
 #		call_deferred("set_monitoring", true)
 			
@@ -98,7 +102,7 @@ func _check_for_stale_overlaps() -> void:
 func _on_MousePointer_area_exited(area: Area2D) -> void:
 	if not is_disabled:
 		# We stop the highlight on any areas we exit with the mouse.
-		if area as Card or area as CardContainer:
+		if (area as Card) or (area as CardContainer):
 			area.highlight.set_highlight(false)
 		elif area.get_parent() as BoardPlacementSlot:
 			area.get_parent().set_highlight(false)
@@ -119,10 +123,15 @@ func determine_global_mouse_pos() -> Vector2:
 	# scaling the game in full-creen.
 	if get_viewport() and get_viewport().has_node("Camera2D"):
 		zoom = get_viewport().get_node("Camera2D").zoom
+	# current_scene can be null (e.g. when the board is added by a test runner)
+	var mouse_source: CanvasItem = get_tree().current_scene as CanvasItem
+	if not mouse_source:
+		mouse_source = self
 	var offset_mouse_position = \
-		get_tree().current_scene.get_global_mouse_position() \
+		mouse_source.get_global_mouse_position() \
 		- get_viewport_transform().origin
-	offset_mouse_position *= zoom
+	# Godot 4 inverted the Camera2D zoom semantics, so we divide instead of multiply
+	offset_mouse_position /= zoom
 	#var scaling_offset = get_tree().get_root().get_node('Main').get_viewport().get_size_override() * OS.window_size
 	if cfc.ut and cfc.NMAP.get("board"):
 		mouse_position = cfc.NMAP.board._UT_mouse_position
@@ -132,10 +141,10 @@ func determine_global_mouse_pos() -> Vector2:
 
 # Disables the mouse from interacting with the board
 func disable() -> void:
-	is_disabled = true
+	_is_disabled = true
 	for area in overlaps:
 		# We stop the highlight on any areas we were currently highlighting
-		if area as Card or area as CardContainer:
+		if (area as Card) or (area as CardContainer):
 			area.highlight.set_highlight(false)
 		elif area.get_parent() as BoardPlacementSlot:
 			area.get_parent().set_highlight(false)
@@ -144,7 +153,7 @@ func disable() -> void:
 
 # Re-enables the mouse interacting with the board
 func enable() -> void:
-	is_disabled = false
+	_is_disabled = false
 	overlaps = get_overlapping_areas().duplicate()
 	_discover_focus()
 
@@ -156,7 +165,11 @@ func forget_focus() -> void:
 func set_disabled(value) -> void:
 	forget_focus()
 	overlaps.clear()
-	is_disabled = value
+	_is_disabled = value
+
+
+func _get_is_disabled() -> bool:
+	return(_is_disabled)
 
 # Parses all collided objects and figures out which card, if any, to focus on and
 # also while a card is being dragged, figures out which potential area to highlight
@@ -194,12 +207,12 @@ func _discover_focus() -> void:
 					and not area in current_focused_card.attachments \
 					and area.state == Card.CardState.ON_PLAY_BOARD:
 						potential_hosts.append(area)
-		if area.get_parent() as BoardPlacementSlot \
+		if (area.get_parent() as BoardPlacementSlot) \
 				and _is_placement_slot_valid(area.get_parent(),potential_cards):
 			potential_slots.append(area.get_parent())
 #		if area.get_parent() as BoardPlacementSlot and cfc.card_drag_ongoing and cfc.card_drag_ongoing.is_attachment and not potential_cards.empty():
 #			print_debug(potential_cards)
-		if area as CardContainer and cfc.card_drag_ongoing:
+		if (area as CardContainer) and cfc.card_drag_ongoing:
 		# If disable_dropping_to_cardcontainers is set to true, we still
 		# Allow the player to return the card where they got it.
 			if not cfc.card_drag_ongoing.disable_dropping_to_cardcontainers\
@@ -207,7 +220,7 @@ func _discover_focus() -> void:
 					and cfc.card_drag_ongoing.get_parent() == area):
 				potential_containers.append(area)
 	# Dragging into containers takes priority over draggging onto board
-	if not potential_containers.empty():
+	if not potential_containers.is_empty():
 		cfc.card_drag_ongoing.potential_container = \
 				Highlight.highlight_potential_container(
 				CFConst.TARGET_HOVER_COLOUR,
@@ -215,11 +228,11 @@ func _discover_focus() -> void:
 				potential_cards,
 				potential_slots)
 	# Dragging onto cards, takes priority over board placement grid slots
-	elif not potential_cards.empty():
+	elif not potential_cards.is_empty():
 		if cfc.card_drag_ongoing:
 			cfc.card_drag_ongoing.potential_container = null
 		# We sort the potential cards by their index on the board
-		potential_cards.sort_custom(CFUtils,"sort_index_ascending")
+		potential_cards.sort_custom(Callable(CFUtils, "sort_index_ascending"))
 		# The candidate always has the highest index as it's drawn on top of
 		# others.
 		var card : Card = potential_cards.back()
@@ -241,14 +254,14 @@ func _discover_focus() -> void:
 					card._on_Card_mouse_entered()
 					current_focused_card = card
 		# If we have potential hosts, then we highlight the highest index one
-		if not potential_hosts.empty():
+		if not potential_hosts.is_empty():
 			cfc.card_drag_ongoing.potential_host = \
 					current_focused_card.highlight.highlight_potential_card(
 					CFConst.HOST_HOVER_COLOUR,potential_hosts,potential_slots)
 		# If we have potential placements, then there should be only 1
 		# as their placement should not allow the mouse to overlap more than 1
 		# We also clear potential hosts since there potential_hosts was emty
-		elif not potential_slots.empty():
+		elif not potential_slots.is_empty():
 			cfc.card_drag_ongoing.potential_host = null
 			potential_slots.back().set_highlight(true)
 		# If card is being dragged, but has no potential target
@@ -293,7 +306,7 @@ func _is_placement_slot_valid(slot: BoardPlacementSlot, potential_cards := []) -
 		# We only hihglight a slot if the dragged card is not an attachment
 		# with a potential host highlighted.
 		if cfc.card_drag_ongoing.attachment_mode != Card.AttachmentMode.DO_NOT_ATTACH \
-			and not potential_cards.empty():
+			and not potential_cards.is_empty():
 			# The card being dragged is usually part of the potential_cards
 			# So we want to make sure we still highlight a potential slot
 			# if it's only the dragged card in there.

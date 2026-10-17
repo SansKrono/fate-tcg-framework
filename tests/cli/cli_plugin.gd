@@ -1,6 +1,8 @@
-extends "res://addons/gut/plugin_control.gd"
-# run this scene for cli --> scene should be set to auto run on load & will quit the game
+extends "res://tests/tests_runner.gd"
+# run this scene for cli --> scene is set to auto run on load & will quit the game
 # on test completion
-func _on_tests_finished():
-	emit_signal('tests_finished')
-	get_tree().quit()
+# Alternatively, run GUT's own command line runner:
+# godot --headless --path . -s addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json -gexit
+
+func _init() -> void:
+	quit_on_finish = true

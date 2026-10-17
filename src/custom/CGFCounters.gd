@@ -13,6 +13,8 @@ extends Counters
 # * spawn_needed_counters() has to be called at the end, to actually
 #	add the specified counters to your counters scene.
 func _ready() -> void:
+	# Godot 4 no longer calls the parent _ready() automatically
+	super._ready()
 	counters_container = $VBC
 	value_node = "Value"
 	needed_counters = {

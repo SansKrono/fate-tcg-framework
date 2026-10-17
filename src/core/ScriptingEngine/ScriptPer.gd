@@ -5,19 +5,26 @@ extends ScriptObject
 
 
 # prepares the properties needed by the task to function.
-func _init(per_msg: perMessage).(
-		per_msg.script_owner, 
-		per_msg.per_definitions, 
-		per_msg.trigger_object) -> void:
+func _init(per_msg: perMessage) -> void:
+	super(per_msg.script_owner,
+			per_msg.per_definitions,
+			per_msg.trigger_object)
 	# The name of the type of per we're seeking gets its own var
 	script_name = per_msg.per_seek
 	if get_property(SP.KEY_ORIGINAL_PREVIOUS):
 		prev_subjects = per_msg.prev_subjects
 	else:
 		prev_subjects = per_msg.subjects
-	var ret = _find_subjects()
-	if ret is GDScriptFunctionState: # Still working.
-		ret = yield(ret, "completed")
+	# In Godot 4, a constructor which awaits makes new() a coroutine
+	# which then has to be awaited by the caller. To keep the Godot 3 behaviour
+	# (new() returns immediately and "primed" is emitted when done)
+	# the part which might wait for the player runs as a separate coroutine.
+	_complete_init()
+
+
+# Discovers the subjects of this per calculation, then marks it as primed.
+func _complete_init() -> void:
+	await _find_subjects()
 	# We emit a signal when done so that our ScriptingEngine
 	# knows we're ready to continue
 	emit_signal("primed")

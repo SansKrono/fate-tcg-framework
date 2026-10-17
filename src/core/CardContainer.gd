@@ -16,32 +16,32 @@ signal shuffle_completed
 # All other options will automatically adjust the position of the
 # CardContainer if the resolution changes
 enum Anchors{
-	NONE
-	TOP_RIGHT
-	TOP_MIDDLE
-	TOP_LEFT
-	RIGHT_MIDDLE
-	LEFT_MIDDLE
-	BOTTOM_RIGHT
-	BOTTOM_MIDDLE
-	BOTTOM_LEFT
+	NONE,
+	TOP_RIGHT,
+	TOP_MIDDLE,
+	TOP_LEFT,
+	RIGHT_MIDDLE,
+	LEFT_MIDDLE,
+	BOTTOM_RIGHT,
+	BOTTOM_MIDDLE,
+	BOTTOM_LEFT,
 	CONTROL
 }
 
 # Spefifies the anchor of the card on the screen layout
 # This placement will be retained as the window is resized.
-export(Anchors) var placement
+@export var placement: Anchors
 # In case of multiple CardContainers using the same anchor placement,
 # specifies whether this container should displace itself to make space
 # for the others, and how.
-export(CFInt.OverlapShiftDirection) var overlap_shift_direction
+@export var overlap_shift_direction: CFInt.OverlapShiftDirection
 # In case of multiple CardContainers using the same anchor placement
 # specifies which container should be displaced more.
-export(CFInt.IndexShiftPriority) var index_shift_priority
-export var card_size := CFConst.CARD_SIZE
+@export var index_shift_priority: CFInt.IndexShiftPriority
+@export var card_size := CFConst.CARD_SIZE
 # If set to false, no manipulation buttons will appear when hovering
 # over this container.
-export var show_manipulation_buttons := true
+@export var show_manipulation_buttons := true
 
 # Used for debugging
 var _debugger_hook := false
@@ -49,15 +49,15 @@ var _debugger_hook := false
 # as a result of other containers sharing the same anchor placement
 var accumulated_shift := Vector2(0,0)
 # ManipulationButtons node
-onready var manipulation_buttons := $Control/ManipulationButtons
+@onready var manipulation_buttons := $Control/ManipulationButtons
 # ManipulationButtons tween node
-onready var manipulation_buttons_tween := $Control/ManipulationButtons/Tween
+@onready var manipulation_buttons_tween := $Control/ManipulationButtons/Tween
 # Control node
-onready var control := $Control
+@onready var control := $Control
 # Shuffle button
-onready var shuffle_button := $Control/ManipulationButtons/Shuffle
+@onready var shuffle_button := $Control/ManipulationButtons/Shuffle
 # Container higlight
-onready var highlight := $Control/Highlight
+@onready var highlight := $Control/Highlight
 
 
 func _process(_delta: float) -> void:
@@ -66,7 +66,7 @@ func _process(_delta: float) -> void:
 		$Debug.visible = true
 		$Debug/Position.text = "POSITION:  " + str(position)
 		$Debug/AreaPos.text = "AREA POS: " + str($CollisionShape2D.position)
-		$Debug/Size.text = "SIZE: " + str($Control.rect_size)
+		$Debug/Size.text = "SIZE: " + str($Control.size)
 	else:
 		$Debug.visible = false
 
@@ -78,7 +78,7 @@ func _ready() -> void:
 	# "hand" should be one of them.
 	add_to_group("card_containers")
 	if not cfc.are_all_nodes_mapped:
-		yield(cfc, "all_nodes_mapped")
+		await cfc.all_nodes_mapped
 	_init_ui()
 	_init_signal()
 	manipulation_buttons.visible = show_manipulation_buttons
@@ -87,8 +87,8 @@ func _ready() -> void:
 func _init_control_size() -> void:
 	var parent_control: Control = get_parent()
 	if placement == Anchors.CONTROL and parent_control.size_flags_horizontal != 3:
-		parent_control.rect_min_size = control.rect_size * scale
-		parent_control.rect_size = control.rect_size * scale
+		parent_control.custom_minimum_size = control.size * scale
+		parent_control.size = control.size * scale
 
 # Initialize some of the controls to ensure
 # that they are in the expected state
@@ -100,16 +100,16 @@ func _init_ui() -> void:
 # Registers signals for this node
 func _init_signal() -> void:
 	# warning-ignore:return_value_discarded
-	control.connect("mouse_entered", self, "_on_Control_mouse_entered")
+	control.connect("mouse_entered", Callable(self, "_on_Control_mouse_entered"))
 	# warning-ignore:return_value_discarded
-	control.connect("mouse_exited", self, "_on_Control_mouse_exited")
+	control.connect("mouse_exited", Callable(self, "_on_Control_mouse_exited"))
 	# warning-ignore:return_value_discarded
 	for button in get_all_manipulation_buttons():
-		button.connect("mouse_entered", self, "_on_button_mouse_entered")
+		button.connect("mouse_entered", Callable(self, "_on_button_mouse_entered"))
 		#button.connect("mouse_exited", self, "_on_button_mouse_exited")
-	shuffle_button.connect("pressed", self, '_on_Shuffle_Button_pressed')
+	shuffle_button.connect("pressed", Callable(self, '_on_Shuffle_Button_pressed'))
 	# warning-ignore:return_value_discarded
-	get_viewport().connect("size_changed",self,"_on_viewport_resized")
+	get_viewport().connect("size_changed", Callable(self, "_on_viewport_resized"))
 
 
 # Hides the container manipulation buttons when you stop hovering over them
@@ -149,7 +149,7 @@ func _on_viewport_resized() -> void:
 
 func are_cards_still_animating() -> bool:
 	for c in get_all_cards():
-		var tt : Tween = c._tween
+		var tt = c._tween
 		if tt.is_active():
 			return(true)
 	return(false)
@@ -183,12 +183,13 @@ func get_all_manipulation_buttons() -> Array:
 	var buttons = get_tree().get_nodes_in_group("manipulation_button")
 	var my_buttons = []
 	for button in buttons:
-		if is_a_parent_of(button):
+		if is_ancestor_of(button):
 			my_buttons.append(button)
 	return my_buttons
 
 
 # Overrides the built-in get_class to return "CardContainer" instead of "Area2D"
+@warning_ignore("native_method_override")
 func get_class():
 	return "CardContainer"
 
@@ -337,7 +338,7 @@ func re_place():
 			# Middle placement is the middle of the viewport width,
 			# minues half the height of the container
 			Anchors.TOP_MIDDLE, Anchors.BOTTOM_MIDDLE:
-				place.x = get_viewport().size.x / 2 - (card_size.x / 2 * scale.x)
+				place.x = get_viewport().size.x / 2.0 - (card_size.x / 2 * scale.x)
 		# Now we adjust the y position. Same logic for
 		match placement:
 			# Top position always start from y == 0,
@@ -353,7 +354,7 @@ func re_place():
 			# Middle placement is the middle of the viewport height
 			# minus half the height of the container
 			Anchors.RIGHT_MIDDLE, Anchors.LEFT_MIDDLE:
-				place.y = get_viewport().size.y / 2 - (card_size.y / 2 * scale.y)
+				place.y = get_viewport().size.y / 2.0 - (card_size.y / 2 * scale.y)
 		# Now we try to discover if more than one CardContainer share
 		# the same anchor and the figure out which to displace.
 		var duplicate_anchors := {}
@@ -386,7 +387,7 @@ func re_place():
 				# Otherwise the containers with the highest index will be at
 				# The back of the array.
 				# This allows us to control which node will be "pushed".
-				cc_array.sort_custom(CFUtils,"sort_by_shift_priority")
+				cc_array.sort_custom(Callable(CFUtils, "sort_by_shift_priority"))
 				# We reset this variable every time
 				accumulated_shift = Vector2(0,0)
 				# Now we start going through the sorted array of CardContainers
@@ -404,13 +405,13 @@ func re_place():
 					# other containers in the array before it.
 					match overlap_shift_direction:
 						CFInt.OverlapShiftDirection.UP:
-							accumulated_shift.y -= cc.control.rect_size.y
+							accumulated_shift.y -= cc.control.size.y
 						CFInt.OverlapShiftDirection.DOWN:
-							accumulated_shift.y += cc.control.rect_size.y
+							accumulated_shift.y += cc.control.size.y
 						CFInt.OverlapShiftDirection.LEFT:
-							accumulated_shift.x -= cc.control.rect_size.x
+							accumulated_shift.x -= cc.control.size.x
 						CFInt.OverlapShiftDirection.RIGHT:
-							accumulated_shift.x += cc.control.rect_size.x
+							accumulated_shift.x += cc.control.size.x
 		# Finally, we move to the right location.
 		position = place
 		call_deferred("_init_control_size")

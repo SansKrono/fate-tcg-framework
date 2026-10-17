@@ -4,26 +4,31 @@ class_name Token
 extends HBoxContainer
 
 
-export var count := 0 setget set_count, get_count
+@export var count := 0: get = get_count, set = set_count
+# Stores the actual (unaltered) count of this token.
+# In Godot 4 the getter and setter are also called when the property
+# is accessed from within this class, so we use this to access the raw value
+# the same way Godot 3 did when not using "self."
+var _count := 0
 
 var token_drawer
 
-onready var count_label = $CenterContainer/Count
+@onready var count_label = $CenterContainer/Count
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	set_count(count) # Replace with function body.
+	set_count(_count) # Replace with function body.
 
 
 # Button to increment token counter by 1
 func _on_Add_pressed() -> void:
-	set_count(count + 1)
+	set_count(_count + 1)
 
 
 # Button to decrement token counter by 1
 func _on_Remove_pressed() -> void:
-	set_count(count - 1)
-	if count == 0:
+	set_count(_count - 1)
+	if _count == 0:
 		queue_free()
 
 
@@ -33,10 +38,9 @@ func setup(token_name: String, _token_drawer = null) -> void:
 	name = token_name
 	token_drawer = _token_drawer
 	var textrect : TextureRect = $CenterContainer/TokenIcon
-	var new_texture = ImageTexture.new();
 	var tex = load(CFConst.PATH_TOKENS + CFConst.TOKENS_MAP[token_name])
-	var image = tex.get_data()
-	new_texture.create_from_image(image)
+	var image = tex.get_image()
+	var new_texture = ImageTexture.create_from_image(image)
 	textrect.texture = new_texture
 	$Name.text = token_name.capitalize()
 
@@ -46,16 +50,22 @@ func set_count(value := 1) -> void:
 	# We do not allow tokens to be set to negative values
 	if value < 0:
 		value = 0
-	count = value
+	_count = value
 	# Solution taken from
 	# https://github.com/godotengine/godot/issues/30460#issuecomment-509697259
 	if is_inside_tree():
-		count_label.text = str(count)
+		count_label.text = str(_count)
 
 
 # Returns the amount of tokens of this type
+#
+# This is not a coroutine, the same as in Godot 3. If the alterants need to
+# wait for some reason, use get_count_and_alterants() with await instead.
 func get_count() -> int:
-	return(get_count_and_alterants().count)
+	# We use call() as get_count_and_alterants() is a coroutine and Godot 4
+	# would otherwise require us to await it, which would turn this getter
+	# into a coroutine as well.
+	return(call("get_count_and_alterants").count)
 
 
 # Discovers the modified value of this token
@@ -73,15 +83,13 @@ func get_count_and_alterants() -> Dictionary:
 	# We do this check because in UT the token might not be
 	# assigned to a token_drawer
 	if token_drawer:
-		alteration = CFScriptUtils.get_altered_value(
+		alteration = await CFScriptUtils.get_altered_value(
 			token_drawer.owner_card,
 			"get_token",
 			{SP.KEY_TOKEN_NAME: name,},
-			count)
-		if alteration is GDScriptFunctionState:
-			alteration = yield(alteration, "completed")
+			_count)
 	var return_dict := {
-		"count": count + alteration.value_alteration,
+		"count": _count + alteration.value_alteration,
 		"alteration": alteration
 	}
 	return(return_dict)

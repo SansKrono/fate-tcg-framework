@@ -195,6 +195,11 @@ Do the following if you want to use/import the provided unit tests.
 1. [install Gut](https://github.com/bitwes/Gut/wiki/Install) and do the relevant setup, if you don't have it already.
   **Important:** Due to https://github.com/bitwes/Gut/issues/239 I had to modify the gut tests for assert_almost_eq and assert_almost_ne to work with Vector2. If you install the offical version, you will start seeing a lot of failures.
   You can either use the GUT version included in this repository (in the assets directory), or manually edit the tests to work (will require a lot of lines of extra code), or manually edit yout gut file tests.gd and adapt the asserts likewise.
+  **Newer GUT versions:** The tests were verified against GUT 9.x on Godot 4. This GUT version supports Vector2 in `assert_almost_eq`/`assert_almost_ne` natively, and the workaround above is not needed. However, some tests may need small adjustments when you move to a newer GUT version, as GUT changes can alter timing and the scene tree:
+  * GUT 9 adds its runner as the root node `GutRunner` (previously `Gut`), so any test or board code which looks for that node by name must be updated.
+  * `assert_almost_eq(got, expected, error)` is reported as `[got] expected to equal [expected]`. If your assertions have the arguments reversed, a failure will print the values the wrong way around, which can make a failing test confusing to read.
+  * The integration tests drive a simulated mouse and rely on the game viewport being 1280x720 (the helpers in `UTcommon.gd` set this up). Running the tests in a differently sized or HiDPI window can shift card positions and cause drag-related tests to fail.
+  * Cards in hand animate into place after being drawn. Use `wait_card_settled()` (see `UTcommon.gd`, already used by `drag_card()`) before aiming the simulated mouse at a card.
 2. If you followed the standard Gut instructions, you should have already have created the tests folder, copy all the files inside `tests` to your own `res://tests/unit` directory.
 3. Edit TestVars.gd and modify the boardScene const to point to the root board (i.e. where the cards are played) of your game.
 4. You need to use the Board class on the root of your game or you need to copy the code inside BoardTemplate.tcsn into your own board (at there's necessary Unit Testing code in there)

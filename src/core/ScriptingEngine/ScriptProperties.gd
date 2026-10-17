@@ -3,7 +3,7 @@
 #
 # It also provides a few static functions for comparing filters
 class_name ScriptProperties
-extends Reference
+extends RefCounted
 
 
 #---------------------------------------------------------------------
@@ -1703,10 +1703,21 @@ static func check_validity(card, card_scripts, type := "trigger") -> bool:
 						and not card.is_in_group(state_filters[filter]):
 					card_matches = false
 				elif filter == FILTER_CLASS\
-						and card.get_class() != state_filters[filter]:
+						and not _is_of_class(card, state_filters[filter]):
 					card_matches = false
 			# If at least one of our "or" array elements matches,
 			# We do not need to check the others.
 			if card_matches:
 				break
 	return(card_matches)
+
+
+# Godot 4 does not call script overrides of get_class(), so we compare
+# the filter against the script class_name chain (and native classes) instead.
+static func _is_of_class(obj: Object, class_name_filter: String) -> bool:
+	var script = obj.get_script()
+	while script:
+		if script.get_global_name() == class_name_filter:
+			return true
+		script = script.get_base_script()
+	return obj.is_class(class_name_filter)

@@ -29,8 +29,8 @@ var mouse_pointer: MousePointer
 func _ready() -> void:
 	add_to_group("board")
 	if not cfc.are_all_nodes_mapped:
-		yield(cfc, "all_nodes_mapped")
-	mouse_pointer = load(CFConst.PATH_MOUSE_POINTER).instance()
+		await cfc.all_nodes_mapped
+	mouse_pointer = load(CFConst.PATH_MOUSE_POINTER).instantiate()
 	add_child(mouse_pointer)
 	for container in get_tree().get_nodes_in_group("piles"):
 		container.re_place()
@@ -44,11 +44,12 @@ func _process(_delta: float) -> void:
 
 func _physics_process(delta) -> void:
 	if _UT_interpolation_requested:
-		if _t < 1:
-			_t += delta * _UT_mouse_speed
-			_UT_mouse_position = _UT_current_mouse_position.linear_interpolate(
-					_UT_target_mouse_position, _t)
-		else:
+		# lerp() extrapolates past 1, so we clamp to make sure the simulated
+		# mouse always ends exactly on its target and never overshoots it.
+		_t = minf(_t + delta * _UT_mouse_speed, 1.0)
+		_UT_mouse_position = _UT_current_mouse_position.lerp(
+				_UT_target_mouse_position, _t)
+		if _t >= 1.0:
 			_t = 0
 			_UT_interpolation_requested = false
 
@@ -63,6 +64,8 @@ func _UT_interpolate_mouse_move(newpos: Vector2,
 		_UT_current_mouse_position = startpos
 	_UT_mouse_speed = mouseSpeed
 	_UT_target_mouse_position = newpos
+	# A new request must not inherit the progress of an unfinished one
+	_t = 0
 	_UT_interpolation_requested = true
 
 

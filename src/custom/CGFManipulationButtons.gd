@@ -2,6 +2,8 @@ extends ManipulationButtons
 
 
 func _ready() -> void:
+	# Godot 4 no longer calls the parent _ready() automatically
+	super._ready()
 	# The methods to use each of these should be defined in this script
 	needed_buttons = {
 		"Rot90": "T",

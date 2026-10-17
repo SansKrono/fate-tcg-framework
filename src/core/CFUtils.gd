@@ -2,7 +2,7 @@
 #
 # This is a library of static functions.
 class_name CFUtils
-extends Reference
+extends RefCounted
 
 # The path to the optional confirm scene. This has to be defined explicitly
 # here, in order to use it in its preload, otherwise the parser gives an error
@@ -50,7 +50,9 @@ static func randf_range(from: float, to: float) -> float:
 # Returns a random boolean
 static func rand_bool() -> bool:
 	var rnd_bool = {0:true, 1: false}
-	return(rnd_bool[randi_range(0,1)])
+	# Explicitly use CFUtils, as in Godot 4 the global randi_range()
+	# takes precedence over this class' static function
+	return(rnd_bool[CFUtils.randi_range(0,1)])
 
 # Compares two floats within a threshold value
 static func compare_floats(a, b, epsilon = 0.001):
@@ -75,23 +77,32 @@ static func array_join(arr: Array, separator = "") -> String:
 # use list_imported_in_directory() instead
 static func list_files_in_directory(path: String, prepend_needed := "", full_path := false) -> Array:
 	var files := []
-	var dir := Directory.new()
-	# warning-ignore:return_value_discarded
-	dir.open(path)
+	var dir := DirAccess.open(path)
+	if not dir:
+		return(files)
 	# warning-ignore:return_value_discarded
 	dir.list_dir_begin()
 	while true:
 		var file := dir.get_next()
 		if file == "":
 			break
-		elif not file.begins_with('.')\
+		# In Godot 4 exports, scripts and resources may only exist as
+		# "<name>.remap" files (pointing to .gdc/.res etc). In that case
+		# we return the original filename, which load() can still resolve.
+		if file.ends_with(".remap"):
+			file = file.trim_suffix(".remap")
+			if file in files or (path + file) in files:
+				continue
+		if not file.begins_with('.')\
 				and file.begins_with(prepend_needed)\
-				and not file.ends_with(".remap")\
+				and not file.ends_with(".gdc")\
 				and not file.ends_with(".import")\
+				and not file.ends_with(".uid")\
 				and not file.ends_with(".md"):
 			if full_path:
-				files.append(path + file)
-			else:
+				if not (path + file) in files:
+					files.append(path + file)
+			elif not file in files:
 				files.append(file)
 	dir.list_dir_end()
 	return(files)
@@ -104,9 +115,9 @@ static func list_files_in_directory(path: String, prepend_needed := "", full_pat
 # filenames, and grab the filename from there.
 static func list_imported_in_directory(path: String, full_path := false) -> Array:
 	var files := []
-	var dir := Directory.new()
-	# warning-ignore:return_value_discarded
-	dir.open(path)
+	var dir := DirAccess.open(path)
+	if not dir:
+		return(files)
 	# warning-ignore:return_value_discarded
 	dir.list_dir_begin()
 	while true:
@@ -115,9 +126,9 @@ static func list_imported_in_directory(path: String, full_path := false) -> Arra
 			break
 		elif file.ends_with(".import"):
 			if full_path:
-				files.append(path + file.rstrip(".import"))
+				files.append(path + file.trim_suffix(".import"))
 			else:
-				files.append(file.rstrip(".import"))
+				files.append(file.trim_suffix(".import"))
 	dir.list_dir_end()
 	return(files)
 
@@ -133,10 +144,10 @@ static func confirm(
 	# We do not use SP.KEY_IS_OPTIONAL here to avoid causing cyclical
 	# references when calling CFUtils from SP
 	if script.get("is_optional_" + type):
-		var confirm = _OPTIONAL_CONFIRM_SCENE.instance()
+		var confirm = _OPTIONAL_CONFIRM_SCENE.instantiate()
 		confirm.prep(card_name,task_name)
 		# We have to wait until the player has finished selecting an option
-		yield(confirm,"selected")
+		await confirm.selected
 		# If the player selected "No", we don't execute anything
 		if not confirm.is_accepted:
 			is_accepted = false
@@ -226,7 +237,7 @@ static func generate_random_seed() -> String:
 	randomize()
 	var rnd_seed : String = ""
 	for _iter in range(10):
-		rnd_seed +=  char(int(rand_range(40,127)))
+		rnd_seed +=  char(int(randf_range(40,127)))
 	return(rnd_seed)
 
 
@@ -301,15 +312,13 @@ static func get_unique_values(property: String) -> Array:
 # (which you get with `preload()`)
 # into an ImageTexture you can assign to a node's texture property.
 static func convert_texture_to_image(texture, is_lossless = false) -> ImageTexture:
-	var tex: StreamTexture
+	var tex: Texture2D
 	if typeof(texture) == TYPE_STRING:
 		tex = load(texture)
 	else:
 #		print_debug(texture)
 		tex = texture
-	var new_texture = ImageTexture.new();
-	if is_lossless:
-		new_texture.storage = ImageTexture.STORAGE_COMPRESS_LOSSLESS
-	var image = tex.get_data()
-	new_texture.create_from_image(image)
+	# Godot 4 ImageTextures have no storage modes, so is_lossless is ignored
+	var image = tex.get_image()
+	var new_texture = ImageTexture.create_from_image(image)
 	return(new_texture)

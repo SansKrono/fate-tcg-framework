@@ -4,8 +4,13 @@
         "res://tests/integration"
     ],
     "include_subdirs":true,
+    "prefix":"test_",
+    "suffix":".gd",
     "ignore_pause":true,
     "log_level":1,
     "should_exit":false,
-    "should_maximize":true
+    "should_exit_on_success":false,
+    "should_maximize":true,
+    "double_strategy":"SCRIPT_ONLY",
+    "failure_error_types":["gut"]
 }

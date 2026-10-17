@@ -11,25 +11,34 @@ var _load_decks_list := []
 
 func _ready() -> void:
 	# warning-ignore:return_value_discarded
-	get_popup().connect("index_pressed", self, "_on_deck_load")
+	get_popup().connect("index_pressed", Callable(self, "_on_deck_load"))
 	# warning-ignore:return_value_discarded
-	connect("about_to_show", self, "_on_about_to_show")
+	connect("about_to_popup", Callable(self, "_on_about_to_show"))
 
 
 # Returns an Array of Dictionaries, where each dictionary is the details
 # of a deck loaded from disk.
 static func load_all_decks() -> Array:
 	var available_decks = CFUtils.list_files_in_directory(CFConst.DECKS_PATH)
-	var file = File.new()
 	var loaded_decks_list := []
 	for deck in available_decks:
-		file.open(CFConst.DECKS_PATH + deck, File.READ)
-		var data = JSON.parse(file.get_as_text())
+		var file := FileAccess.open(CFConst.DECKS_PATH + deck, FileAccess.READ)
+		if not file:
+			continue
+		var data = JSON.parse_string(file.get_as_text())
 		file.close()
 		# We expect decks in JSON Dictionary format
 		# In the future we might support plaintext as well.
-		if typeof(data.result) == TYPE_DICTIONARY:
-			loaded_decks_list.append(data.result)
+		if typeof(data) == TYPE_DICTIONARY:
+			# Godot 4 JSON parses all numbers as floats.
+			# Card quantities and deck totals are always integers.
+			if typeof(data.get("cards")) == TYPE_DICTIONARY:
+				for card_name in data["cards"]:
+					if typeof(data["cards"][card_name]) == TYPE_FLOAT:
+						data["cards"][card_name] = int(data["cards"][card_name])
+			if typeof(data.get("total")) == TYPE_FLOAT:
+				data["total"] = int(data["total"])
+			loaded_decks_list.append(data)
 	return(loaded_decks_list)
 
 

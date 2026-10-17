@@ -12,8 +12,8 @@ const _INFO_PANEL_SCENE_FILE = CFConst.PATH_CORE\
 		+ "CardViewer/CVInfoPanel.tscn"
 const _INFO_PANEL_SCENE = preload(_INFO_PANEL_SCENE_FILE)
 
-export(PackedScene) var grid_card_object_scene := _GRID_CARD_OBJECT_SCENE
-export(PackedScene) var info_panel_scene := _INFO_PANEL_SCENE
+@export var grid_card_object_scene := _GRID_CARD_OBJECT_SCENE
+@export var info_panel_scene := _INFO_PANEL_SCENE
 
 var selected_cards := []
 var selection_count : int
@@ -22,18 +22,20 @@ var is_selection_optional: bool
 var is_cancelled := false
 var _card_dupe_map := {}
 
-onready var _card_grid = $GridContainer
-onready var _tween = $Tween
+@onready var _card_grid = $GridContainer
+@onready var _tween = $Tween
 
 
 func _ready() -> void:
 	# For the counter signal, we "push" connect it instead from this node.
 	# warning-ignore:return_value_discarded
-	connect("selection_window_opened", cfc.signal_propagator, "_on_signal_received")
+	connect("selection_window_opened", Callable(cfc.signal_propagator, "_on_signal_received"))
 	# warning-ignore:return_value_discarded
-	connect("card_selected", cfc.signal_propagator, "_on_signal_received")
+	connect("card_selected", Callable(cfc.signal_propagator, "_on_signal_received"))
 	# warning-ignore:return_value_discarded
-	connect("confirmed", self, "_on_card_selection_confirmed")
+	connect("confirmed", Callable(self, "_on_card_selection_confirmed"))
+	# warning-ignore:return_value_discarded
+	connect("canceled", Callable(self, "_on_window_canceled"))
 
 func _process(_delta):
 	var current_count = selected_cards.size()
@@ -42,19 +44,19 @@ func _process(_delta):
 	match selection_type:
 		"min":
 			if current_count < selection_count:
-				get_ok().disabled = true
+				get_ok_button().disabled = true
 			else:
-				get_ok().disabled = false
+				get_ok_button().disabled = false
 		"equal":
 			if current_count != selection_count:
-				get_ok().disabled = true
+				get_ok_button().disabled = true
 			else:
-				get_ok().disabled = false
+				get_ok_button().disabled = false
 		"max":
 			if current_count > selection_count:
-				get_ok().disabled = true
+				get_ok_button().disabled = true
 			else:
-				get_ok().disabled = false
+				get_ok_button().disabled = false
 
 
 # Populates the selection window with duplicates of the possible cards
@@ -66,18 +68,22 @@ func initiate_selection(
 		_selection_optional := false) -> void:
 	if OS.has_feature("debug") and not cfc.is_testing:
 		print("DEBUG INFO:SelectionWindow: Initiated Selection")
-	# We don't allow the player to close the popup with the close button
-	# as that will not send the mandatory signal to unpause the game
-	get_close_button().visible = false
 	selection_count = _selection_count
 	selection_type = _selection_type
 	is_selection_optional = _selection_optional
+	# We don't allow the player to close the popup with the close button
+	# as that will not send the mandatory signal to unpause the game.
+	# Godot 4 windows cannot hide their close button, so instead
+	# closing the window is handled in _on_window_canceled()
+	# and we disable closing via the Escape key for mandatory selections.
+	dialog_close_on_escape = is_selection_optional
 	# If the selection is optional, we allow the player to cancel out
 	# of the popup
 	if is_selection_optional:
-		var cancel_button := add_cancel("Cancel")
+		# In Godot 4, the cancel button emits the "canceled" signal
+		# which we handle in _on_window_canceled() to call _on_cancel_pressed()
 		# warning-ignore:return_value_discarded
-		cancel_button.connect("pressed",self, "_on_cancel_pressed")
+		add_cancel_button("Cancel")
 	# If the amount of cards available for the choice are below the requirements
 	# We return that the selection was canceled
 	elif card_array.size() < selection_count\
@@ -109,13 +115,13 @@ func initiate_selection(
 		return
 	match selection_type:
 		"min":
-			window_title = "Select at least " + str(selection_count) + " cards."
+			title = "Select at least " + str(selection_count) + " cards."
 		"max":
-			window_title = "Select at most " + str(selection_count) + " cards."
+			title = "Select at most " + str(selection_count) + " cards."
 		"equal":
-			window_title = "Select exactly " + str(selection_count) + " cards."
+			title = "Select exactly " + str(selection_count) + " cards."
 		"display":
-			window_title = "Press OK to continue"
+			title = "Press OK to continue"
 	for c in _card_grid.get_children():
 		c.queue_free()
 	# We use this to quickly store a copy of a card object to use to get
@@ -128,14 +134,14 @@ func initiate_selection(
 		if typeof(card) == TYPE_STRING:
 			dupe_selection = cfc.instance_card(card)
 		else:
-			dupe_selection = card.duplicate(DUPLICATE_USE_INSTANCING)
+			dupe_selection = card.duplicate(DUPLICATE_USE_INSTANTIATION)
 			# This prevents the card from being scripted with the
 			# signal propagator and other things going via groups
 			dupe_selection.remove_from_group("cards")
 			dupe_selection.canonical_name = card.canonical_name
 			dupe_selection.properties = card.properties.duplicate()
 		card_sample = dupe_selection
-		var card_grid_obj = grid_card_object_scene.instance()
+		var card_grid_obj = grid_card_object_scene.instantiate()
 		_card_grid.add_child(card_grid_obj)
 		# This is necessary setup for the card grid container
 		card_grid_obj.preview_popup.focus_info.info_panel_scene = info_panel_scene
@@ -148,7 +154,7 @@ func initiate_selection(
 		dupe_selection.ensure_proper()
 		# We connect each card grid's gui input into a call which will handle
 		# The selections
-		card_grid_obj.connect("gui_input", self, "on_selection_gui_input", [dupe_selection, card])
+		card_grid_obj.connect("gui_input", Callable(self, "on_selection_gui_input").bind(dupe_selection, card))
 	# We don't want to show a popup longer than the cards. So the width is based on the lowest
 	# between the grid columns or the amount of cards
 	var shown_columns = min(_card_grid.columns, card_array.size())
@@ -158,16 +164,16 @@ func initiate_selection(
 		card_size = card_sample.canonical_size
 		thumbnail_scale = card_sample.thumbnail_scale
 	var popup_size_x = (card_size.x * thumbnail_scale * shown_columns * cfc.curr_scale)\
-			+ _card_grid.get("custom_constants/vseparation") * shown_columns
+			+ _card_grid.get("theme_override_constants/v_separation") * shown_columns
 	# The height will be automatically adjusted based on the amount of cards
-	rect_size = Vector2(popup_size_x,0)
-	popup_centered_minsize()
+	popup_centered(Vector2i(int(popup_size_x),0))
 	# Spawning all the duplicates is a bit heavy
 	# So we delay showing the tween to avoid having it look choppy
-	yield(get_tree().create_timer(0.2), "timeout")
+	await get_tree().create_timer(0.2).timeout
 	_tween.remove_all()
 	# We do a nice alpha-modulate tween
-	_tween.interpolate_property(self,'modulate:a',
+	# Godot 4 Windows do not have modulate, so we fade in the card grid instead
+	_tween.interpolate_property(_card_grid,'modulate:a',
 			0, 1, 0.5,
 			Tween.TRANS_SINE, Tween.EASE_IN)
 	_tween.start()
@@ -205,7 +211,7 @@ func on_selection_gui_input(event: InputEvent, dupe_selection: Card, origin_card
 		# So whenever they exceed the max, we unselect the first card in the array.
 		if selection_type in ["equal", "max"]  and selected_cards.size() > selection_count:
 			_card_dupe_map[selected_cards[0]].highlight.set_highlight(false)
-			selected_cards.remove(0)
+			selected_cards.remove_at(0)
 
 
 # Manually selects cards based on their index.
@@ -226,12 +232,32 @@ func get_all_card_options() -> Array:
 
 # Cancels out of the selection window
 func _on_cancel_pressed() -> void:
+	# Godot 4 dialogs hide themselves deferred when cancelled.
+	# We hide immediately (as Godot 3 did) so that a script waiting on our signal
+	# can open another exclusive popup right away.
+	hide()
 	selected_cards.clear()
 	is_cancelled = true
 	# The signal is the same, but the calling method, should be checking the
 	# is_cancelled bool.
 	# This is to be able to yield to only one specific signal.
 	emit_signal("confirmed")
+
+# In Godot 4, closing the window via its close button, or the Escape key,
+# emits the "canceled" signal and hides the window. The cancel button
+# (only added when the selection is optional) emits it as well.
+# If the selection is optional, we treat this the same as pressing cancel.
+# Otherwise we keep the window open, as the player has to make a selection
+# (In Godot 3 this was achieved by hiding the close button)
+func _on_window_canceled() -> void:
+	if is_cancelled:
+		return
+	if is_selection_optional:
+		_on_cancel_pressed()
+	else:
+		# The window hides itself deferred, so we show it again deferred.
+		call_deferred("show")
+
 
 func _on_card_selection_confirmed() -> void:
 	if is_cancelled:

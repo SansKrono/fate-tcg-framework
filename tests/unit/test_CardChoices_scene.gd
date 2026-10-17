@@ -12,8 +12,8 @@ func after_all():
 	cfc.game_settings.fancy_movement = true
 
 func before_each():
-	setup_board()
-	menu = Card._CARD_CHOICES_SCENE.instance()
+	await setup_board()
+	menu = Card._CARD_CHOICES_SCENE.instantiate()
 	choices = {"Test Choice 1": "Test1", "Test Choice 2": "Test2"}
 
 func test_title_and_signal():

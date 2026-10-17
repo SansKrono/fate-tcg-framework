@@ -3,8 +3,10 @@ class_name DBGridCardObject
 extends CVGridCardObject
 
 func _ready() -> void:
+	# Godot 4 does not call the parent _ready() automatically
+	super._ready()
 	# warning-ignore:return_value_discarded
-	connect("gui_input",self,"on_gui_input")
+	connect("gui_input", Callable(self, "on_gui_input"))
 	
 func on_gui_input(event) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
