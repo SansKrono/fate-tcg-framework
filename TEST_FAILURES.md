@@ -10,8 +10,9 @@ command, and tick the box.
 - Status legend: `[ ]` open, `[x]` fixed and verified. A task is only done when
   its **Verify** command passes *and* the full suite shows no new failures.
 - **Status 2026-10-17:** TF-01 to TF-10 are done. Each fix was verified by its agent with the single-file
-  command; the project owner then ran the whole suite in headed (editor) mode and reported **all tests passing**.
-  TF-10 (pending placeholders) is done.
+  command. After TF-01 to TF-09 the project owner ran the whole suite in headed (editor) mode and reported
+  **all tests passing**. TF-10 (pending placeholders) was finished afterwards, verified per file by its agent only;
+  one more full run is advisable.
 
 ## Progress
 
