@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/custom/cards/FateCardBack.gd" id="1"]
+
+[node name="FateCardBack" type="Panel"]
+custom_minimum_size = Vector2(150, 240)
+offset_right = 150.0
+offset_bottom = 240.0
+mouse_filter = 2
+script = ExtResource("1")

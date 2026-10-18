@@ -208,6 +208,98 @@ func refresh(card: Card) -> void:
 	stats_changed.emit(card)
 
 
+# --- board states ------------------------------------------------------------------------------------------
+# Export and import of the per-card state with card ids instead of instance ids (see
+# docs/FATE_BOARD_STATE.md). The tables are written directly: no refresh, no signal, no both-zero
+# check. Call refresh_all() once the whole table is rebuilt.
+
+# The stat state of one card as plain data, or {} if it has none:
+#   {"damage": {"Strike": 1}, "modifiers": [{stat, amount, expiry, source}],
+#    "grants": [{keyword, value, expiry, source}]}
+# Only the non-empty keys are present. `id_of` is Callable(Card) -> String; a Card source becomes
+# its id, a null source is left out. List order is kept.
+func export_card(card: Card, id_of: Callable) -> Dictionary:
+	var id := card.get_instance_id()
+	var result := {}
+	var damage := {}
+	for stat in STATS:
+		var taken := int(_damage.get(id, {}).get(stat, 0))
+		if taken != 0:
+			damage[stat] = taken
+	if not damage.is_empty():
+		result["damage"] = damage
+	var mods: Array = []
+	for mod in _mods.get(id, []):
+		var out := {"stat": mod.stat, "amount": mod.amount, "expiry": mod.expiry}
+		_export_source(out, mod.source, id_of)
+		mods.append(out)
+	if not mods.is_empty():
+		result["modifiers"] = mods
+	var grants: Array = []
+	for grant in _grants.get(id, []):
+		var out := {"keyword": grant.keyword, "value": grant.value, "expiry": grant.expiry}
+		_export_source(out, grant.source, id_of)
+		grants.append(out)
+	if not grants.is_empty():
+		result["grants"] = grants
+	return result
+
+
+# Replaces the stat state of one card with `data` (the shape export_card makes; missing keys mean
+# none). `card_of` is Callable(String id) -> Card or null; an unknown source id gives a null source.
+func import_card(card: Card, data: Dictionary, card_of: Callable) -> void:
+	var id := card.get_instance_id()
+	_damage.erase(id)
+	_mods.erase(id)
+	_grants.erase(id)
+	var damage := {}
+	var taken_by_stat: Dictionary = data.get("damage", {})
+	for stat in taken_by_stat:
+		var taken := int(taken_by_stat[stat])
+		if taken > 0:
+			damage[stat] = taken
+	if not damage.is_empty():
+		_damage[id] = damage
+	var mods: Array = []
+	for entry in data.get("modifiers", []):
+		mods.append({"stat": str(entry.get("stat", "")), "amount": int(entry.get("amount", 0)),
+				"expiry": str(entry.get("expiry", EXPIRY_END_OF_TURN)),
+				"source": _import_source(entry, card_of)})
+	if not mods.is_empty():
+		_mods[id] = mods
+	var grants: Array = []
+	for entry in data.get("grants", []):
+		grants.append({"keyword": str(entry.get("keyword", "")), "value": int(entry.get("value", 1)),
+				"expiry": str(entry.get("expiry", EXPIRY_END_OF_TURN)),
+				"source": _import_source(entry, card_of)})
+	if not grants.is_empty():
+		_grants[id] = grants
+
+
+# Recomputes and shows the stats of every card that has a stat entry, like refresh() but without
+# the both-zero check (a creature at 0 / 0 after an import is not destroyed). Emits stats_changed.
+func refresh_all() -> void:
+	var ids := {}
+	for table in [_damage, _mods, _grants]:
+		for id in table:
+			ids[id] = true
+	var held := _batch_cards
+	_batch_cards = []
+	_batch += 1
+	_refresh_ids(ids.keys())
+	_batch -= 1
+	_batch_cards = held
+
+
+# Forgets everything about every card, leaving no stale ids. The card faces are not touched.
+func clear_all() -> void:
+	_damage = {}
+	_mods = {}
+	_grants = {}
+	_batch = 0
+	_batch_cards = []
+
+
 # --- simultaneous changes -------------------------------------------------------------------------------
 
 # Until end_batch(), the both-zero check only collects cards. Used by combat so that all damage of
@@ -227,6 +319,19 @@ func end_batch() -> void:
 
 
 # --- internals ---------------------------------------------------------------------------------------------
+
+func _export_source(out: Dictionary, source, id_of: Callable) -> void:
+	if source is Card and is_instance_valid(source):
+		out["source"] = id_of.call(source)
+
+
+func _import_source(entry: Dictionary, card_of: Callable):
+	var source_id := str(entry.get("source", ""))
+	if source_id == "":
+		return null
+	var source = card_of.call(source_id)
+	return source if source is Card and is_instance_valid(source) else null
+
 
 func _refresh_ids(ids: Array) -> void:
 	for id in ids:

@@ -44,7 +44,7 @@ func test_an_unblocked_attack_on_a_player_lowers_their_life_by_the_current_strik
 	game.stats.add_modifier(attacker, "Strike", 1, "end_of_turn")
 	start_combat()
 	var made := _fight([[attacker, 2]])
-	assert_eq(_life(2), 16, "Strike 3 + 1")
+	assert_eq(_life(2), LIFE - 4, "Strike 3 + 1")
 	assert_eq(made[0].result.kind, "player")
 	assert_eq(made[0].result.life_lost, 4)
 	assert_true(made[0].resolved)
@@ -72,7 +72,7 @@ func test_attacking_an_upright_creature_both_use_strike():
 	assert_eq(game.stats.current(attacker, "Strike"), 1, "3 - 2")
 	assert_eq(target.get_parent(), _discard(2), "Strike 2 - 3 = 0: destroyed")
 	assert_eq(game.stats.current(attacker, "Guard"), 3, "Guard untouched")
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 
 
 func test_attacking_a_creature_in_guard_uses_its_guard():
@@ -206,7 +206,7 @@ func test_a_guarding_creature_blocks_and_uses_its_guard():
 	var blocker := await put_creature(2, 1, 5, {}, true)
 	start_combat()
 	var made := _fight([[attacker, 2]], [[blocker, 0]])
-	assert_eq(_life(2), 20, "The player is not hit")
+	assert_eq(_life(2), LIFE, "The player is not hit")
 	assert_eq(game.stats.current(blocker, "Guard"), 2, "5 - 3")
 	assert_eq(attacker.get_parent(), _discard(1), "Strike 3 - Guard 5 = 0: the attacker is destroyed")
 	assert_eq(made[0].result.kind, "blocked")
@@ -218,7 +218,7 @@ func test_an_occupied_creature_can_block():
 	var blocker := await put_creature(2, 1, 4, {}, false, "occupied")
 	start_combat()
 	_fight([[attacker, 2]], [[blocker, 0]])
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 	assert_eq(game.stats.current(blocker, "Guard"), 2)
 	assert_eq(attacker.get_parent(), _discard(1))
 
@@ -312,8 +312,8 @@ func test_attacks_resolve_one_at_a_time_in_declaration_order():
 	var order := []
 	combat.attack_resolved.connect(func(attack, result): order.append([attack.attacker, _life(2)]))
 	_fight([[c, 2], [a, 2], [b, 2]])
-	assert_eq(order, [[c, 17], [a, 16], [b, 14]], "Declaration order, one at a time")
-	assert_eq(_life(2), 14)
+	assert_eq(order, [[c, LIFE - 3], [a, LIFE - 4], [b, LIFE - 6]], "Declaration order, one at a time")
+	assert_eq(_life(2), LIFE - 6)
 
 
 func test_an_earlier_attack_can_change_a_later_one():
@@ -325,7 +325,7 @@ func test_an_earlier_attack_can_change_a_later_one():
 	assert_eq(victim.get_parent(), _discard(2))
 	assert_eq(made[1].result.kind, "target_gone", "The target was removed before this attack resolved")
 	assert_eq(game.stats.current(second, "Strike"), 4, "No damage dealt or taken")
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 
 
 func test_a_blocked_attack_still_fights_the_blockers_when_its_target_is_gone():
@@ -351,7 +351,7 @@ func test_the_target_being_removed_before_resolution_deals_nothing():
 	assert_eq(attacker.get_parent(), board)
 	assert_eq(game.stats.current(attacker, "Strike"), 5)
 	assert_eq(combat.attacks[0].result.kind, "target_gone")
-	assert_eq(_life(2), 20, "It does not turn into an attack on the player")
+	assert_eq(_life(2), LIFE, "It does not turn into an attack on the player")
 
 
 func test_if_every_blocker_is_gone_the_attack_does_not_hit_its_target():
@@ -365,7 +365,7 @@ func test_if_every_blocker_is_gone_the_attack_does_not_hit_its_target():
 	assert_true(combat.attacks[0].was_blocked)
 	combat.confirm_blocks()
 	assert_eq(combat.attacks[0].result.kind, "blockers_gone")
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 
 
 func test_a_destroyed_attacker_leaves_combat():
@@ -379,7 +379,7 @@ func test_a_destroyed_attacker_leaves_combat():
 	assert_true(combat.attacks[0].removed)
 	combat.confirm_blocks()
 	assert_eq(combat.attacks[0].result.kind, "removed")
-	assert_eq(_life(2), 19, "Only the other attack hit")
+	assert_eq(_life(2), LIFE - 1, "Only the other attack hit")
 
 
 func test_negate_attack_and_remove_from_combat():
@@ -402,7 +402,7 @@ func test_negate_attack_and_remove_from_combat():
 	combat.confirm_blocks()
 	assert_eq(combat.attacks.map(func(x): return x.result.kind),
 			["negated", "blockers_gone", "removed", "player"])
-	assert_eq(_life(2), 18, "Only d hit: b was blocked, and stays blocked when its blocker leaves")
+	assert_eq(_life(2), LIFE - 2, "Only d hit: b was blocked, and stays blocked when its blocker leaves")
 	assert_eq(game.stats.current(blocker, "Guard"), 5)
 
 
@@ -478,7 +478,7 @@ func test_advancing_the_phase_directly_confirms_implicitly():
 	assert_true(game.advance_phase(), "Skipping the confirm calls")
 	assert_eq(kw.hooks_called("on_attack_declared").size(), 1, "The attackers were confirmed on the way")
 	assert_true(game.advance_phase())
-	assert_eq(_life(2), 18, "... and the attack resolved")
+	assert_eq(_life(2), LIFE - 2, "... and the attack resolved")
 
 
 func test_ending_the_turn_cancels_the_combat():
@@ -491,7 +491,7 @@ func test_ending_the_turn_cancels_the_combat():
 	assert_eq(cancelled, [true])
 	assert_eq(combat.step, FateCombat.Step.IDLE)
 	assert_eq(game.active_id, 2)
-	assert_eq(_life(2), 20, "Nothing resolved")
+	assert_eq(_life(2), LIFE, "Nothing resolved")
 	game.draw_extra_card()
 	game.advance_phase()
 	assert_eq(combat.attacks, [], "A new combat phase starts with no attacks")
@@ -501,7 +501,7 @@ func test_a_new_turn_allows_attacking_again():
 	var attacker := await put_creature(1, 2, 1)
 	start_combat()
 	_fight([[attacker, 2]])
-	assert_eq(_life(2), 18)
+	assert_eq(_life(2), LIFE - 2)
 	game.advance_phase()
 	assert_eq(game.active_id, 2)
 	game.end_turn()
@@ -520,10 +520,10 @@ func test_resolution_waits_between_attacks():
 	combat.declare_attack(b, 2)
 	combat.confirm_attackers()
 	combat.confirm_blocks()
-	assert_eq(_life(2), 19, "One attack resolved, the pause is running")
+	assert_eq(_life(2), LIFE - 1, "One attack resolved, the pause is running")
 	assert_eq(game.phase, Phase.COMBAT_RESOLVE)
 	await wait_seconds(0.5)
-	assert_eq(_life(2), 18)
+	assert_eq(_life(2), LIFE - 2)
 	assert_eq(game.phase, Phase.END)
 
 
@@ -537,9 +537,9 @@ func test_next_phase_skips_the_pause_between_attacks():
 		combat.declare_attack(x, 2)
 	combat.confirm_attackers()
 	combat.confirm_blocks()
-	assert_eq(_life(2), 19)
+	assert_eq(_life(2), LIFE - 1)
 	game.request_next_phase()
-	assert_eq(_life(2), 17, "The rest resolved at once")
+	assert_eq(_life(2), LIFE - 3, "The rest resolved at once")
 	assert_eq(game.phase, Phase.END)
 
 
@@ -553,9 +553,9 @@ func test_manual_resolution_with_resolve_next():
 	combat.confirm_attackers()
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.COMBAT_RESOLVE)
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 	assert_eq(combat.resolve_next().attacker, a)
-	assert_eq(_life(2), 19)
+	assert_eq(_life(2), LIFE - 1)
 	assert_eq(combat.resolve_next().attacker, b)
 	assert_null(combat.resolve_next())
 	combat.finish_resolution()
@@ -605,7 +605,7 @@ func test_a_handler_can_hold_the_intercept_window_and_next_phase_closes_it():
 	assert_not_null(combat.current_window)
 	game.request_next_phase()
 	assert_eq(game.phase, Phase.END, "Next phase closes the window and combat goes on")
-	assert_eq(_life(2), 18)
+	assert_eq(_life(2), LIFE - 2)
 
 
 func test_ending_the_turn_during_a_reaction_window_abandons_the_combat():
@@ -728,4 +728,4 @@ func test_a_keyword_triggered_when_blocked_can_hurt_the_blocking_player():
 	var blocker := await put_creature(2, 1, 4, {}, true)
 	start_combat()
 	_fight([[attacker, 2]], [[blocker, 0]])
-	assert_eq(_life(2), 18, "Two damage to the blocker's controller before the fight")
+	assert_eq(_life(2), LIFE - 2, "Two damage to the blocker's controller before the fight")

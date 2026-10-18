@@ -1,0 +1,131 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "fate-board-state.schema.json",
+	"title": "Fate board state (version 1)",
+	"description": "A whole Fate table as data. Point your editor at this file (\"$schema\" in settings) for completion and validation. The game itself validates more (card names, ids, slot numbers): see docs/FATE_BOARD_STATE.md.",
+	"type": "object",
+	"required": ["format", "version"],
+	"properties": {
+		"format": { "const": "fate-board-state" },
+		"version": { "type": "integer", "minimum": 1, "maximum": 1 },
+		"name": { "type": "string" },
+		"description": { "type": "string" },
+		"turn": {
+			"type": "object",
+			"properties": {
+				"number": { "type": "integer", "minimum": 1 },
+				"active_player": { "enum": [1, 2] },
+				"phase": { "enum": ["energy", "main", "combat_declare"], "description": "Boards are saved between steps of the turn. combat_declare means: attackers not declared yet." },
+				"energy_choice": { "enum": ["", "energy", "draw", "debug"], "description": "What the active player did in the energy phase. Empty in the energy phase itself (choice not made yet)." }
+			}
+		},
+		"rng": {
+			"type": "object",
+			"properties": {
+				"seed": { "type": ["integer", "string"] },
+				"state": { "type": ["integer", "string"] }
+			}
+		},
+		"players": {
+			"type": "object",
+			"propertyNames": { "enum": ["1", "2"] },
+			"additionalProperties": { "$ref": "#/definitions/player" }
+		},
+		"world": { "$ref": "#/definitions/grid", "description": "The shared world spell slot (one slot)." },
+		"definitions": {
+			"type": "object",
+			"description": "Card definitions for cards that do not exist in the game data (test cards). Key = card name.",
+			"additionalProperties": { "type": "object", "required": ["Type"] }
+		}
+	},
+	"definitions": {
+		"player": {
+			"type": "object",
+			"properties": {
+				"life": { "type": "integer" },
+				"hand": { "$ref": "#/definitions/pile" },
+				"deck": {
+					"oneOf": [
+						{ "$ref": "#/definitions/pile" },
+						{ "type": "object", "required": ["build"], "properties": { "build": { "const": true }, "size": { "type": "integer", "minimum": 0 } } }
+					],
+					"description": "Cards top first, or { \"build\": true } for a legal random deck."
+				},
+				"discard": { "$ref": "#/definitions/pile" },
+				"removed": { "$ref": "#/definitions/pile" },
+				"creatures": { "$ref": "#/definitions/grid", "maxItems": 6 },
+				"occupied": { "$ref": "#/definitions/grid", "maxItems": 6 },
+				"relics": { "$ref": "#/definitions/grid", "maxItems": 3 },
+				"field": { "$ref": "#/definitions/grid", "maxItems": 1 },
+				"energy": { "$ref": "#/definitions/grid", "maxItems": 40 },
+				"doctrines": {
+					"oneOf": [ { "const": "auto" }, { "$ref": "#/definitions/grid", "maxItems": 3 } ],
+					"description": "\"auto\" puts the player's default three doctrines."
+				}
+			}
+		},
+		"pile": {
+			"type": "array",
+			"description": "Cards, TOP FIRST. No empty slots.",
+			"items": { "$ref": "#/definitions/card" }
+		},
+		"grid": {
+			"type": "array",
+			"description": "Cards by slot index; null is an empty slot.",
+			"items": { "oneOf": [ { "type": "null" }, { "$ref": "#/definitions/card" } ] }
+		},
+		"card": {
+			"oneOf": [
+				{ "type": "string", "description": "A card name, everything else default." },
+				{ "$ref": "#/definitions/cardObject" }
+			]
+		},
+		"cardObject": {
+			"type": "object",
+			"required": ["card"],
+			"properties": {
+				"card": { "type": "string" },
+				"id": { "type": "string", "description": "Only needed when another card refers to this one (source, target)." },
+				"face": { "enum": ["up", "down"], "description": "Default: down in energy and deck, up elsewhere." },
+				"tapped": { "type": "boolean", "description": "Tilted 90 degrees (energy: spent). Default: true only in the occupied zone." },
+				"owner": { "enum": [1, 2] },
+				"controller": { "enum": [1, 2] },
+				"entered_turn": { "type": "integer", "minimum": 0, "description": "Turn the card was played from the hand; 0 = ready (Charge and Productive compare it with the turn number)." },
+				"damage": {
+					"type": "object",
+					"propertyNames": { "enum": ["Strike", "Guard"] },
+					"additionalProperties": { "type": "integer", "minimum": 0 }
+				},
+				"modifiers": { "type": "array", "items": { "$ref": "#/definitions/modifier" } },
+				"grants": { "type": "array", "items": { "$ref": "#/definitions/grant" } },
+				"tokens": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+				"attached": { "type": "array", "items": { "$ref": "#/definitions/card" }, "description": "Cards attached behind this one (energy embodied by a creature)." },
+				"forced_blocker": {
+					"type": "object",
+					"required": ["target"],
+					"properties": { "target": { "type": "string" }, "turn": { "type": "integer" } }
+				}
+			}
+		},
+		"modifier": {
+			"type": "object",
+			"required": ["stat", "amount"],
+			"properties": {
+				"stat": { "enum": ["Strike", "Guard"] },
+				"amount": { "type": "integer" },
+				"expiry": { "type": "string", "default": "end_of_turn", "description": "end_of_turn, owner_maintenance or permanent." },
+				"source": { "type": ["string", "null"], "description": "Id of the card the effect comes from." }
+			}
+		},
+		"grant": {
+			"type": "object",
+			"required": ["keyword"],
+			"properties": {
+				"keyword": { "type": "string" },
+				"value": { "type": "integer", "default": 1 },
+				"expiry": { "type": "string", "default": "end_of_turn" },
+				"source": { "type": ["string", "null"] }
+			}
+		}
+	}
+}

@@ -23,12 +23,13 @@ func _markers() -> Array:
 
 # --- layout -------------------------------------------------------------------------------------------------
 
-func test_each_player_has_an_avatar_that_shows_name_and_life():
+func test_each_player_has_a_plate_that_shows_name_and_life():
 	assert_eq(ui.avatars.size(), 2)
-	assert_eq(ui.avatars[1].text, "Player 1, life 20")
-	assert_eq(ui.avatars[2].text, "Player 2, life 20")
+	assert_eq(ui.avatars[1].tooltip_text, "Player 1")
+	assert_eq(ui.avatars[1].life_text(), str(LIFE))
+	assert_eq(ui.avatars[2].life_text(), str(LIFE))
 	game.player(2).life = 13
-	assert_eq(ui.avatars[2].text, "Player 2, life 13", "It follows the life total")
+	assert_eq(ui.avatars[2].life_text(), "13", "It follows the life total")
 
 
 func test_avatars_and_log_do_not_cover_other_parts_of_the_table():
@@ -149,7 +150,7 @@ func test_the_defender_clicks_a_blocker_and_then_the_attacker():
 	assert_eq(combat.attacks[0].blockers, [guard], "The marker works for blocking too")
 	board.next_button.pressed.emit()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, 20, "Blocked")
+	assert_eq(game.player(2).life, LIFE, "Blocked")
 	assert_eq(game.stats.current(guard, "Guard"), 2)
 
 
@@ -165,7 +166,7 @@ func test_the_defender_cannot_pick_the_attackers_creatures_as_blockers():
 	assert_ne(ui.message, "")
 
 
-func test_resolution_is_logged_and_the_markers_are_cleaned_up_for_the_next_combat():
+func test_resolution_is_logged_and_the_table_is_cleaned_up_after_the_combat():
 	var attacker := await put_creature(1, 3, 2)
 	var enemy := await put_creature(2, 1, 1)
 	start_combat()
@@ -178,12 +179,10 @@ func test_resolution_is_logged_and_the_markers_are_cleaned_up_for_the_next_comba
 	assert_string_contains(ui.log_label.text, "destroyed")
 	assert_string_contains(ui.log_label.text.to_lower(), "test 1/1")
 	assert_lte(ui.log_label.text.split("\n").size(), FateCombatUI.LOG_LINES, "Only the last few lines")
-	assert_eq(_markers().size(), 1, "The marker stays to show what happened")
-	game.advance_phase()
-	game.end_turn()
-	game.draw_extra_card()
-	game.advance_phase()
-	assert_eq(_markers().size(), 0, "A new combat phase clears them")
+	await get_tree().process_frame
+	assert_eq(_markers().size(), 0, "The markers go when the combat is over (the log keeps the story)")
+	assert_null(ui.selected)
+	assert_false(ui._drawn_attack_count() > 0, "No arrows are drawn after the combat")
 
 
 # --- the real input path ------------------------------------------------------------------------------------------------------

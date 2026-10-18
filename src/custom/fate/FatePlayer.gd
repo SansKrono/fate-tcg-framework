@@ -5,7 +5,7 @@
 class_name FatePlayer
 extends RefCounted
 
-const STARTING_LIFE := 20
+const STARTING_LIFE := 10
 
 signal life_changed(player)
 

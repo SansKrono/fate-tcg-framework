@@ -19,10 +19,63 @@ var entered_turn := 0
 # True between the pre- and the post-move script of a move from the hand to the table that
 # the rules allowed, so that the payment happens only if the card really lands there
 var _play_pending := false
+var _playable_glow: Control
+# True while the card is face-down in the opponent's hand (FateHand): it ignores the mouse
+var concealed := false
+const PLAYABLE_COLOR := Color(0.35, 0.72, 1.0)
 
 
 func _ready() -> void:
 	super._ready()
+	state_changed.connect(_on_state_changed)
+	# New cards, and the duplicates the card detail dock makes of table cards, show the full card
+	# and no playable glow
+	if card_front and card_front.has_method("set_table_mode"):
+		card_front.set_table_mode(false)
+	_playable_glow = $Control.get_node_or_null("PlayableGlow")
+	set_playable(false)
+
+
+# A concealed card never takes the mouse, whatever its state asks for
+func set_control_mouse_filters(value = true) -> void:
+	super.set_control_mouse_filters(value and not concealed)
+
+
+# The blue glow of a card in the hand that can be played right now (FateBoard decides)
+func set_playable(on: bool) -> void:
+	if on and _playable_glow == null:
+		# A crisp border with a soft halo around it (two border-only frames: a StyleBox shadow
+		# would also show through the transparent middle)
+		_playable_glow = Control.new()
+		_playable_glow.name = "PlayableGlow"
+		_playable_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for ring in [[7, 6, 0.3], [3, 3, 1.0]]:
+			var frame := Panel.new()
+			frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			frame.position = -Vector2(ring[0], ring[0])
+			frame.size = card_size + Vector2(ring[0], ring[0]) * 2
+			frame.add_theme_stylebox_override("panel", FateTheme.box(Color.TRANSPARENT,
+					Color(PLAYABLE_COLOR, ring[2]), 10 + ring[0], ring[1], 0.0))
+			_playable_glow.add_child(frame)
+		$Control.add_child(_playable_glow)
+	if _playable_glow:
+		_playable_glow.visible = on
+
+
+# Cards on the table take the scale of the zone they stand in (FateLayout.ZONE_SCALES) and show
+# their compact table face (FateCardFront.set_table_mode); everywhere else the full card.
+func _on_state_changed(_card, _old_state: int, new_state: int) -> void:
+	if new_state in [CardState.DROPPING_TO_BOARD, CardState.ON_PLAY_BOARD] \
+			and _placement_slot != null and is_instance_valid(_placement_slot):
+		play_area_scale = _placement_slot.owner_grid.card_play_scale
+	if new_state in [CardState.DRAGGED, CardState.DROPPING_TO_BOARD, CardState.ON_PLAY_BOARD,
+			CardState.IN_PILE, CardState.MOVING_TO_CONTAINER, CardState.VIEWPORT_FOCUS]:
+		set_playable(false)
+	if new_state == CardState.DRAGGED or card_front == null \
+			or not card_front.has_method("set_table_mode"):
+		return
+	card_front.set_table_mode(new_state in [CardState.DROPPING_TO_BOARD,
+			CardState.ON_PLAY_BOARD, CardState.FOCUSED_ON_BOARD])
 
 
 # Sets the owner, and the board zone this card goes to when it is dropped on the table.
@@ -36,6 +89,20 @@ func assign_owner(player_id: int) -> void:
 	else:
 		board_placement = BoardPlacement.GRID_AUTOPLACEMENT
 		mandatory_grid_name = FateZones.grid_name(zone, player_id)
+
+
+# Gives the card the look of the zone it stands in, at once (no animation): `is_energy` follows
+# the "energy" zone, `face` is "up" or "down" and `tapped` tilts the card by 90 degrees. The
+# defaults are FateBoardState.default_face / default_tapped: energy lies face-down, occupied
+# creatures are tilted, everything else stands up.
+func apply_zone_look(zone: String, face := "", tapped = null) -> void:
+	is_energy = zone == "energy"
+	if face == "":
+		face = FateBoardState.default_face(zone)
+	if tapped == null:
+		tapped = FateBoardState.default_tapped(zone)
+	set_is_faceup(face == "up", true)
+	set_card_rotation(90 if tapped else 0)
 
 
 # The zone grid this card type occupies on the table (Section 6)
@@ -85,6 +152,14 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 		return new_host
 	if "Scripted" in move_tags or not old_host is Hand or new_host == old_host:
 		return new_host
+	if game.debug_mode:
+		# Debug mode: any player can play any card, at any time, for free
+		if new_host == cfc.NMAP.board:
+			if is_instant_spell():
+				game.card_played.emit(self)
+				return FateZones.container("discard", owner_id)
+			_play_pending = true
+		return new_host
 	# Cards in hand can only be played by their owner, on their turn
 	if owner_id != game.active_id:
 		return old_host
@@ -121,7 +196,7 @@ func common_post_move_scripts(new_host: String, _old_host: String, _move_tags: A
 	if not game or get_parent() != cfc.NMAP.board:
 		# The board refused the drop, the card is back in the hand
 		return
-	if game.pay(self):
+	if game.debug_mode or game.pay(self):
 		entered_turn = game.turn_number
 		game.card_played.emit(self)
 	else:
@@ -173,6 +248,12 @@ func _game() -> FateGame:
 
 
 func _on_Card_gui_input(event) -> void:
+	# Debug mode: the middle button opens the menu to move, tilt, flip or delete the card
+	if event is InputEventMouseButton and event.is_pressed() and event.get_button_index() == 3:
+		var board = cfc.NMAP.get("board")
+		if board and board.get("debug") != null and board.debug.enabled:
+			board.debug.open_card_menu(self)
+			return
 	# In the combat phases a left click on a card on the table selects it (FateCombatUI) instead
 	# of starting a drag or a double-click action
 	if event is InputEventMouseButton and event.is_pressed() and event.get_button_index() == 1 \

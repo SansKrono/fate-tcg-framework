@@ -21,14 +21,10 @@ extends Control
 # The user-visible state changed (selection, prompt): the HUD refreshes its prompt
 signal changed
 
-const AVATAR_X := 1135.0
-# The right column between the two discard piles (y 250 to 485) holds, from the top: player 2's
-# avatar, the world spell slot (y 290 to 412), the combat log, player 1's avatar
-const AVATAR_Y := {1: 450.0, 2: 256.0}
-const LOG_POSITION := Vector2(1135, 414)
-const LOG_SIZE := Vector2(140, 33)
-const LOG_LINES := 3
-const LOG_FONT_SIZE := 8
+# The avatars are the player plates in the right rail (FateLayout.plate_rect), the log sits at
+# the bottom of the left rail (FateLayout.LOG_RECT)
+const LOG_LINES := 7
+const LOG_FONT_SIZE := 10
 const Z := 50
 
 const SELECT_COLOR := Color(1.0, 0.9, 0.2)
@@ -41,6 +37,7 @@ var game: FateGame
 var combat: FateCombat
 var avatars := {}
 var log_label: Label
+var log_panel: PanelContainer
 # The creature picked by the first click (an attacker in the declare step, a blocker in the
 # intercept step), or null
 var selected: Card = null
@@ -60,20 +57,12 @@ func setup(owner_game: FateGame) -> void:
 	size = FateBoard.SCREEN
 	for pid in game.players:
 		var avatar := FatePlayerAvatar.new(game.players[pid])
-		avatar.position = Vector2(AVATAR_X, AVATAR_Y[pid])
+		avatar.game = game
+		avatar.position = FateLayout.plate_rect(FateLayout.seat_of(pid, 1)).position
 		avatar.pressed.connect(avatar_clicked.bind(pid))
 		add_child(avatar)
 		avatars[pid] = avatar
-	log_label = Label.new()
-	log_label.name = "CombatLog"
-	log_label.position = LOG_POSITION
-	log_label.size = LOG_SIZE
-	log_label.clip_text = true
-	log_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	log_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	log_label.add_theme_font_size_override("font_size", LOG_FONT_SIZE)
-	log_label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
-	add_child(log_label)
+	_build_log()
 	combat.step_changed.connect(_on_step_changed)
 	combat.attack_declared.connect(_on_attack_declared)
 	combat.attack_cancelled.connect(_on_attack_gone)
@@ -84,10 +73,42 @@ func setup(owner_game: FateGame) -> void:
 	combat.attack_resolved.connect(func(_a, _r): _changed())
 	combat.log_entry.connect(func(_t): _refresh_log())
 	combat.combat_cancelled.connect(_clear_all)
+	# Arrows, markers and the selection only live as long as the combat; the log keeps the story
+	combat.combat_finished.connect(_clear_all)
 	game.creature_destroyed.connect(func(card, _c):
 		if card == selected:
 			clear_selection())
 	_refresh_log()
+
+
+func _build_log() -> void:
+	log_panel = PanelContainer.new()
+	log_panel.name = "CombatLogPanel"
+	log_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	log_panel.position = FateLayout.LOG_RECT.position
+	log_panel.custom_minimum_size = FateLayout.LOG_RECT.size
+	log_panel.size = FateLayout.LOG_RECT.size
+	log_panel.add_theme_stylebox_override("panel", FateTheme.panel_box())
+	add_child(log_panel)
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 3)
+	log_panel.add_child(column)
+	column.add_child(FateTheme.label("COMBAT LOG", 9, Color(FateTheme.GOLD, 0.8), "Bold"))
+	log_label = FateTheme.label("", LOG_FONT_SIZE, Color(0.85, 0.88, 0.95), "Regular")
+	log_label.name = "CombatLog"
+	log_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	log_label.clip_text = true
+	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	log_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	log_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	column.add_child(log_label)
+
+
+# Puts the plates in the corners of their seats (FateLayout.apply_seats moves everything else)
+func place_avatars(bottom_id: int) -> void:
+	for pid in avatars:
+		avatars[pid].position = FateLayout.plate_rect(FateLayout.seat_of(pid, bottom_id)).position
 
 
 # --- entry points -----------------------------------------------------------------------------------------
@@ -324,12 +345,22 @@ func _place_markers() -> void:
 				else Color(1, 1, 1, 1)
 
 
+# The attacks drawn as arrows: those of the combat going on. The attacks of a finished combat stay
+# in combat.attacks until the next one starts, but the table is cleared when it ends.
+func _drawn_attacks() -> Array:
+	return combat.attacks if combat.step != FateCombat.Step.IDLE else []
+
+
+func _drawn_attack_count() -> int:
+	return _drawn_attacks().size()
+
+
 func _draw() -> void:
 	if combat == null:
 		return
 	if wants_card_clicks():
 		_draw_hints()
-	for attack in combat.attacks:
+	for attack in _drawn_attacks():
 		var from = _center_of(attack.attacker)
 		var to = _target_center(attack)
 		if from == null or to == null:

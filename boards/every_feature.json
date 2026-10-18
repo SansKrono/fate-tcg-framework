@@ -1,0 +1,46 @@
+{
+	"format": "fate-board-state",
+	"version": 1,
+	"name": "Every feature",
+	"description": "A reference board that uses every part of the format: piles in order, all grid zones, a world spell, a test card defined in this file, damage, modifiers and grants with sources, tokens, an Embody attachment, a forced blocker and the rng. Open it to see how each part is written.",
+	"turn": { "number": 6, "active_player": 2, "phase": "main", "energy_choice": "draw" },
+	"rng": { "seed": "12345", "state": "987654321" },
+	"definitions": {
+		"Test 3/3 Savage": {
+			"Type": "Creature", "Cost": 1, "Pips": "", "Strike": 3, "Guard": 3,
+			"_domains": ["Innovation"], "_innate_keywords": { "Savage": 1 }
+		}
+	},
+	"players": {
+		"1": {
+			"life": 6,
+			"hand": [ "Battle Smith", "Ancient Tree" ],
+			"deck": [ "Scrap Recycler", "Garbage Heap", "Scrap Cannon" ],
+			"discard": [ "Moral Captain" ],
+			"removed": [ "Goblin Ledgerkeeper" ],
+			"creatures": [
+				{ "card": "Battle Smith", "id": "smith", "damage": { "Guard": 1 }, "entered_turn": 5 },
+				null,
+				{ "card": "Test 3/3 Savage", "tapped": true,
+					"modifiers": [ { "stat": "Guard", "amount": 1, "expiry": "permanent", "source": "heap" } ] }
+			],
+			"occupied": [ "Goblin Scout Leader" ],
+			"relics": [ { "card": "Garbage Heap", "id": "heap", "tokens": { "tech": 1 } } ],
+			"energy": [ "Beetle Brawler", { "card": "Scrap Cannon", "tapped": true }, "Ancient Tree" ],
+			"doctrines": "auto"
+		},
+		"2": {
+			"life": 10,
+			"hand": [ "Hold the Line" ],
+			"creatures": [
+				{ "card": "Spirit Wielder", "attached": [ "Beetle Brawler" ] },
+				{ "card": "Battle Smith", "forced_blocker": { "target": "smith", "turn": 6 } }
+			],
+			"field": [ "Battle Ready" ],
+			"energy": [ "Beetle Brawler", "Beetle Brawler", "Scrap Cannon", "Scrap Cannon" ],
+			"deck": { "build": true, "size": 20 },
+			"doctrines": "auto"
+		}
+	},
+	"world": [ "Equal Footing" ]
+}

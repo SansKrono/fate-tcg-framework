@@ -1,0 +1,22 @@
+{
+	"format": "fate-board-state",
+	"version": 1,
+	"name": "Mana and energy",
+	"description": "Player 1 in the main phase with five energy cards (one tapped) and cards to spend it on. Energy is face-down by default.",
+	"turn": { "number": 3, "active_player": 1, "phase": "main", "energy_choice": "energy" },
+	"players": {
+		"1": {
+			"life": 10,
+			"hand": ["Battle Smith", "Scrap Recycler", "Garbage Heap"],
+			"energy": [
+				"Beetle Brawler",
+				"Beetle Brawler",
+				"Scrap Cannon",
+				{ "card": "Scrap Cannon", "tapped": true },
+				"Ancient Tree"
+			],
+			"doctrines": "auto"
+		},
+		"2": { "life": 10, "doctrines": "auto" }
+	}
+}

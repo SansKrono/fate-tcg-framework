@@ -7,6 +7,8 @@ extends "res://tests/UTcommon.gd"
 # without playing them, so a test can set up any situation.
 
 const FATE_MAIN := preload("res://src/custom/fate/FateMain.tscn")
+# Every player starts with this much life
+const LIFE := FatePlayer.STARTING_LIFE
 
 var game: FateGame
 
@@ -159,3 +161,20 @@ func run_combat() -> void:
 	game.combat.confirm_attackers()
 	if game.phase == FateGame.Phase.COMBAT_INTERCEPT:
 		game.combat.confirm_blocks()
+
+
+# Loads a board state (file name from boards/, or a FateBoardState) into the table and asserts that
+# it worked. A test can then play on from that position. Returns the result of load_board_state.
+func load_board(name_or_state, opts := {}) -> Dictionary:
+	var state: FateBoardState = name_or_state if name_or_state is FateBoardState \
+			else FateBoardStateFiles.load_state(str(name_or_state))
+	var result: Dictionary = await game.load_board_state(state, opts)
+	assert_true(result["ok"], "Test setup: board state loaded: %s" % str(result["errors"]))
+	await get_tree().process_frame
+	return result
+
+
+# The table as a board state (what the debug panel saves)
+func capture_board() -> FateBoardState:
+	return game.capture_board_state()
+

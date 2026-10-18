@@ -51,6 +51,8 @@ signal damage_dealt(source, target, amount: int, cause: String)
 signal player_defeated(player_id: int)
 # The game is over; the other player won. No further turn actions are possible
 signal game_ended(winner_id: int)
+# A board state was loaded into the table (see load_board_state)
+signal board_state_loaded(state_name: String)
 
 const Phase := FateTurn.Phase
 
@@ -88,6 +90,11 @@ var actions: FateActions
 var reactions
 # True once a player was defeated; `winner_id` is the other player
 var is_over := false
+# Why the last capture_board_state() returned null
+var board_state_errors: Array[String] = []
+# Debug mode (see FateDebug): the rules for moving and tilting cards are not enforced and
+# playing a card from the hand is free
+var debug_mode := false
 var winner_id := 0
 
 # The current phase (FateGame.Phase), the turn machine owns it
@@ -180,8 +187,32 @@ func _place_doctrines(p: FatePlayer) -> void:
 # Creates a card straight on a zone of the table, owned by the player (setup and tests).
 # Returns null if the zone is full.
 func place_card_on_table(card_name: String, player_id: int, zone: String) -> Card:
-	var slot: BoardPlacementSlot = players[player_id].grid(zone).find_available_slot()
-	if not slot:
+	return place_card_at(card_name, player_id, zone)
+
+
+# Creates a card straight on a slot of a table grid, owned by the player. No move, no signals, no
+# rules: the slot and the state are set directly and entered_turn stays 0. The zone look (energy
+# face-down, occupied tilted) is not applied, see FateCardTemplate.apply_zone_look.
+# `zone` is a grid zone ("creatures", "occupied", "relics", "field", "doctrines", "energy") or
+# "world" (the shared slot, `player_id` only decides the owner). `slot_index` -1 takes the first free
+# slot; an energy grid grows until the slot exists.
+# Returns null if the slot is taken, the index is out of range for a zone that does not grow, the
+# zone is not a grid, or the card name is unknown.
+func place_card_at(card_name: String, player_id: int, zone: String, slot_index := -1) -> Card:
+	if not cfc.card_definitions.has(card_name) or not players.has(player_id):
+		return null
+	var grid: BoardPlacementGrid = FateZones.grid(zone, player_id)
+	if grid == null:
+		return null
+	var slot: BoardPlacementSlot
+	if slot_index < 0:
+		slot = grid.find_available_slot()
+	else:
+		while grid.auto_extend and grid.get_slot_count() <= slot_index:
+			grid.add_slot()
+		if slot_index < grid.get_slot_count():
+			slot = grid.get_slot(slot_index)
+	if slot == null or slot.occupying_card:
 		return null
 	var card: Card = cfc.instance_card(card_name)
 	cfc.NMAP.board.add_child(card)
@@ -192,6 +223,107 @@ func place_card_on_table(card_name: String, player_id: int, zone: String) -> Car
 	slot.occupying_card = card
 	card.state = Card.CardState.ON_PLAY_BOARD
 	return card
+
+
+# Creates a card owned by the player and puts it on TOP of the hand, deck, discard or removed
+# pile (the last child; for the hand: to the right of the others). A coroutine: await it, one call
+# after the other keeps the call order. The deck is filled like _build_deck does; the other zones
+# are reached by a scripted move from the owner's deck.
+# Returns the card, or null if the card name is unknown or the zone is not one of these four.
+func place_in_container(card_name: String, player_id: int, zone: String) -> Card:
+	if not zone in ["hand", "deck", "discard", "removed"] or not players.has(player_id) \
+			or not cfc.card_definitions.has(card_name):
+		return null
+	var deck: Pile = players[player_id].deck()
+	var target = FateZones.container(zone, player_id)
+	if deck == null or target == null:
+		return null
+	var card: Card = cfc.instance_card(card_name)
+	deck.add_child(card)
+	if card is FateCardTemplate:
+		card.assign_owner(player_id)
+	card._determine_idle_state()
+	if zone == "deck":
+		return card
+	# The new card has to finish setting up before it moves
+	if cfc.is_testing:
+		await get_tree().process_frame
+	else:
+		await get_tree().create_timer(0.1).timeout
+	if not is_instance_valid(card):
+		return null
+	if cfc.is_testing:
+		# The card is in its new container as soon as move_to starts; what it waits for after that
+		# is the end of its slide animation
+		card.move_to(target, -1, null, ["Scripted"])
+		await get_tree().process_frame
+	else:
+		await card.move_to(target, -1, null, ["Scripted"])
+	return card if is_instance_valid(card) else null
+
+
+# Deletes every card of the table: both hands, piles, all grids (the world slot too) and the cards
+# attached to them, then frees the slots and shrinks the energy grids to their first size. Cancels
+# the combat and clears the combat UI, forgets all stats, ends the "game over" state and the energy
+# choice, and refreshes the mana. A coroutine: await it (the cards are gone from the tree after it).
+# Does not touch the turn number, the active player, the phase, the life or the rng.
+func reset_table() -> void:
+	if combat != null:
+		if combat.has_method("cancel_combat"):
+			combat.cancel_combat()
+		combat.attacks.clear()
+	if combat_ui != null:
+		combat_ui.clear_selection()
+	cfc.card_drag_ongoing = null
+	var doomed := []
+	for pid in players:
+		for zone in ["hand", "deck", "discard", "removed"]:
+			var container = FateZones.container(zone, pid)
+			if container:
+				doomed.append_array(container.get_all_cards())
+		for zone in FateZones.GRIDS:
+			doomed.append_array(players[pid].cards_in_grid(zone))
+	doomed.append_array(FateZones.grid("world", 0).get_all_slots().filter(
+			func(slot): return slot.occupying_card).map(func(slot): return slot.occupying_card))
+	# Cards attached to a host, floating cards and anything else left on the board
+	for node in cfc.NMAP.board.get_children():
+		if node is Card and not node in doomed:
+			doomed.append(node)
+	for card in doomed:
+		_delete_table_card(card)
+	for pid in players:
+		var energy: BoardPlacementGrid = players[pid].grid("energy")
+		while energy.get_slot_count() > FateLayout.ENERGY_START_SLOTS:
+			var extra: Node = energy.get_all_slots().back()
+			extra.get_parent().remove_child(extra)
+			extra.queue_free()
+		energy.size = Vector2.ZERO
+	if stats != null and stats.has_method("clear_all"):
+		stats.clear_all()
+	is_over = false
+	winner_id = 0
+	energy_choice = ""
+	cfc.flush_cache()
+	# The deleted cards leave the tree at the end of the frame
+	await get_tree().process_frame
+	for pid in players:
+		mana_changed.emit(pid)
+
+
+func _delete_table_card(card: Card) -> void:
+	if not is_instance_valid(card) or card.is_queued_for_deletion():
+		return
+	var slot = card._placement_slot
+	if slot != null and is_instance_valid(slot) and slot.occupying_card == card:
+		slot.occupying_card = null
+	card._placement_slot = null
+	if stats != null:
+		stats.clear_card(card)
+	var parent := card.get_parent()
+	if parent:
+		parent.remove_child(card)
+	card.remove_from_group("cards")
+	card.queue_free()
 
 
 # All creatures in play (the creature and the occupied zones) of one player, or of both players
@@ -215,6 +347,32 @@ func defeat_player(player_id: int) -> void:
 	winner_id = FateZones.opponent_of(player_id)
 	player_defeated.emit(player_id)
 	game_ended.emit(winner_id)
+
+
+# --- board states (src/custom/fate/state/, docs/FATE_BOARD_STATE.md) ------------------------------
+
+# Captures the whole table as a FateBoardState (zones in order, stats, mana, life, turn, phase, rng).
+# Returns null if the table is in a step that cannot be stored; `board_state_errors` says why.
+func capture_board_state(opts := {}) -> FateBoardState:
+	return FateBoardStateCapture.capture(self, opts)
+
+
+# Rebuilds the table from a FateBoardState, replacing everything on it, without running any rules
+# (see FateBoardStateApply). A coroutine: await it.
+# Returns {ok: bool, errors: Array[String], warnings: Array[String]}. When `ok` is false the table is
+# the one it was before. `opts`: "verify", "rollback", "reset_hooks" (see FateBoardStateApply.apply).
+func load_board_state(state: FateBoardState, opts := {}) -> Dictionary:
+	return await FateBoardStateApply.apply(self, state, opts)
+
+
+# Starts the game in a stored position instead of dealing a new game (what `--board=<name>` does).
+# Same result as load_board_state; on success the game counts as started (game_started is emitted).
+func start_from_state(state: FateBoardState, opts := {}) -> Dictionary:
+	var was_started := is_started
+	var result: Dictionary = await load_board_state(state, opts)
+	if result["ok"] and not was_started:
+		game_started.emit()
+	return result
 
 
 # --- turn flow (FateTurn) -----------------------------------------------------------
@@ -342,6 +500,8 @@ func can_tilt(card: Card) -> bool:
 		return false
 	# The zone the card is in now, not the zone its type goes to: an occupied creature has to
 	# stay tilted and cannot be repositioned (design doc Section 5.3)
+	if debug_mode:
+		return FateZones.zone_of(card) != ""
 	return phase == Phase.MAIN and card.controller_id == active_id \
 			and FateZones.zone_of(card) == "creatures"
 

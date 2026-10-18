@@ -6,6 +6,10 @@ extends Node2D
 
 @export var board_scene: PackedScene
 @export var info_panel_scene: PackedScene
+# When set (x >= 0), the card closeup stays docked at this position instead of jumping to the
+# corner away from the mouse, scaled by dock_scale.
+@export var dock_position := Vector2(-1, -1)
+@export var dock_scale := 1.0
 # This array holds all the previously focused cards.
 var _previously_focused_cards := {}
 # This var hold the currently focused card duplicate.
@@ -33,6 +37,13 @@ func _ready():
 		container.re_place()
 	focus_info.info_panel_scene = info_panel_scene
 	focus_info.setup()
+	if is_docked():
+		$VBC.scale = Vector2.ONE * dock_scale
+		$VBC.position = dock_position
+
+
+func is_docked() -> bool:
+	return dock_position.x >= 0.0
 
 
 func _process(_delta) -> void:
@@ -50,7 +61,9 @@ func _process(_delta) -> void:
 #		focus_info.rect_size.x = _current_focus_source.canonical_size.x * _current_focus_source.focused_scale * cfc.curr_scale
 	# The below makes sure to display the closeup of the card, only on the side
 	# the player's mouse is not in.
-	if _current_focus_source and is_instance_valid(_current_focus_source)\
+	if is_docked():
+		$VBC.position = dock_position
+	elif _current_focus_source and is_instance_valid(_current_focus_source)\
 			and _current_focus_source.get_state_exec() != "pile"\
 			and cfc.game_settings.focus_style == CFInt.FocusStyle.BOTH_INFO_PANELS_ONLY:
 		if get_global_mouse_position().y + focus_info.size.y/2 > get_viewport().size.y:

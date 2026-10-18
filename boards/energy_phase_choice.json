@@ -1,0 +1,16 @@
+{
+	"format": "fate-board-state",
+	"version": 1,
+	"name": "Energy phase, choice open",
+	"description": "Player 2 has just started their turn: untap and draw have run, and nothing has been chosen yet. Use it to test playing energy or drawing an extra card.",
+	"turn": { "number": 2, "active_player": 2, "phase": "energy" },
+	"players": {
+		"1": { "life": 10, "creatures": [ "Battle Smith" ], "doctrines": "auto" },
+		"2": {
+			"life": 10,
+			"hand": [ "Beetle Brawler", "Scrap Cannon", "Battle Smith" ],
+			"deck": [ "Ancient Tree", "Garbage Heap" ],
+			"doctrines": "auto"
+		}
+	}
+}

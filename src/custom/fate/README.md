@@ -16,6 +16,42 @@ Rules: `docs/FATE_RULES_SPEC.md`. Design: `docs/FATE_TCG_DESIGN.md`.
 | `FateCombat.gd`, `FateAttack.gd` | `game.combat`: declare / intercept / resolve, the damage algorithm, reaction windows; `FateAttack` is the attack record |
 | `FateActions.gd` | `game.actions`: activated card actions (Occupy, Embody) offered by keywords as hover buttons |
 | `FateCombatUI.gd`, `FatePlayerAvatar.gd` | The combat overlay: click to select attackers and blockers, markers and arrows, clickable player avatars, the combat log |
+| `FateDebug.gd` | Debug tools for trying out game states (see below) |
+| `ui/` | The look of the table (see "The table UI" below): `FateTheme` (palette, fonts, styles), `FateLayout` (where every zone goes, seat swap), `FateTableBackground`, `FatePhaseStrip`, `FateActionPanel`, `FateTurnBanner` |
+
+## The table UI
+
+Modelled on MTG Arena and Yu-Gi-Oh Master Duel. Layout (1280x720, `FateLayout`):
+
+* **Seats (hotseat):** the player whose turn it is sits at the bottom with their hand face-up, half off-screen
+  (hover lifts a card). The other player's hand is a small face-down fan at the top (`FateHand.concealed`); it
+  turns face-up while a reaction window gives that player priority. Seats swap at each turn start behind a
+  short curtain and a "Player N's turn" banner (`FateBoard.apply_seats`).
+* **Table:** per seat a front row next to the midline (creatures, relics, field spell) and a back row (occupied
+  creatures, energy). Cards on the table show a compact face (`FateCardFront.set_table_mode`: name, cost and
+  pips, type, Strike and Guard badges, a frame in the domain colour) at their zone's scale
+  (`FateLayout.ZONE_SCALES`). The midline holds the status bar: turn text and the phase strip.
+* **Left rail:** the card detail dock (Main's magnifier, docked through `ViewportCardFocus.dock_position`): hover
+  any card to read it in full, with its keyword explanations below. The combat log sits at the bottom.
+* **Right rail:** per seat the player plate (`FatePlayerAvatar`: life, mana chips untapped/total, hand and deck
+  counts, gold frame for the active player, clickable as an attack target), the piles (deck, discard, removed,
+  with counts) and the doctrines. In the middle the world spell slot and the action panel: what to do now and
+  one big contextual button (Draw extra card / To combat / Confirm attacks...) plus End turn.
+* Hand cards that can be played right now glow blue.
+
+## Debug mode
+
+Press **F3** (or the orange **Debug tools** button in the left rail, above the combat log) to toggle `FateDebug` (`board.debug`, `game.debug_mode`).
+
+* The panel puts any card of the game (tokens included) in any zone of either player: pick the player and the
+  zone, search the list, double-click a card or press "Add selected card" (set Copies for several). Spawned cards
+  pay nothing and trigger nothing; on the table they are not summoning sick (`entered_turn` 0).
+* Also in the panel: draw a card, change life, untap energy/creatures/relics, clear a zone, skip to the Main phase.
+* **Middle-click any card** to move it to a zone of either player (it becomes theirs), tilt, flip or delete it.
+* While it is on the rules for moving cards are off: either player can drag any hand card onto the table at any
+  time without paying (`FateCardTemplate.common_pre_move_scripts`), and any card on the table can be tilted
+  (`FateGame.can_tilt`).
+* The panel header can be dragged, `-` collapses it. Tests: `tests/integration/test_fate_debug.gd`.
 
 ## The turn
 

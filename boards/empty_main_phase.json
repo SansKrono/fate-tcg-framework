@@ -1,0 +1,24 @@
+{
+	"format": "fate-board-state",
+	"version": 1,
+	"name": "Empty main phase",
+	"description": "The smallest useful board: turn 1, player 1 in the main phase, nothing played, default doctrines.",
+	"turn": {
+		"number": 1,
+		"active_player": 1,
+		"phase": "main",
+		"energy_choice": "draw"
+	},
+	"players": {
+		"1": {
+			"life": 10,
+			"hand": ["Battle Smith", "Ancient Tree", "Scrap Cannon"],
+			"doctrines": "auto"
+		},
+		"2": {
+			"life": 10,
+			"hand": ["Battle Smith", "Goblin Ledgerkeeper"],
+			"doctrines": "auto"
+		}
+	}
+}

@@ -57,9 +57,10 @@ func test_zones_exist_for_both_players():
 func test_players_are_on_opposite_halves():
 	var p1: Vector2 = FateZones.grid("creatures", 1).global_position
 	var p2: Vector2 = FateZones.grid("creatures", 2).global_position
-	assert_gt(p1.y, 360.0, "Player 1 creatures are on the bottom half")
-	assert_lt(p2.y, 360.0, "Player 2 creatures are on the top half")
-	assert_gt(FateZones.container("hand", 1).global_position.y, 360.0)
+	# The table rows mirror around the midline (FateLayout.TABLE_MIDLINE)
+	assert_gt(p1.y, FateLayout.TABLE_MIDLINE, "Player 1 creatures are on the bottom half")
+	assert_lt(p2.y, FateLayout.TABLE_MIDLINE, "Player 2 creatures are on the top half")
+	assert_gt(FateZones.container("hand", 1).global_position.y, FateLayout.TABLE_MIDLINE)
 
 
 func test_starting_hands_and_doctrines():
@@ -224,7 +225,7 @@ func test_window_content_scales_to_the_design_size():
 func test_slot_highlight_matches_the_slot():
 	for grid_name in ["creatures", "relics", "energy", "doctrines", "field"]:
 		var slot: BoardPlacementSlot = FateZones.grid(grid_name, 1).get_slot(0)
-		var expected: Vector2 = CFConst.CARD_SIZE * FateBoard.TABLE_SCALE
+		var expected: Vector2 = CFConst.CARD_SIZE * FateLayout.zone_scale(grid_name)
 		assert_eq(slot.custom_minimum_size, expected, "%s slot is sized for table cards" % grid_name)
 		slot.set_highlight(true)
 		await get_tree().process_frame

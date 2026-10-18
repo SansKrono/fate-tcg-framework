@@ -7,7 +7,8 @@
 
 [node name="Card" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
-play_area_scale = 0.4
+play_area_scale = 0.45
+hand_focus_margin = 12.0
 
 [node name="Front" parent="Control" index="2"]
 custom_minimum_size = Vector2( 150, 240 )

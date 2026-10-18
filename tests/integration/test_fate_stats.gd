@@ -274,7 +274,7 @@ func test_deal_damage_to_a_player_lowers_life():
 	var events := []
 	game.damage_dealt.connect(func(source, target, amount, cause): events.append([target, amount, cause]))
 	assert_eq(game.effects.deal_damage(p2, 3, null, "effect"), 3)
-	assert_eq(p2.life, 17)
+	assert_eq(p2.life, LIFE - 3)
 	assert_eq(events, [[p2, 3, "effect"]])
 	assert_eq(game.effects.deal_damage(p2, 0), 0, "Zero damage is nothing")
 	assert_false(game.is_over)
@@ -284,7 +284,7 @@ func test_player_at_zero_life_is_defeated_and_the_game_is_over():
 	var seen := []
 	game.player_defeated.connect(func(pid): seen.append(pid))
 	game.effects.deal_damage(game.player(2), 25, null, "effect")
-	assert_eq(game.player(2).life, -5)
+	assert_eq(game.player(2).life, LIFE - 25)
 	assert_eq(seen, [2])
 	assert_true(game.is_over)
 	assert_eq(game.winner_id, 1)

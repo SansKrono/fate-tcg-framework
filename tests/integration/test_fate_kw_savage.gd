@@ -35,15 +35,15 @@ func test_savage_1_deals_1_damage_to_the_blocking_player():
 	var attacker := await put_creature(1, 3, 3, {"Savage": 1})
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 19)
-	assert_eq(_life(1), 20, "The attacking player is untouched")
+	assert_eq(_life(2), LIFE - 1)
+	assert_eq(_life(1), LIFE, "The attacking player is untouched")
 
 
 func test_savage_2_deals_2_damage():
 	var attacker := await put_creature(1, 3, 3, {"Savage": 2})
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 18)
+	assert_eq(_life(2), LIFE - 2)
 
 
 func test_the_real_cards_have_their_savage_values():
@@ -53,7 +53,7 @@ func test_the_real_cards_have_their_savage_values():
 	assert_eq(game.keywords.value(beast, "Savage"), 2)
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(beast, 2, [blocker])
-	assert_eq(_life(2), 18, "Feracious Beast: Savage 2")
+	assert_eq(_life(2), LIFE - 2, "Feracious Beast: Savage 2")
 
 
 func test_a_granted_savage_gives_the_creature_savage():
@@ -61,7 +61,7 @@ func test_a_granted_savage_gives_the_creature_savage():
 	game.stats.grant_keyword(attacker, "Savage", 1, "end_of_turn")
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 19)
+	assert_eq(_life(2), LIFE - 1)
 
 
 func test_granted_and_innate_values_add_up():
@@ -70,7 +70,7 @@ func test_granted_and_innate_values_add_up():
 	assert_eq(game.keywords.value(attacker, "Savage"), 3)
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 17, "Savage 2 + granted Savage 1 = 3")
+	assert_eq(_life(2), LIFE - 3, "Savage 2 + granted Savage 1 = 3")
 
 
 func test_two_grants_stack():
@@ -79,14 +79,14 @@ func test_two_grants_stack():
 	game.stats.grant_keyword(attacker, "Savage", 1, "end_of_turn")
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 18)
+	assert_eq(_life(2), LIFE - 2)
 
 
 func test_a_creature_without_savage_deals_no_extra_damage():
 	var attacker := await put_creature(1, 3, 3)
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 
 
 # --- when it triggers -------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ func test_it_does_not_trigger_when_the_attack_is_not_blocked():
 	var attacker := await put_creature(1, 3, 3, {"Savage": 2})
 	await put_creature(2, 1, 9, {}, true)
 	var attack := _blocked_attack(attacker, 2, [])
-	assert_eq(_life(2), 20 - 3, "Only the attack's own damage")
+	assert_eq(_life(2), LIFE - 3, "Only the attack's own damage")
 	assert_false(attack.metadata.has("savage"))
 
 
@@ -108,7 +108,7 @@ func test_it_triggers_once_however_many_blockers():
 	game.damage_dealt.connect(func(_s, t, a, c): if c == "savage": hits.append([t, a]))
 	var attack := _blocked_attack(attacker, 2, [b1, b2, b3])
 	assert_eq(hits.size(), 1)
-	assert_eq(_life(2), 18, "2 once, not 2 per blocker")
+	assert_eq(_life(2), LIFE - 2, "2 once, not 2 per blocker")
 	assert_eq(attack.metadata.savage.amount, 2)
 
 
@@ -117,7 +117,7 @@ func test_it_triggers_on_an_attack_against_a_creature_too():
 	var target := await put_creature(2, 2, 9)
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, target, [blocker])
-	assert_eq(_life(2), 19, "Savage hits the blocking player, whatever the attack targeted")
+	assert_eq(_life(2), LIFE - 1, "Savage hits the blocking player, whatever the attack targeted")
 
 
 func test_it_does_not_trigger_for_a_negated_attack():
@@ -130,7 +130,7 @@ func test_it_does_not_trigger_for_a_negated_attack():
 	game.combat.declare_block(blocker, attack)
 	game.combat.negate_attack(attack)
 	game.combat.confirm_blocks()
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 	assert_false(attack.metadata.has("savage"))
 
 
@@ -144,7 +144,7 @@ func test_it_does_not_trigger_for_an_attack_removed_from_combat_before_the_block
 	game.combat.declare_block(blocker, attack)
 	game.combat.remove_from_combat(attacker)
 	game.combat.confirm_blocks()
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 	assert_false(attack.metadata.has("savage"))
 
 
@@ -157,18 +157,18 @@ func test_the_hook_itself_refuses_a_negated_or_removed_attack():
 	var kw: FateKeyword = game.keywords.get_keyword("Savage")
 	attack.negated = true
 	kw.on_blocked(attacker, attack, [blocker])
-	assert_eq(_life(2), 20, "negated")
+	assert_eq(_life(2), LIFE, "negated")
 	attack.negated = false
 	attack.removed = true
 	kw.on_blocked(attacker, attack, [blocker])
-	assert_eq(_life(2), 20, "removed")
+	assert_eq(_life(2), LIFE, "removed")
 	attack.removed = false
 	kw.on_blocked(attacker, attack, [])
-	assert_eq(_life(2), 20, "no blockers")
+	assert_eq(_life(2), LIFE, "no blockers")
 	kw.on_blocked(attacker, attack, [blocker])
-	assert_eq(_life(2), 18, "a live, blocked attack")
+	assert_eq(_life(2), LIFE - 2, "a live, blocked attack")
 	kw.on_blocked(attacker, attack, [blocker])
-	assert_eq(_life(2), 18, "never twice for the same attack")
+	assert_eq(_life(2), LIFE - 2, "never twice for the same attack")
 
 
 # --- ordering ---------------------------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ func test_savage_damage_comes_before_combat_damage_and_before_the_intercept_wind
 	assert_eq(causes[0], "savage", "Savage is the first damage")
 	assert_true(causes.slice(1).all(func(c): return c == "combat") and causes.size() > 1,
 			"then the combat damage")
-	assert_eq(life_at_window, [19], "already dealt when the intercept reaction window opens")
+	assert_eq(life_at_window, [LIFE - 1], "already dealt when the intercept reaction window opens")
 	assert_eq(game.stats.damage_on(blocker, "Guard"), 3, "Combat damage still happens")
 
 
@@ -216,7 +216,7 @@ func test_a_chooser_can_pick_a_creature_which_loses_its_used_stat():
 	_blocked_attack(attacker, 2, [blocker])
 	assert_eq(game.stats.current(bystander, "Strike"), 2, "Upright: Strike 4 - 2")
 	assert_eq(game.stats.current(bystander, "Guard"), 4)
-	assert_eq(_life(2), 20, "The player is not hit")
+	assert_eq(_life(2), LIFE, "The player is not hit")
 
 
 func test_savage_on_a_guarding_or_occupied_creature_lowers_its_guard():
@@ -257,7 +257,7 @@ func test_the_chooser_gets_the_player_first_then_only_that_players_creatures():
 	assert_true(blocker in seen.candidates)
 	assert_true(other in seen.candidates)
 	assert_false(mine in seen.candidates, "Not the attacker's creatures")
-	assert_eq(_life(2), 19, "A null answer falls back to the blocking player")
+	assert_eq(_life(2), LIFE - 1, "A null answer falls back to the blocking player")
 
 
 func test_an_answer_that_is_not_a_candidate_falls_back_to_the_blocking_player():
@@ -266,7 +266,7 @@ func test_an_answer_that_is_not_a_candidate_falls_back_to_the_blocking_player():
 	var mine := await put_creature(1, 2, 2)
 	Savage.target_chooser = func(_a, _atk, _c, _n): return mine
 	_blocked_attack(attacker, 2, [blocker])
-	assert_eq(_life(2), 19)
+	assert_eq(_life(2), LIFE - 1)
 	assert_eq(game.stats.damage_on(mine, "Strike"), 0)
 
 
@@ -316,7 +316,7 @@ func test_the_only_blocker_dies_to_savage_and_the_attack_still_resolves_without_
 	assert_eq(blocker.get_parent(), FateZones.container("discard", 2), "Guard 1 - 1: destroyed")
 	assert_true(attack.resolved)
 	assert_eq(attack.result.kind, "blockers_gone", "It was blocked, so it does not reach the player")
-	assert_eq(_life(2), 20)
+	assert_eq(_life(2), LIFE)
 	assert_eq(game.stats.damage_on(attacker, "Strike"), 0)
 	assert_eq(game.phase, Phase.END)
 

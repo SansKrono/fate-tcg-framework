@@ -73,7 +73,7 @@ func test_a_window_with_nothing_castable_continues_at_once():
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END)
 	assert_true(made[0].resolved)
-	assert_eq(game.player(2).life, 18)
+	assert_eq(game.player(2).life, LIFE - 2)
 
 
 func test_a_window_without_any_reaction_in_hand_continues_at_once():
@@ -95,14 +95,14 @@ func test_a_castable_reaction_holds_the_window_until_the_player_passes():
 	assert_eq(combat.current_window.player_id, 2)
 	_next()
 	assert_eq(game.phase, Phase.COMBAT_INTERCEPT, "Passed: combat goes on")
-	assert_eq(game.player(2).life, 20, "(still to resolve)")
+	assert_eq(game.player(2).life, LIFE, "(still to resolve)")
 	# The intercept_end window opens too
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.COMBAT_INTERCEPT)
 	assert_eq(combat.current_window.step, "intercept_end")
 	_next()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, 18, "Nothing was cast: the attack hit")
+	assert_eq(game.player(2).life, LIFE - 2, "Nothing was cast: the attack hit")
 
 
 func test_holding_is_off_by_default_while_tests_run():
@@ -128,7 +128,7 @@ func test_cast_works_in_a_window_somebody_else_holds():
 	held.window.release(held.token)
 	assert_eq(game.phase, Phase.COMBAT_INTERCEPT, "A held window completes after the reaction")
 	combat.confirm_blocks()
-	assert_eq(game.player(2).life, 20)
+	assert_eq(game.player(2).life, LIFE)
 
 
 # --- Factory Shutdown --------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ func test_factory_shutdown_negates_every_attack_on_the_player_and_their_creature
 	assert_eq(game.phase, Phase.COMBAT_INTERCEPT)
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, 20, "Negated: no damage")
+	assert_eq(game.player(2).life, LIFE, "Negated: no damage")
 	assert_true(FateZones.is_creature_in_play(defender))
 	assert_eq(game.stats.current(defender, "Strike"), 2)
 	assert_eq(made[0].result.kind, "negated")
@@ -170,7 +170,7 @@ func test_factory_shutdown_in_the_intercept_window_negates_a_blocked_attack():
 	assert_eq(game.phase, Phase.END)
 	assert_eq(game.stats.current(blocker, "Guard"), 2, "The negated attack dealt nothing")
 	assert_eq(game.stats.current(attacker, "Strike"), 5)
-	assert_eq(game.player(2).life, 20)
+	assert_eq(game.player(2).life, LIFE)
 
 
 func test_factory_shutdown_needs_an_attack_on_the_caster():
@@ -199,7 +199,7 @@ func test_safety_measure_destroys_the_attacker_with_the_highest_strike_by_defaul
 	_next()
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END, "Nothing castable is left: the intercept window did not wait")
-	assert_eq(game.player(2).life, 18, "Only the weak attacker hit")
+	assert_eq(game.player(2).life, LIFE - 2, "Only the weak attacker hit")
 
 
 func test_safety_measure_ties_go_to_the_first_declared_attacker_and_uses_current_strike():
@@ -288,7 +288,7 @@ func test_hold_the_line_switches_all_upright_creatures_to_guard_with_plus_one_gu
 	assert_true(combat.declare_block(c1, made[0]), combat.last_error)
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, 20, "Blocked")
+	assert_eq(game.player(2).life, LIFE, "Blocked")
 	# (the +1 ended with the END phase, so look at the damage: without it Guard 2 would be dead)
 	assert_true(FateZones.is_creature_in_play(c1), "Strike 2 against Guard 2 + 1: it survived")
 	assert_eq(game.stats.damage_on(c1, "Guard"), 2)
@@ -403,7 +403,7 @@ func test_wave_of_fear_removes_all_attackers_by_default():
 	assert_eq(_mana(2), 1, "Paid 3 of 4")
 	_next()
 	assert_eq(game.phase, Phase.END, "Nothing left to intercept or resolve")
-	assert_eq(game.player(2).life, 20)
+	assert_eq(game.player(2).life, LIFE)
 
 
 func test_wave_of_fear_with_chosen_attackers():
@@ -418,7 +418,7 @@ func test_wave_of_fear_with_chosen_attackers():
 	assert_true(made[1].removed)
 	_next()
 	combat.confirm_blocks()
-	assert_eq(game.player(2).life, 17, "Only the first attacker hit")
+	assert_eq(game.player(2).life, LIFE - 3, "Only the first attacker hit")
 
 
 func test_wave_of_fear_with_a_chooser_and_in_the_intercept_window():
@@ -436,7 +436,7 @@ func test_wave_of_fear_with_a_chooser_and_in_the_intercept_window():
 	assert_true(made[0].blockers.is_empty())
 	_next()
 	assert_eq(game.stats.current(blocker, "Guard"), 5, "The removed attack did not hurt the blocker")
-	assert_eq(game.player(2).life, 18, "The second attacker hit")
+	assert_eq(game.player(2).life, LIFE - 2, "The second attacker hit")
 
 
 # --- can_cast reasons -------------------------------------------------------------------------------------------------
@@ -575,7 +575,7 @@ func test_reactions_in_both_windows_of_one_combat():
 	assert_true(made[0].removed)
 	_next()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, 19, "Only the Strike 1 attacker hit")
+	assert_eq(game.player(2).life, LIFE - 1, "Only the Strike 1 attacker hit")
 	assert_eq(game.stats.damage_on(c1, "Guard"), 0, "Untouched: its attacker was removed")
 
 

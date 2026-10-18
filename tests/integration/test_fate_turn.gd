@@ -679,10 +679,12 @@ func test_status_bar_shows_life_and_untapped_mana():
 	await put_energy(1, "Beetle Brawler")
 	await put_energy(1, "Beetle Brawler", true)
 	game.mana_changed.emit(1)
-	assert_string_contains(board.mana_label.text, "P1 life 20 mana Inn 1, Pri 1")
-	assert_string_contains(board.mana_label.text, "P2 life 20 mana -")
+	var plates: Dictionary = board.combat_ui.avatars
+	assert_eq(plates[1].mana_text(), "Inn 1, Pri 1", "Untapped mana only")
+	assert_eq(plates[2].mana_text(), "-")
+	assert_eq(plates[1].life_text(), str(LIFE))
 	game.player(2).life = 17
-	assert_string_contains(board.mana_label.text, "P2 life 17")
+	assert_eq(plates[2].life_text(), "17")
 
 
 func test_status_bar_fits_the_band_between_the_front_rows():

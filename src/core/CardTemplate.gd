@@ -196,6 +196,8 @@ signal scripts_executed(card, sceng, trigger)
 @export var preview_scale := CFConst.PREVIEW_SCALE
 # The size of the card when seen larger in the viewport focus window
 @export var focused_scale := CFConst.FOCUSED_SCALE
+# Room kept between a card focused in hand and the edge of the screen
+@export var hand_focus_margin := 0.0
 
 # This is **the** authorative name for this node
 #
@@ -2379,7 +2381,7 @@ func _process_card_state() -> void:
 						- Vector2(card_size.x \
 						* 0.25,0)
 				# Keep the enlarged card fully within the visible area
-				var visible_area := _get_visible_area().grow(-card_size.y * 0.05)
+				var visible_area := _get_visible_area().grow(-hand_focus_margin)
 				var hand_top: float = get_parent().global_position.y
 				var focused_height: float = card_size.y * focused_scale
 				# Lift cards hanging below the bottom edge...

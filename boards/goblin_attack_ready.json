@@ -1,0 +1,35 @@
+{
+	"format": "fate-board-state",
+	"version": 1,
+	"name": "Goblin attack ready",
+	"description": "Player 1 is about to declare attackers. A damaged Goblin Scout Leader with an end-of-turn Strike buff and a granted Savage, against a guarding Battle Smith. The slot indexes leave gaps on purpose.",
+	"turn": { "number": 4, "active_player": 1, "phase": "combat_declare", "energy_choice": "energy" },
+	"players": {
+		"1": {
+			"life": 10,
+			"creatures": [
+				null,
+				{
+					"card": "Goblin Scout Leader",
+					"id": "leader",
+					"damage": { "Guard": 1 },
+					"modifiers": [ { "stat": "Strike", "amount": 2, "expiry": "end_of_turn", "source": "buff" } ],
+					"grants": [ { "keyword": "Savage", "value": 1, "expiry": "end_of_turn", "source": "buff" } ],
+					"entered_turn": 2
+				},
+				"Battle Smith"
+			],
+			"relics": [ { "card": "Garbage Heap", "id": "buff" } ],
+			"energy": [ "Beetle Brawler", "Scrap Cannon", { "card": "Scrap Cannon", "tapped": true } ],
+			"hand": ["Scrap Recycler"],
+			"doctrines": "auto"
+		},
+		"2": {
+			"life": 7,
+			"creatures": [ { "card": "Battle Smith", "tapped": true } ],
+			"hand": ["Hold the Line"],
+			"energy": [ "Beetle Brawler", "Beetle Brawler" ],
+			"doctrines": "auto"
+		}
+	}
+}

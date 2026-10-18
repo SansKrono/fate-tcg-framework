@@ -66,7 +66,7 @@ func test_blocker_dying_in_combat_is_removed_from_the_game():
 	start_combat()
 	_fight(attacker, 2, blocker)
 	_assert_removed(blocker, 2, removed, discard)
-	assert_eq(game.player(2).life, 20, "The block worked")
+	assert_eq(game.player(2).life, LIFE, "The block worked")
 
 
 func test_a_creature_without_untethered_still_goes_to_the_discard_pile():

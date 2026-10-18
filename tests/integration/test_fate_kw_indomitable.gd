@@ -197,7 +197,7 @@ func test_an_unblocked_attack_on_a_player_is_unchanged():
 	var attacker := await put_creature(1, 3, 2, IND)
 	start_combat()
 	var made := _fight([[attacker, 2]])
-	assert_eq(game.player(2).life, 17, "The full Strike")
+	assert_eq(game.player(2).life, LIFE - 3, "The full Strike")
 	assert_eq(made[0].result.life_lost, 3)
 	assert_eq(_stat(attacker, "Strike"), 3, "The attacker takes no damage from a player")
 
@@ -206,7 +206,7 @@ func test_the_player_is_unaffected_by_the_keyword():
 	# Indomitable is for creatures; damage to a player is not capped by anything on the table
 	var guard := await put_creature(2, 1, 1, IND)
 	assert_eq(game.effects.deal_damage(game.player(2), 5, guard, FateEffects.CAUSE_COMBAT), 5)
-	assert_eq(game.player(2).life, 15)
+	assert_eq(game.player(2).life, LIFE - 5)
 	assert_true(FateZones.is_creature_in_play(guard))
 
 
