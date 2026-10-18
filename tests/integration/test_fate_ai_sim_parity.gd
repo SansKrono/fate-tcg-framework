@@ -45,8 +45,11 @@ func _scenario(rng: RandomNumberGenerator, n: int) -> String:
 		var tilt := rng.randi_range(0, 2)
 		defenders.append(await put_creature(def_id, rng.randi_range(0, 5), rng.randi_range(0, 5),
 				KEYWORD_SETS[rng.randi() % KEYWORD_SETS.size()], tilt == 1, "occupied" if tilt == 2 else "creatures"))
+	# The energy choice is made without drawing: 40 scenarios would empty the decks, and an empty deck
+	# loses the game (FateLibrary), which ends the combat test early
 	if game.phase == FateGame.Phase.ENERGY:
-		game.draw_extra_card()
+		game.energy_choice = FateGame.CHOICE_DRAW
+		game.advance_phase()
 	game.advance_phase()
 	if game.phase != FateGame.Phase.COMBAT_DECLARE:
 		return "setup: not in the declare step (%s)" % FateTurn.phase_name(game.phase)

@@ -162,6 +162,22 @@ func static_stat_bonus(_host: Card, _target: Card, _stat: String) -> int:
 	return 0
 
 
+# --- hints for the AI player (all optional) --------------------------------------------------------------------
+
+# What having this card in hand is worth to its owner, in the points of src/custom/fate/ai/FateAIEval.gd (one
+# point is about one point of Strike or Guard on a creature; a good removal spell is 5 to 8). Negative: no
+# opinion, the AI estimates from the mana value. Without a script the AI treats a card as "does nothing".
+func ai_value(_card: Card, _caster_id: int) -> float:
+	return -1.0
+
+
+# What a choice of this card is for, so the AI picks sensibly: "harm" (destroy, damage: the opponent's best
+# thing), "help" (a buff: its own best thing), "give" (a cost: its cheapest thing), or "" for the AI to guess
+# from the rules text. `request` is the FateChoices request.
+func ai_intent(_request: Dictionary) -> String:
+	return ""
+
+
 # --- helpers for the scripts -----------------------------------------------------------------------------------------
 
 # The opponent of a player
@@ -197,7 +213,7 @@ func make_action(card: Card, id: String, label: String, tooltip: String, costs: 
 	var why := action_problem(card, costs, condition)
 	return {
 		"id": id, "label": label, "tooltip": tooltip if why == "" else "%s (%s)" % [tooltip, why],
-		"enabled": why == "", "problem": why,
+		"enabled": why == "", "problem": why, "costs": costs,
 		"run": func(c: Card) -> bool: return await run_action(c, costs, effect, condition),
 	}
 

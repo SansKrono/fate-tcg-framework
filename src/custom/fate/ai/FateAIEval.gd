@@ -102,8 +102,9 @@ static func score(state: Dictionary, result, me: int) -> float:
 
 # --- hand cards -----------------------------------------------------------------------------------
 
-# What the card is for: "creature", "reaction" (castable in a combat window), "live" (a spell or relic
-# whose effect the engine runs, see LIVE_EFFECTS) or "dead" (it only costs mana: energy fodder)
+# What the card is for: "creature", "reaction" (castable in a combat window), "live" (a spell, relic or field /
+# world spell whose card script really does something, see script_does_something) or "dead" (it only costs
+# mana: energy fodder). A name in LIVE_EFFECTS counts as live without a script.
 static func role(game: FateGame, card: Card) -> String:
 	var type: String = str(card.properties.get("Type", ""))
 	if type == "Creature":
@@ -113,7 +114,46 @@ static func role(game: FateGame, card: Card) -> String:
 				else "dead"
 	if LIVE_EFFECTS.has(card.canonical_name):
 		return "live"
+	if script_does_something(game, card):
+		return "live"
 	return "dead"
+
+
+# Hooks of a card script that make a card do something. A script that only defines play_problem or the
+# AI hints does nothing.
+const EFFECT_HOOKS := ["resolve", "on_enter", "on_play", "on_leave", "on_phase", "on_card_played",
+		"on_card_destroyed", "on_damage", "on_energy_played", "on_flip_cast", "on_attack_resolved",
+		"static_keywords", "static_stat_bonus", "actions", "stat_bonus", "on_maintenance", "on_turn_end",
+		"on_attack_declared", "on_blocked", "on_blocking", "on_destroyed", "can_block", "can_attack",
+		"can_be_attacked", "can_be_blocked_by", "modify_damage_taken", "would_be_destroyed",
+		"death_destination", "spell_destination", "spell_destination_for", "on_damage_dealt"]
+
+
+# The methods the card's own script file defines (not the inherited ones)
+static func script_methods(effect) -> Array:
+	var names: Array = []
+	var script = effect.get_script()
+	if script != null:
+		for m in script.get_script_method_list():
+			names.append(m.name)
+	return names
+
+
+# Does the card have a script (game.card_effects) whose hooks do something? A regular spell needs
+# `resolve`; a relic, field or world spell any hook.
+static func script_does_something(game: FateGame, card: Card) -> bool:
+	if game.card_effects == null:
+		return false
+	var effect = game.card_effects.effect_of(card.canonical_name)
+	if effect == null:
+		return false
+	var methods := script_methods(effect)
+	if str(card.properties.get("_spell_kind", "")) == "Regular":
+		return "resolve" in methods or "spell_destination" in methods
+	for hook in EFFECT_HOOKS:
+		if hook in methods:
+			return true
+	return false
 
 
 # A snapshot-style unit made from a card that is not in play (hand, deck), at base stats
@@ -127,16 +167,39 @@ static func pseudo_unit(game: FateGame, card: Card) -> Dictionary:
 	}
 
 
-# What having this card in hand is worth (0 for dead cards)
+# What having this card in hand is worth (0 for dead cards). A card script may say (ai_value); creatures
+# with an enters / activated effect are worth a bit more; other live cards are worth about what they cost.
 static func hand_value(game: FateGame, card: Card) -> float:
+	var effect = game.card_effects.effect_of(card.canonical_name) if game.card_effects != null else null
 	match role(game, card):
 		"creature":
-			return unit_value(pseudo_unit(game, card)) + 0.3
+			var v := unit_value(pseudo_unit(game, card)) + 0.3
+			if _has_hooks(effect):
+				v += 0.6
+			return v
 		"reaction":
 			return float(REACTION_VALUE.get(card.canonical_name, REACTION_DEFAULT_VALUE))
 		"live":
-			return float(LIVE_EFFECTS[card.canonical_name])
+			if LIVE_EFFECTS.has(card.canonical_name):
+				return float(LIVE_EFFECTS[card.canonical_name])
+			if effect != null:
+				var stated: float = effect.ai_value(card, card.owner_id)
+				if stated >= 0.0:
+					return stated
+			var kind := str(card.properties.get("_spell_kind", ""))
+			return 1.5 + (0.8 if kind == "Regular" else 0.5) * float(card.mana_value())
 	return 0.0
+
+
+# Does a script define a hook beyond the keyword defaults? (creatures: an enters or activated effect)
+static func _has_hooks(effect) -> bool:
+	if effect == null:
+		return false
+	var methods := script_methods(effect)
+	for hook in ["on_enter", "on_play", "actions", "on_attack_declared", "on_destroyed", "on_phase"]:
+		if hook in methods:
+			return true
+	return false
 
 
 # How much the player would miss this card if it became an energy card: the lowest is energized

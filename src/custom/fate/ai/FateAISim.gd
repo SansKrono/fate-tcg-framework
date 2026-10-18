@@ -115,12 +115,29 @@ static func run(state: Dictionary, attacks: Array, blocks: Dictionary) -> Dictio
 	return res
 
 
-# Savage with the engine's default target: the blocking player
-static func _savage(state: Dictionary, res: Dictionary, _attacker: Dictionary, blockers: Array, x: int) -> void:
+# Savage: the engine's default target is the blocking player; the creatures of an AI seat
+# (state.ai_seats, see FateAIChoices.savage_target) pick better: a creature of the blocker that the damage
+# destroys and that is worth more than the life it would cost
+static func _savage(state: Dictionary, res: Dictionary, attacker: Dictionary, blockers: Array, x: int) -> void:
 	var first: Dictionary = state.units.get(blockers[0], {})
 	if first.is_empty():
 		return
 	var pid: int = first.ctrl
+	if attacker.ctrl in state.get("ai_seats", []) and res.life[pid] > x:
+		var best: Dictionary = {}
+		var best_value := 1.4 * float(x)
+		for uid in state.units:
+			var u: Dictionary = state.units[uid]
+			if u.ctrl == pid and is_alive(res, u) and stat(res, u, used_key(u)) <= x:
+				var v := Eval.unit_value(u)
+				if v > best_value:
+					best_value = v
+					best = u
+		if not best.is_empty():
+			var o := _o(res, best)
+			o[used_key(best)] = 0
+			o.dead = true
+			return
 	res.life[pid] -= x
 
 

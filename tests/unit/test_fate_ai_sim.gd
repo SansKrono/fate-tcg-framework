@@ -99,6 +99,18 @@ func test_savage_hits_the_blocking_player_first() -> void:
 	assert_eq(res.life[2], 8)
 
 
+func test_savage_of_an_ai_seat_destroys_a_valuable_creature_instead_of_hitting_the_player() -> void:
+	var s := _state([_unit(1, 1, 3, 3, "strike", {"Savage": 3}), _unit(2, 2, 1, 4, "guard"),
+			_unit(3, 2, 2, 2, "guard", {}, 5)])
+	s["ai_seats"] = [1]
+	var res := Sim.run(s, [Sim.make_attack(1, "player", 2)], {0: [2]})
+	assert_false(Sim.is_alive(res, s.units[3]), "Guard 2 dies to 3 Savage damage")
+	assert_eq(res.life[2], 10, "the player was not hit")
+	# A seat without an AI keeps the engine default
+	s["ai_seats"] = []
+	assert_eq(Sim.run(s, [Sim.make_attack(1, "player", 2)], {0: [2]}).life[2], 7)
+
+
 func test_a_removed_attacker_leaves_the_attack_empty() -> void:
 	var s := _state([_unit(1, 1, 3, 3)])
 	var a := Sim.make_attack(1, "player", 2)

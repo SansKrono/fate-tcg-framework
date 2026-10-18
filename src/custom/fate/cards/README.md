@@ -79,3 +79,11 @@ test), do not work around it inside the card script.
 ## Not implemented yet (so a card that needs it cannot be finished)
 
 See the status table in `docs/FATE_TCG_DESIGN.md` Section 17; update it when you finish a piece.
+
+## Hints for the AI player (optional)
+
+The AI (`src/custom/fate/ai/README.md`) reads card scripts: a spell or relic with real hooks is "live" and gets cast, one
+without a script is energy fodder. Two optional methods tell it more: `ai_value(card, caster)` (what the card is worth
+in hand, in points of Strike/Guard) and `ai_intent(request)` (`"harm"`, `"help"` or `"give"`: what a `choose()` is for, so
+the AI picks the opponent's best creature for a removal spell and its own for a buff). Abilities built with `make_action`
+are used by the AI when their costs are only Occupy, spare mana, counters or once-per-turn limits.

@@ -32,6 +32,7 @@ const Energy := preload("res://src/custom/fate/ai/FateAIEnergy.gd")
 const MainPhase := preload("res://src/custom/fate/ai/FateAIMain.gd")
 const Combat := preload("res://src/custom/fate/ai/FateAICombat.gd")
 const Reactions := preload("res://src/custom/fate/ai/FateAIReactions.gd")
+const AIChoices := preload("res://src/custom/fate/ai/FateAIChoices.gd")
 
 signal noted(text: String)
 # The AI is done with its turn script (the turn may still be running: combat resolves by itself)
@@ -66,6 +67,33 @@ func setup(owner_game: FateGame, player_id: int, level: int = Profile.Level.NORM
 	game.game_started.connect(resume)
 	game.board_state_loaded.connect(func(_n): resume())
 	game.game_ended.connect(func(_w): _token += 1)
+	_install_choosers()
+
+
+# The seat answers the questions card effects ask (targets, picks, "you may") itself: the entries for the
+# seat win over a general chooser such as the one of the human choice UI (FateChoices)
+func _install_choosers() -> void:
+	# KwSavage asks for the target of its damage through a static callable (board-state loads clear it)
+	var savage = load("res://src/custom/fate/keywords/KwSavage.gd")
+	savage.target_chooser = AIChoices.savage_target.bind(game)
+	game.choices.choosers[seat] = func(request): return AIChoices.choose(game, seat, profile, request)
+	game.choices.confirmers[seat] = func(request): return AIChoices.confirm(game, seat, profile, request)
+
+
+func _remove_choosers() -> void:
+	if game != null and is_instance_valid(game):
+		game.choices.choosers.erase(seat)
+		game.choices.confirmers.erase(seat)
+		# The Savage hook stays while another AI seat needs it
+		for other in game.ai_controllers.values():
+			if other != self and is_instance_valid(other) and other.enabled:
+				return
+	var savage = load("res://src/custom/fate/keywords/KwSavage.gd")
+	savage.target_chooser = Callable()
+
+
+func _exit_tree() -> void:
+	_remove_choosers()
 
 
 # Changes the strength (FateAIProfile.Level) and the personality that goes with the deck
@@ -82,6 +110,10 @@ func set_enabled(on: bool) -> void:
 	_token += 1
 	_scripted_turn = -1
 	if on:
+		_install_choosers()
+	else:
+		_remove_choosers()
+	if on:
 		resume()
 
 
@@ -95,6 +127,7 @@ func resume() -> void:
 func _resume_deferred() -> void:
 	if not enabled or game.is_over or not game.is_started:
 		return
+	_install_choosers()
 	if game.active_id == seat and game.phase in [FateGame.Phase.ENERGY, FateGame.Phase.MAIN]:
 		_run_turn(game.turn_number)
 	elif game.combat.step == FateCombat.Step.INTERCEPT and game.combat.defending_player() == seat:

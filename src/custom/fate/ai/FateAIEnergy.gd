@@ -17,6 +17,8 @@ extends RefCounted
 const Eval := preload("res://src/custom/fate/ai/FateAIEval.gd")
 
 const HAND_LIMIT := 10
+# Draw an extra card only with at least this many cards left in the deck
+const DECK_SAFETY := 4
 
 
 # Decides the choice of the phase. Returns {"kind": "energy" | "draw", "card": Card or null,
@@ -35,6 +37,12 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 		else:
 			cards.append(c)
 	var hand_size := hand.size()
+	# An empty deck loses the game (FateLibrary): never draw the deck away. The turn's own draw still needs a card
+	# next turn, so an extra draw needs a few cards to spare.
+	var deck_left: int = state.deck_count[me]
+	if deck_left < DECK_SAFETY:
+		return {"kind": "energy", "card": _least_missed(game, hand, energy_count, profile),
+				"why": "only %d cards left in the deck: no extra draw" % deck_left}
 	var target: int = profile.energy_target
 	var want_energy := energy_count < target
 	var why := "below the energy target (%d < %d)" % [energy_count, target]

@@ -21,6 +21,7 @@ const Combat := preload("res://src/custom/fate/ai/FateAICombat.gd")
 const Reactions := preload("res://src/custom/fate/ai/FateAIReactions.gd")
 const Abilities := preload("res://src/custom/fate/ai/FateAIAbilities.gd")
 const Sim := preload("res://src/custom/fate/ai/FateAISim.gd")
+const AIChoices := preload("res://src/custom/fate/ai/FateAIChoices.gd")
 
 # The subset search looks at this many cards at most (2^12 subsets)
 const MAX_ITEMS := 12
@@ -57,15 +58,20 @@ static func plan_plays(game: FateGame, state: Dictionary, profile) -> Dictionary
 	var pool: Dictionary = state.mana[me].pool
 	var items: Array = []
 	for card in state.hand_me:
-		match Eval.role(game, card):
+		var role := Eval.role(game, card)
+		match role:
 			"reaction":
 				var v := Reactions.hold_value(state, profile, card)
 				if v > 0.0:
 					items.append({"card": card, "held": true, "value": v})
 			"creature", "live":
 				if game.can_play_from_hand(card):
+					# A spell with a target is only worth casting when there is a good one
+					var extra := AIChoices.cast_worth(game, me, card) if role == "live" else 0.0
+					if extra < 0.0:
+						continue
 					items.append({"card": card, "held": false,
-							"value": Eval.hand_value(game, card) + 0.03 * float(card.mana_value())})
+							"value": Eval.hand_value(game, card) + extra + 0.03 * float(card.mana_value())})
 	items.sort_custom(func(a, b): return a.value > b.value)
 	if items.size() > MAX_ITEMS:
 		items.resize(MAX_ITEMS)
@@ -138,6 +144,11 @@ static func run(ctrl, token: int) -> void:
 		if not is_instance_valid(card) or not game.can_play_from_hand(card):
 			continue
 		var name: String = card.canonical_name
+		# An earlier play may have filled the zone (a creature that creates tokens when it enters)
+		var zone: String = card.board_zone() if card is FateCardTemplate else ""
+		if zone != "" and zone != "world" and _free_slots(game, seat, zone) == 0:
+			ctrl.note("no room in the %s zone for %s" % [zone, name])
+			continue
 		if game.play_from_hand(card):
 			ctrl.note("plays %s" % name)
 		else:
@@ -163,12 +174,24 @@ static func run(ctrl, token: int) -> void:
 		for f in Abilities.plan_force_blocks(game, state, attacks, profile, spare):
 			var kwf = game.keywords.get_keyword("Forced blocker")
 			if kwf.force_block(f.card, f.target):
+				spare -= Abilities.FORCE_BLOCK_COST
 				ctrl.note("forces %s to be the only blocker of %s" % [f.target.canonical_name, f.card.canonical_name])
 	ctrl.attack_plan = attacks
 	ctrl.note("attack plan: %s (score %.1f)" % [str(attacks.map(func(a): return _describe(state, a))), attack.score])
 	var attacking := {}
 	for a in attacks:
 		attacking[a.uid] = true
+	# Abilities written in card scripts: the ones that are cheap and safe, for creatures that stay home
+	var used := Abilities.plan_generic(game, state, profile, spare, attacking)
+	for entry in used:
+		if not ctrl.alive(token):
+			return
+		if is_instance_valid(entry.card) and await game.actions.run(entry.card, entry.id):
+			ctrl.note("uses %s of %s" % [entry.id, entry.card.canonical_name])
+		await ctrl.pause()
+	if not used.is_empty():
+		# New creatures, occupied ones: look at the table again before choosing who guards
+		state = Snapshot.build(game, seat, profile.aggression, profile.cheat)
 	for uid in state.units:
 		var u: Dictionary = state.units[uid]
 		if u.ctrl != seat or u.pos != "strike" or attacking.has(uid):

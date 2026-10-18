@@ -12,8 +12,12 @@
 #     unblockable. Scored by simulating the attack with and without.
 #   * Occupy: tilts the creature into the occupied zone. Its effect is not implemented, and an occupied
 #     creature does nothing a guarding one does not, so the AI leaves it alone.
-# When a card script lands, add a scorer here (a function per ability id or card name) and call it from
-# FateAIMain.run(): the planning code does not need to change.
+# Abilities written in card scripts (cards/Fx*.gd, built with make_action) are used by `plan_generic`
+# without knowing what they do, when they are cheap and safe: the costs are only Occupy / tilt (and the
+# creature is not attacking this turn: an occupied creature still blocks), mana the turn leaves spare,
+# counters (scrap, ingot) and once-per-turn limits. Abilities that give up cards (consume, discard, return to
+# hand) are left alone unless a scorer for that card is added to CARD_RULES. A card script can also set the
+# hint `ai_value`/`ai_intent` (cards/FateCardEffect.gd).
 #
 # No class_name (see FateAIEval.gd).
 extends RefCounted
@@ -105,3 +109,70 @@ static func plan_force_blocks(game: FateGame, state: Dictionary, attacks: Array,
 			attacks[i] = best_target.attack
 			left -= FORCE_BLOCK_COST
 	return out
+
+
+# --- abilities of card scripts ----------------------------------------------------------------------------
+
+# Action ids handled by their own planners above (keyword actions)
+const HANDLED_IDS := ["occupy", "embody", "force_block", "evolve"]
+# Cost ids that are safe to pay for an ability whose effect the AI cannot read
+const SAFE_COSTS := ["occupy", "tilt_self", "mana", "pay_domain", "counter", "limiter"]
+# card name -> Callable(game, card, action) -> bool: card-specific permission, wins over the generic rule
+# (return true to use an ability with unsafe costs, false to never use it)
+static var CARD_RULES := {}
+
+
+# The abilities of the AI's cards worth using this turn: [{"card": Card, "id": String}]. `attacking` is a set
+# {uid: true} of the creatures that attack this turn; `spare` the mana the turn leaves.
+static func plan_generic(game: FateGame, state: Dictionary, profile, spare: int, attacking: Dictionary) -> Array:
+	var out: Array = []
+	if game.card_effects == null:
+		return out
+	var left := spare
+	for card in game.card_effects.table_cards():
+		if not card is FateCardTemplate or card.controller_id != state.me:
+			continue
+		for action in game.actions.list(card):
+			if action.id in HANDLED_IDS or not action.get("enabled", true) or not action.has("costs"):
+				continue
+			var verdict := _permission(game, card, action, attacking, left)
+			if verdict < 0:
+				continue
+			left -= verdict
+			out.append({"card": card, "id": action.id})
+	return out
+
+
+# -1: do not use it; otherwise the mana it spends
+static func _permission(game: FateGame, card: Card, action: Dictionary, attacking: Dictionary, spare: int) -> int:
+	var rule = CARD_RULES.get(card.canonical_name)
+	var mana := 0
+	for cost in action.costs:
+		mana += _mana_of(cost)
+	if mana > spare:
+		return -1
+	if rule is Callable:
+		return mana if rule.call(game, card, action) else -1
+	for cost in action.costs:
+		if not _safe(cost, card, attacking):
+			return -1
+	return mana
+
+
+static func _safe(cost: Dictionary, card: Card, attacking: Dictionary) -> bool:
+	if cost.id == "either":
+		return true
+	if not cost.id in SAFE_COSTS:
+		return false
+	# An attacker must stay upright
+	if cost.id in ["occupy", "tilt_self"] and attacking.has(card.get_instance_id()):
+		return false
+	return true
+
+
+# The number of mana a cost takes ("Pay 2" / "Pay 1 Order" labels)
+static func _mana_of(cost: Dictionary) -> int:
+	if cost.id in ["mana", "pay_domain"]:
+		var found := RegEx.create_from_string("\\d+").search(str(cost.get("label", "")))
+		return int(found.get_string()) if found != null else 1
+	return 0

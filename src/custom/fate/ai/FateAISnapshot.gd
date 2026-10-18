@@ -12,6 +12,7 @@
 #   "discard"        {pid: Array of card names}  public information
 #   "hand_opp"       only when `cheat` is set: the opponent's cards, see FateAIProfile.cheat
 #   "face_weight"    how much damage to the opponent's life is worth (profile aggression)
+#   "ai_seats"       the seats played by an AI (their Savage creatures pick targets, FateAISim._savage)
 # }
 #
 # Hidden information: the opponent's hand and deck order are NOT in a snapshot unless `cheat` is on.
@@ -26,7 +27,7 @@ static func build(game: FateGame, me: int, face_weight := 1.0, cheat := false) -
 		"me": me, "opp": FateZones.opponent_of(me),
 		"turn": game.turn_number, "active": game.active_id, "phase": game.phase,
 		"life": {}, "units": {}, "mana": {}, "hand_count": {}, "deck_count": {}, "discard": {},
-		"hand_me": [], "face_weight": face_weight,
+		"hand_me": [], "face_weight": face_weight, "ai_seats": game.ai_controllers.keys(),
 	}
 	for pid in game.players:
 		var p: FatePlayer = game.players[pid]

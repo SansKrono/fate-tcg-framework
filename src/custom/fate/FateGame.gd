@@ -608,6 +608,9 @@ func set_ai(seat: int, on := true, level := 1):
 	add_child(controller)
 	controller.setup(self, seat, level)
 	ai_controllers[seat] = controller
+	# FATE_AI_LOG=1 prints what the AI decides and why (see FateAIController.log_lines)
+	if OS.get_environment("FATE_AI_LOG") != "":
+		controller.noted.connect(func(line): print(line))
 	# Switched on in the middle of a game: take over wherever it is
 	controller.resume()
 	return controller
