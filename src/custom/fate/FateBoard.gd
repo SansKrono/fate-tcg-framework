@@ -25,6 +25,8 @@ const ZONE_CAPTIONS := {
 const PILE_CAPTIONS := {"deck": "DECK", "discard": "DISCARD", "removed": "REMOVED"}
 # The label of the debug button, closed and open
 const DEBUG_BUTTON_TEXT := {false: "Debug tools  (F3)", true: "Close debug tools  (F3)"}
+const MENU_SCENE := "res://src/custom/MainMenu.tscn"
+const MENU_BUTTON_SIZE := Vector2(220, 44)
 
 var game: FateGame
 # The table surface (vignette, seat tints, rails)
@@ -52,6 +54,8 @@ var combat_ui: FateCombatUI
 var choice_ui: Control
 var turn_banner: FateTurnBanner
 var winner_banner: FateTurnBanner
+# Shown under the winner banner when the game is over, leads back to the main menu
+var menu_button: Button
 var _curtain: ColorRect
 # The debug tools (F3 or the Debug button), see FateDebug
 var debug: FateDebug
@@ -476,6 +480,7 @@ func _build_combat_ui() -> void:
 	winner_banner = FateTurnBanner.new()
 	winner_banner.name = "WinnerBanner"
 	add_child(winner_banner)
+	_build_menu_button()
 
 
 # The questions of card effects are answered by the people at the table. Tests keep the deterministic
@@ -544,9 +549,33 @@ func _reveal_reacting_hand() -> void:
 				% top_id
 
 
+# The way out of a finished game, hidden until the game ends
+func _build_menu_button() -> void:
+	menu_button = Button.new()
+	menu_button.name = "MenuButton"
+	menu_button.text = "Back to main menu"
+	menu_button.focus_mode = Control.FOCUS_NONE
+	menu_button.size = MENU_BUTTON_SIZE
+	menu_button.position = Vector2(
+			winner_banner.position.x + (FateTurnBanner.SIZE.x - MENU_BUTTON_SIZE.x) / 2.0,
+			winner_banner.position.y + FateTurnBanner.SIZE.y + 14.0)
+	menu_button.z_index = 100
+	menu_button.add_theme_font_size_override("font_size", 16)
+	FateTheme.make_primary(menu_button)
+	menu_button.visible = false
+	menu_button.pressed.connect(return_to_menu)
+	add_child(menu_button)
+
+
+func return_to_menu() -> void:
+	# warning-ignore:return_value_discarded
+	get_tree().change_scene_to_file(MENU_SCENE)
+
+
 func _on_game_ended(winner_id: int) -> void:
 	turn_banner.visible = false
 	winner_banner.flash("Player %d wins" % winner_id, true)
+	menu_button.visible = true
 	_refresh_hud()
 
 

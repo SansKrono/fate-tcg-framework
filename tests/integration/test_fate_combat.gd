@@ -489,6 +489,11 @@ func test_lethal_damage_defeats_the_player_and_stops_the_game():
 	assert_eq(board.status_label.text, "Game over - Player 1 wins")
 	assert_true(board.next_button.disabled)
 	assert_true(board.end_turn_button.disabled)
+	assert_true(board.menu_button.visible, "A finished game offers the way back to the main menu")
+
+
+func test_the_menu_button_stays_hidden_while_the_game_is_running():
+	assert_false(board.menu_button.visible)
 
 
 # --- turn integration -----------------------------------------------------------------------------------------------------------

@@ -2937,5 +2937,6 @@ func _on_Back_resized() -> void:
 
 # Ensures proper cleanup when a card is queue_free() for any reason
 func _on_tree_exiting():
-	if cfc.NMAP.has("main"):
+	# NMAP keeps the main scene after it was freed (a scene change frees it before its cards exit the tree)
+	if is_instance_valid(cfc.NMAP.get("main")):
 		cfc.NMAP.main.unfocus(self)
