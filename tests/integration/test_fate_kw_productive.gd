@@ -87,7 +87,7 @@ func test_occupy_rule_does_not_block_attacking_and_the_reverse():
 func test_a_creature_played_from_hand_cannot_occupy_that_turn():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	go_to_main()
 	card.move_to(board)
 	await wait_seconds(0.6)

@@ -400,7 +400,7 @@ func test_clicking_the_deck_draws_the_extra_card_in_the_energy_phase():
 func test_cards_are_played_in_the_main_phase_only():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	card.move_to(board)
 	await wait_seconds(0.5)
 	assert_eq(card.get_parent(), FateZones.container("hand", 1), "Not in the energy phase")
@@ -418,7 +418,7 @@ func test_no_playing_in_combat_phases_or_the_end_of_the_turn():
 	game.combat = combat
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	_to_main()
 	game.advance_phase()
 	assert_eq(game.phase, Phase.COMBAT_DECLARE)
@@ -434,7 +434,7 @@ func test_only_the_owner_plays_cards_in_their_own_turn():
 	await empty_hand(2)
 	await fill_mana(1)
 	await fill_mana(2)
-	var mine := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var mine := await put_in_hand(1, "Streetside Recruiter")
 	var theirs := await put_in_hand(2, "Skulking Goblin")
 	_to_main()
 	theirs.move_to(board)
@@ -450,14 +450,14 @@ func test_only_the_owner_plays_cards_in_their_own_turn():
 func test_playing_by_dragging_a_card_to_the_table():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	_to_main()
 	var slot: BoardPlacementSlot = FateZones.grid("creatures", 1).get_slot(0)
 	await drag_drop(card, slot.global_position + Vector2(20, 20))
 	await wait_seconds(0.5)
 	assert_eq(card.get_parent(), board, "Dropped on the creature zone")
 	assert_eq(card._placement_slot, slot)
-	assert_eq(total_mana(game.mana_pool(1)), 5, "The cost was paid")
+	assert_eq(total_mana(game.mana_pool(1)), 4, "The cost was paid")
 
 
 func test_a_refused_drop_costs_nothing():
@@ -467,7 +467,7 @@ func test_a_refused_drop_costs_nothing():
 	await fill_mana(1)
 	for _i in range(6):
 		await put_on_table(1, "Battle Smith", "creatures")
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	_to_main()
 	assert_true(game.can_play_from_hand(card), "The rules allow it")
 	card.move_to(board)
@@ -481,7 +481,7 @@ func test_a_refused_drop_costs_nothing():
 func test_entered_turn_is_the_turn_it_was_played():
 	await empty_hand(1)
 	await fill_mana(1)
-	var relic := await put_in_hand(1, "Garbage Heap")
+	var relic := await put_in_hand(1, "Holy Amulet")
 	_to_main()
 	relic.move_to(board)
 	await wait_seconds(0.6)
@@ -490,7 +490,7 @@ func test_entered_turn_is_the_turn_it_was_played():
 	game.end_turn()
 	game.end_turn()
 	assert_eq(game.turn_number, 3)
-	var creature := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var creature := await put_in_hand(1, "Streetside Recruiter")
 	_to_main()
 	creature.move_to(board)
 	await wait_seconds(0.6)

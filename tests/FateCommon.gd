@@ -94,12 +94,15 @@ func go_to_main() -> void:
 	assert_eq(game.phase, FateGame.Phase.MAIN, "Test setup: reached the main phase")
 
 
-# Gives a player untapped energy: `per_domain` cards of each of their two domains (6 mana
-# by default; the dearest cards cost 7)
+# Gives a player untapped energy: `per_domain` cards of each of two domains, i.e. 2 * `per_domain`
+# in total (6 mana by default; the dearest cards cost 7), split evenly over the player's domains
+# (a mono-domain player gets them all in that domain)
 func fill_mana(pid: int, per_domain := 3) -> void:
-	for domain in game.player(pid).domains:
+	var domains: Array = game.player(pid).domains
+	var each: int = per_domain * 2 / domains.size()
+	for domain in domains:
 		var card_name := _energy_card_of(domain)
-		for _i in range(per_domain):
+		for _i in range(each):
 			await put_energy(pid, card_name)
 
 

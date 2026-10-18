@@ -29,12 +29,12 @@ func test_deck_rules():
 			names.append(c.canonical_name)
 		for c in FateZones.container("hand", pid).get_all_cards():
 			names.append(c.canonical_name)
-		assert_eq(names.size(), FateDecks.DECK_SIZE, "Player %d has a 60 card deck" % pid)
+		assert_eq(names.size(), FateDecks.DECK_SIZE, "Player %d has a 40 card deck" % pid)
 		var counts := {}
 		for n in names:
 			counts[n] = counts.get(n, 0) + 1
 		for n in counts:
-			assert_true(counts[n] <= cfc.card_definitions[n]._max_allowed, "%s within its copy limit" % n)
+			assert_true(counts[n] <= FateDecks.copy_limit(n), "%s within its copy limit" % n)
 			assert_true(cfc.card_definitions[n].Domain in game.player(pid).domains, "%s matches the player's domains" % n)
 
 
@@ -144,15 +144,15 @@ func test_relic_goes_to_relic_zone_and_instant_spell_to_discard():
 	await empty_hand(1)
 	# Fixed cards: the starting hand is random, and a reaction spell is not playable in the main
 	# phase (rules spec D8), so picking "any spell" from it would make this test depend on the shuffle
-	var relic: Card = await put_in_hand(1, "Garbage Heap")
-	var spell: Card = await put_in_hand(1, "Rapid Scavenging")
+	var relic: Card = await put_in_hand(1, "Holy Amulet")
+	var spell: Card = await put_in_hand(1, "Smite")
 	relic.move_to(board)
 	await wait_seconds(0.6)
 	assert_eq(relic._placement_slot.get_grid_name(), "Relics P1")
 	spell.move_to(board)
 	await wait_seconds(0.6)
 	assert_eq(spell.get_parent(), FateZones.container("discard", 1), "A regular spell resolves into the discard pile")
-	var reaction: Card = await put_in_hand(1, "Safety Measure")
+	var reaction: Card = await put_in_hand(1, "Hold the Line")
 	reaction.move_to(board)
 	await wait_seconds(0.4)
 	assert_eq(reaction.get_parent(), FateZones.container("hand", 1), "A reaction spell stays in hand in the main phase")

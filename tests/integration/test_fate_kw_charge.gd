@@ -115,7 +115,7 @@ func test_entered_turn_zero_is_not_restricted():
 func test_a_creature_played_from_hand_cannot_attack_that_turn():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	go_to_main()
 	card.move_to(board)
 	await wait_seconds(0.6)
@@ -130,7 +130,7 @@ func test_a_creature_played_from_hand_cannot_attack_that_turn():
 func test_a_creature_played_from_hand_attacks_on_the_next_turn():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	go_to_main()
 	card.move_to(board)
 	await wait_seconds(0.6)
@@ -144,7 +144,7 @@ func test_a_creature_played_from_hand_attacks_on_the_next_turn():
 func test_a_creature_played_from_hand_with_granted_charge_attacks_at_once():
 	await empty_hand(1)
 	await fill_mana(1)
-	var card := await put_in_hand(1, "Goblin Ledgerkeeper")
+	var card := await put_in_hand(1, "Streetside Recruiter")
 	go_to_main()
 	card.move_to(board)
 	await wait_seconds(0.6)

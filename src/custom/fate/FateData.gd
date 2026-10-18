@@ -21,7 +21,7 @@ const CARDS := {
 		"Abilities": "Occupy: cast 1 relic from your discard by paying its cost",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 	},
 	"Steelwork Salvager": {
@@ -35,7 +35,7 @@ const CARDS := {
 		"Abilities": "When it attacks, create a scrap token",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Goblin Ledgerkeeper": {
 		"Type": "Creature",
@@ -48,7 +48,7 @@ const CARDS := {
 		"Abilities": "Occupy: create a scrap token",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 		"_stats_placeholder": true,
 	},
@@ -63,7 +63,7 @@ const CARDS := {
 		"Abilities": "When it attacks you may draw a card then discard a card",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Acquisition Fabricator": {
 		"Type": "Creature",
@@ -76,7 +76,7 @@ const CARDS := {
 		"Abilities": "Tap, consume a scrap: create an ingot token (consume for 1 mana of any colour)",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Battle Smith": {
@@ -90,7 +90,7 @@ const CARDS := {
 		"Abilities": "Tap, consume an ingot: create a Battle Hammer token attached to a creature you control (+2 Strike)",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Factory Crafter": {
@@ -104,7 +104,7 @@ const CARDS := {
 		"Abilities": "Tap, consume an ingot: create a 3/3 iron automaton token in guard position",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Thrang, Perpetual Innovation": {
@@ -130,7 +130,7 @@ const CARDS := {
 		"Abilities": "Consume a scrap: 1 damage to any target (to a creature, reduces the stat for its current position)",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Factory Refinery": {
@@ -142,7 +142,7 @@ const CARDS := {
 		"Abilities": "Pay 1, consume a scrap: create an ingot token",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Garbage Heap": {
@@ -154,7 +154,7 @@ const CARDS := {
 		"Abilities": "Consume this relic: create 2 scrap tokens",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Scrap Recycler": {
@@ -166,7 +166,7 @@ const CARDS := {
 		"Abilities": "Once per turn you may consume a relic. If you do, draw a card",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Thrang's Crafting Table": {
@@ -190,7 +190,7 @@ const CARDS := {
 		"Abilities": "Create 2 scrap tokens",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Fabrication Line": {
@@ -202,7 +202,7 @@ const CARDS := {
 		"Abilities": "Create 2 copies of target token you control",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Factory Shutdown": {
@@ -214,7 +214,7 @@ const CARDS := {
 		"Abilities": "All attacks against you and your field are negated",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 	},
 	"Safety Measure": {
@@ -226,7 +226,7 @@ const CARDS := {
 		"Abilities": "Destroy target attacking creature",
 		"_domains": ["Innovation"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 	},
 	"Invigorated Workforce": {
@@ -252,7 +252,7 @@ const CARDS := {
 		"Abilities": "When it dies, take control of target creature with mana value 2 or less",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Enthralled Civilian": {
 		"Type": "Creature",
@@ -265,7 +265,7 @@ const CARDS := {
 		"Abilities": "Main phase: consume it to cast one of your mana cards (it stops being mana)",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Unseen Manipulator": {
@@ -279,7 +279,7 @@ const CARDS := {
 		"Abilities": "Enters: choose 1: Convert (take control of target non-unique creature an opponent controls) / Intel (draw two)",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Dockside Ambusher": {
 		"Type": "Creature",
@@ -292,7 +292,7 @@ const CARDS := {
 		"Abilities": "When you flip cast it from your energy zone, target opponent chooses a non-token permanent of mana value 4 or less to give you, placed in your energy zone",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Flip cast"],
 	},
 	"Cultist Fanatic": {
@@ -306,7 +306,7 @@ const CARDS := {
 		"Abilities": "When it deals damage to a player or creature, you may sacrifice it to flip cast a card from your energy zone without paying",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Flip cast"],
 	},
 	"Unending Echo": {
@@ -320,7 +320,7 @@ const CARDS := {
 		"Abilities": "Can be cast from your discard by paying its cost",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Ikthar, The Great Summoner": {
 		"Type": "Creature",
@@ -358,7 +358,7 @@ const CARDS := {
 		"Abilities": "Once during your turn, consume a creature; when you do you may flip cast from your energy zone",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume", "Flip cast"],
 	},
 	"Murkmist Gemstone": {
@@ -370,7 +370,7 @@ const CARDS := {
 		"Abilities": "Enters attached to a creature. When that creature dies, take control of the creature that destroyed it, if any",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Delve into the Beyond": {
 		"Type": "Spell",
@@ -381,7 +381,7 @@ const CARDS := {
 		"Abilities": "Put a card from your hand on the bottom of your deck. Draw two",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Deep Thought": {
@@ -393,7 +393,7 @@ const CARDS := {
 		"Abilities": "Look at the top two cards of your deck, put one in your hand and the other on the bottom",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Unforgotten Sacrifice": {
@@ -405,7 +405,7 @@ const CARDS := {
 		"Abilities": "Flip play a card from your energy zone without paying. Then place the top card of your deck face-down in your energy zone",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Claimed by the Abyss": {
@@ -417,7 +417,7 @@ const CARDS := {
 		"Abilities": "Take target creature on any field and place it face-down in your energy zone",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Repurpose": {
@@ -429,7 +429,7 @@ const CARDS := {
 		"Abilities": "Move target card in a player's discard into your energy zone",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Double Agent": {
@@ -441,7 +441,7 @@ const CARDS := {
 		"Abilities": "When a player declares attacks, take control of another creature you do not control until EOT. It enters in guard position",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 	},
 	"Eldritch Knowledge": {
@@ -453,7 +453,7 @@ const CARDS := {
 		"Abilities": "Whenever you flip cast, draw a card",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 		"_keywords": ["Flip cast"],
 	},
@@ -481,7 +481,7 @@ const CARDS := {
 		"Abilities": "When you attack, two target creatures gain +1 Strike until EOT",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Righteous Guard": {
 		"Type": "Creature",
@@ -494,7 +494,7 @@ const CARDS := {
 		"Abilities": "Enters: create 1/1 soldiers equal to the number of cards named Righteous Guard on your field",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Tactical Combatant": {
 		"Type": "Creature",
@@ -507,7 +507,7 @@ const CARDS := {
 		"Abilities": "After it attacks, switch it to guard position",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Devote Paladin": {
 		"Type": "Creature",
@@ -520,7 +520,7 @@ const CARDS := {
 		"Abilities": "Tap, consume an energy card: your creatures gain +1 Strike and Savage (1)",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume", "Savage"],
 	},
 	"Streetside Recruiter": {
@@ -534,7 +534,7 @@ const CARDS := {
 		"Abilities": "Occupy: create a 1/1 human soldier",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 	},
 	"Faithful Worshiper": {
@@ -548,7 +548,7 @@ const CARDS := {
 		"Abilities": "Consume a card in your energy zone: your creatures gain Indomitable until EOT",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume", "Indomitable"],
 	},
 	"Lucran, Divine Saviour": {
@@ -574,7 +574,7 @@ const CARDS := {
 		"Abilities": "Equips to a creature of your choice. Creature gains Occupy: add one Order energy",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 	},
 	"Spiked Barricade": {
@@ -586,7 +586,7 @@ const CARDS := {
 		"Abilities": "Can be used to guard an attacking creature; when it does, destroy that creature and discard the barricade",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 	},
 	"Reinforcements": {
 		"Type": "Spell",
@@ -597,7 +597,7 @@ const CARDS := {
 		"Abilities": "Create 2 soldier tokens (1/1)",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Smite": {
@@ -609,7 +609,7 @@ const CARDS := {
 		"Abilities": "Destroy target non-unique creature, or destroy target perpetual spell",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Battle Ready": {
@@ -621,7 +621,7 @@ const CARDS := {
 		"Abilities": "Switch up to 3 target creatures to strike position; +1 Strike until EOT",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Hold the Line": {
@@ -633,7 +633,7 @@ const CARDS := {
 		"Abilities": "Cast when your field is attacked: switch any number of your creatures to guard; +1 Guard until EOT",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 	},
 	"Equal Footing": {
@@ -645,7 +645,7 @@ const CARDS := {
 		"Abilities": "At end of each player's turn, if they do not have the most energy, they may move a card from their discard to their energy zone",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "World",
 	},
 	"Recovering Resources": {
@@ -657,7 +657,7 @@ const CARDS := {
 		"Abilities": "Once during end of each turn, if a creature you own died, you may draw a card",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 	},
 	"War of Attrition": {
@@ -669,7 +669,7 @@ const CARDS := {
 		"Abilities": "At the beginning of your turn, switch of your creatures to occupied (guard but cannot defend)",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 	},
 	"Beetle Brawler": {
@@ -683,7 +683,7 @@ const CARDS := {
 		"Abilities": "Pay 2: when it attacks this turn it must be blocked exclusively by target creature. Evolution 2 (Ironside Beetle)",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Evolution"],
 	},
 	"Ironside Beetle": {
@@ -697,7 +697,7 @@ const CARDS := {
 		"Abilities": "Same forced-block ability; Savage 1",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Savage"],
 		"_innate_keywords": {
 			"Savage": 1,
@@ -714,7 +714,7 @@ const CARDS := {
 		"Abilities": "Consume: reduce the cost of the next creature you play by 2",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Consume"],
 	},
 	"Feracious Beast": {
@@ -728,7 +728,7 @@ const CARDS := {
 		"Abilities": "Savage 2",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Savage"],
 		"_innate_keywords": {
 			"Savage": 2,
@@ -745,7 +745,7 @@ const CARDS := {
 		"Abilities": "Pay 3: Embody (move an energy card beneath it; gains Strike and Guard equal to its mana value; one at a time, replaced card to discard)",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Embody"],
 	},
 	"Elder Spirit": {
@@ -759,7 +759,7 @@ const CARDS := {
 		"Abilities": "Occupy: put the top card of your deck into your energy zone",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 	},
 	"Wraithful Treespirits": {
@@ -773,7 +773,7 @@ const CARDS := {
 		"Abilities": "Untethered",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Untethered"],
 		"_innate_keywords": {
 			"Untethered": 1,
@@ -817,7 +817,7 @@ const CARDS := {
 		"Abilities": "Enters attached to a creature of your choice; it gains Savage 1",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Savage"],
 	},
 	"Ancient Tree": {
@@ -829,7 +829,7 @@ const CARDS := {
 		"Abilities": "Occupy: produce 1 Primal energy",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_keywords": ["Occupy"],
 	},
 	"Primal Wraith": {
@@ -841,7 +841,7 @@ const CARDS := {
 		"Abilities": "Creatures you control gain Savage 1 until EOT",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 		"_keywords": ["Savage"],
 	},
@@ -854,7 +854,7 @@ const CARDS := {
 		"Abilities": "Once during your turn, if a card is placed in your discard, move it to your energy zone",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 	},
 	"Return to Nature": {
@@ -866,7 +866,7 @@ const CARDS := {
 		"Abilities": "Target relic or spell is placed in its owner's energy zone",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Second Calling": {
@@ -878,7 +878,7 @@ const CARDS := {
 		"Abilities": "Return target creature from your discard to the field; it is also a Ghost",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 	},
 	"Forests Protection": {
@@ -890,7 +890,7 @@ const CARDS := {
 		"Abilities": "When your field is attacked, your creatures gain Indomitable until EOT",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 		"_keywords": ["Indomitable"],
 	},
@@ -903,7 +903,7 @@ const CARDS := {
 		"Abilities": "At the beginning of your turn you may flip a creature from your energy zone; it may attack this turn and returns to the energy zone at EOT",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 	},
 	"Brogir, Master Artificer": {
@@ -947,7 +947,7 @@ const CARDS := {
 		"Abilities": "Additional cost: consume X permanents. Opponents consume X permanents",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 		"_keywords": ["Consume"],
 		"_domain_assumed": true,
@@ -963,7 +963,7 @@ const CARDS := {
 		"Abilities": "The first spell you cast each turn is placed in your energy zone instead of your discard",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_domain_assumed": true,
 	},
 	"Holy Healer": {
@@ -977,7 +977,7 @@ const CARDS := {
 		"Abilities": "Enters: take a creature from your discard and put it in your hand",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_domain_assumed": true,
 	},
 	"Insightful Investigator": {
@@ -991,7 +991,7 @@ const CARDS := {
 		"Abilities": "Enters: look at the top two cards of target player's library; you may put one or both on the bottom",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_domain_assumed": true,
 	},
 	"Toll of War": {
@@ -1003,7 +1003,7 @@ const CARDS := {
 		"Abilities": "Destroy all creatures in strike position",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 		"_domain_assumed": true,
 	},
@@ -1029,7 +1029,7 @@ const CARDS := {
 		"Abilities": "Destroy all creatures in guard position",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Regular",
 		"_domain_assumed": true,
 	},
@@ -1042,7 +1042,7 @@ const CARDS := {
 		"Abilities": "When another player declares attacks, remove any number of target attacking creatures from combat",
 		"_domains": ["Order"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Reaction",
 		"_domain_assumed": true,
 	},
@@ -1057,7 +1057,7 @@ const CARDS := {
 		"Abilities": "Cannot be blocked and cannot block, but can be targeted",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_innate_keywords": {
 			"Unblockable": 1,
 			"Cannot block": 1,
@@ -1073,7 +1073,7 @@ const CARDS := {
 		"Abilities": "At the beginning of combat on your turn, choose a creature you control; it cannot be blocked this turn",
 		"_domains": ["Chaos"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_spell_kind": "Field",
 		"_domain_assumed": true,
 	},
@@ -1088,7 +1088,7 @@ const CARDS := {
 		"Abilities": "May target relics as if creatures; relics hit are destroyed",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_domain_assumed": true,
 	},
 	"Goblin Scout Leader": {
@@ -1102,7 +1102,7 @@ const CARDS := {
 		"Abilities": "When it attacks, create a 1/1 goblin in strike position",
 		"_domains": ["Primal"],
 		"_unique": false,
-		"_max_allowed": 4,
+		"_max_allowed": 3,
 		"_domain_assumed": true,
 	},
 }

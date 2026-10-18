@@ -59,8 +59,9 @@ const Phase := FateTurn.Phase
 const STARTING_HAND := 7
 # D1: does the first player skip the draw phase of turn 1? No: every turn draws
 const FIRST_PLAYER_SKIPS_FIRST_DRAW := false
-# The domains of each player's deck
-const PLAYER_DOMAINS := {1: ["Innovation", "Primal"], 2: ["Order", "Chaos"]}
+# The domains of each player's deck. The deck designs are meant to be played as a single colour:
+# player 1 plays Order, player 2 plays Primal
+const PLAYER_DOMAINS := {1: ["Order"], 2: ["Primal"]}
 const DOMAIN_BY_INITIAL := {"I": "Innovation", "C": "Chaos", "O": "Order", "P": "Primal"}
 # What the ENERGY phase choice was this turn (`energy_choice`)
 const CHOICE_ENERGY := "energy"

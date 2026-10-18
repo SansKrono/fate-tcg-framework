@@ -9,6 +9,9 @@ import re
 DOC = "docs/FATE_TCG_DESIGN.md"
 OUT = "src/custom/fate/FateData.gd"
 
+# The most copies of a card in a deck (Section 11.2); unique cards are limited to one
+MAX_COPIES = 3
+
 INITIAL = {"Innovation": "I", "Chaos": "C", "Order": "O", "Primal": "P"}
 SECTION_DOMAIN = {"14.1": "Innovation", "14.2": "Chaos", "14.3": "Order", "14.4": "Primal"}
 # Section 14.5 cards have no domain in the draft; these are assumptions (see design doc, Section 12 item 21).
@@ -114,7 +117,7 @@ for line in catalog.splitlines():
     props["Abilities"] = effect
     props["_domains"] = [domain]
     props["_unique"] = unique
-    props["_max_allowed"] = 1 if unique else 4
+    props["_max_allowed"] = 1 if unique else MAX_COPIES
     if spell_kind:
         props["_spell_kind"] = spell_kind
     if kws:

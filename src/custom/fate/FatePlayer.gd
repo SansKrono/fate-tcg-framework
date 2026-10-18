@@ -11,7 +11,7 @@ signal life_changed(player)
 
 var id: int
 var display_name: String
-# The two domains the player's deck is built from
+# The domains the player's deck is built from (one, for a mono deck)
 var domains: Array
 var life := STARTING_LIFE:
 	set(value):

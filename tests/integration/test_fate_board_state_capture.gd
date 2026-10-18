@@ -125,14 +125,17 @@ func test_piles_are_listed_top_first():
 	assert_false(state.zone(1, "deck").is_empty())
 
 
-func test_deck_cards_default_to_face_down():
+func test_the_face_of_pile_and_hand_cards_is_not_stored():
+	# Which side shows in a pile or a hand follows from the container (and from who sits at the
+	# bottom), so loading never needs it and it is left out
 	var state := _capture()
-	for entry in state.zone(1, "deck"):
-		assert_false(entry.has("face"), "Face-down is the deck default")
+	for zone in ["deck", "hand"]:
+		for entry in state.zone(1, zone):
+			assert_false(entry.has("face"), "%s: no face" % zone)
 	var drawn: Card = FateZones.container("deck", 1).get_top_card()
 	drawn.set_is_faceup(true, true)
 	var after := _capture()
-	assert_eq(after.zone(1, "deck")[0].get("face"), "up", "A face-up deck card is written")
+	assert_false(after.zone(1, "deck")[0].has("face"), "Not even a face-up deck card")
 
 
 func test_grids_are_listed_by_slot_with_gaps():
