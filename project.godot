@@ -26,6 +26,8 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/size/window_width_override=2560
 window/size/window_height_override=1344
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [editor_plugins]
 
@@ -49,3 +51,4 @@ screenshot_card={
 [rendering]
 
 environment/defaults/default_environment="res://default_env.tres"
+environment/defaults/default_clear_color=Color(0.1, 0.115, 0.18, 1)

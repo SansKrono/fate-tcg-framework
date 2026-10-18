@@ -30,7 +30,7 @@ func _init() -> void:
 	column.add_theme_constant_override("separation", 5)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(column)
-	prompt_label = FateTheme.label("", 11, FateTheme.TEXT, "Regular")
+	prompt_label = FateTheme.label("", 12, FateTheme.TEXT, "Medium")
 	prompt_label.name = "Prompt"
 	prompt_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -43,7 +43,7 @@ func _init() -> void:
 	FateTheme.make_primary(draw_button)
 	FateTheme.make_primary(next_button)
 	end_turn_button = _button("End turn", 24)
-	end_turn_button.add_theme_font_size_override("font_size", 11)
+	end_turn_button.add_theme_font_size_override("font_size", 12)
 	for b in [draw_button, next_button, end_turn_button]:
 		column.add_child(b)
 	set_phase(FateTurn.Phase.NONE)

@@ -240,7 +240,7 @@ func _style_pile(pile: Pile, caption_text: String) -> void:
 	var floor_panel: Panel = pile.get_node("Control")
 	floor_panel.self_modulate = Color(1, 1, 1, 0.9)
 	floor_panel.add_theme_stylebox_override("panel",
-			FateTheme.box(Color(0.0, 0.0, 0.0, 0.35), Color(FateTheme.GOLD, 0.3), 16, 3, 0.0))
+			FateTheme.box(Color(0.08, 0.09, 0.15, 0.6), Color(FateTheme.GOLD, 0.45), 16, 3, 0.0))
 	floor_panel.tooltip_text = pile.pile_name
 	# Above the cards of the pile, so the count and the name stay readable
 	floor_panel.z_index = 1
@@ -252,7 +252,7 @@ func _style_pile(pile: Pile, caption_text: String) -> void:
 	count.add_theme_color_override("font_outline_color", Color.BLACK)
 	count.add_theme_constant_override("outline_size", 10)
 	var badge: PanelContainer = count.get_parent().get_parent()
-	var badge_box := FateTheme.box(Color(0.03, 0.035, 0.06, 0.85), Color(FateTheme.GOLD, 0.6), 30, 3, 10.0)
+	var badge_box := FateTheme.box(Color(0.1, 0.115, 0.19, 0.9), Color(FateTheme.GOLD, 0.7), 30, 3, 10.0)
 	badge.add_theme_stylebox_override("panel", badge_box)
 	var caption := FateTheme.label(caption_text, 26, Color(FateTheme.TEXT, 0.85), "Bold")
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -300,7 +300,7 @@ func _add_grid(zone: String, pid: int) -> void:
 	grid.highlight = Color(FateTheme.GOLD, 1.0) * 1.2
 	if zone == "world":
 		grid.position = FateLayout.WORLD_POSITION
-	var caption := FateTheme.label(ZONE_CAPTIONS[zone], 8, Color(FateTheme.MUTED, 0.6), "SemiBold")
+	var caption := FateTheme.label(ZONE_CAPTIONS[zone], 9, Color(FateTheme.MUTED, 0.95), "SemiBold")
 	caption.name = "Caption"
 	caption.position = Vector2(4, 1)
 	grid.get_node("Control").add_child(caption)
@@ -330,15 +330,15 @@ func _add_energy_counter(grid: BoardPlacementGrid, pid: int) -> void:
 	counter.size = FateLayout.ENERGY_COUNTER_SIZE
 	counter.custom_minimum_size = FateLayout.ENERGY_COUNTER_SIZE
 	counter.add_theme_stylebox_override("panel",
-			FateTheme.box(Color(0, 0, 0, 0.35), Color(FateTheme.GOLD, 0.35), 8, 1, 2.0))
+			FateTheme.box(Color(0.1, 0.115, 0.19, 0.85), Color(FateTheme.GOLD, 0.5), 8, 1, 2.0))
 	var column := VBoxContainer.new()
 	column.name = "Column"
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.add_theme_constant_override("separation", 0)
 	counter.add_child(column)
-	for part in [["Ready", 16, FateTheme.GOLD, "Bold"], ["Caption", 8, FateTheme.MUTED, "SemiBold"],
-			["Tapped", 9, FateTheme.TEXT, "Regular"]]:
+	for part in [["Ready", 16, FateTheme.GOLD, "Bold"], ["Caption", 9, FateTheme.MUTED, "SemiBold"],
+			["Tapped", 10, FateTheme.TEXT, "Regular"]]:
 		var label := FateTheme.label("", part[1], part[2], part[3])
 		label.name = part[0]
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -393,7 +393,7 @@ func _build_hud() -> void:
 	bar.position = FateLayout.STATUS_RECT.position
 	bar.size = FateLayout.STATUS_RECT.size
 	bar.custom_minimum_size = Vector2(0, FateLayout.STATUS_RECT.size.y)
-	var bar_box := FateTheme.box(Color(0.03, 0.035, 0.06, 0.85), Color(FateTheme.GOLD, 0.35), 20, 1, 6.0)
+	var bar_box := FateTheme.box(Color(0.12, 0.14, 0.22, 0.92), Color(FateTheme.GOLD, 0.5), 20, 1, 6.0)
 	bar_box.content_margin_left = 14
 	bar_box.content_margin_right = 8
 	bar.add_theme_stylebox_override("panel", bar_box)
@@ -429,10 +429,10 @@ func _build_detail_placeholder() -> void:
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.position = Vector2(6, 6)
 	frame.size = Vector2(FateLayout.LEFT_RAIL_WIDTH - 10, 340)
-	var frame_box := FateTheme.box(Color(0, 0, 0, 0.25), Color(FateTheme.PANEL_BORDER, 0.4), 12, 1)
+	var frame_box := FateTheme.box(Color(0.1, 0.115, 0.19, 0.6), Color(FateTheme.PANEL_BORDER, 0.7), 12, 1)
 	frame.add_theme_stylebox_override("panel", frame_box)
 	add_child(frame)
-	var hint := FateTheme.label("Hover a card\nto see it here", 11, Color(FateTheme.MUTED, 0.7))
+	var hint := FateTheme.label("Hover a card\nto see it here", 12, FateTheme.MUTED)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	frame.add_child(hint)

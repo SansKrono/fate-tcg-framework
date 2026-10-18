@@ -1825,18 +1825,14 @@ func set_control_mouse_filters(value = true) -> void:
 # Returns the part of the viewport the player can see, in the coordinates cards
 # are positioned with.
 #
-# The viewport can be bigger than the area the game is drawn on,
-# as the window's content scaling is not part of the viewport's own transforms.
-# Therefore we undo it here.
+# The viewport's visible rect is in content units: with a stretch mode other than
+# "disabled" it is the stretched size (1280x720), not the size of the window in pixels.
 func _get_visible_area() -> Rect2:
 	var viewport := get_viewport()
-	var area: Rect2 = viewport.get_canvas_transform().affine_inverse() \
-			* viewport.get_visible_rect()
-	var content_scale: Vector2 = get_tree().root.get_final_transform().get_scale()
-	if content_scale.x > 0.0 and content_scale.y > 0.0:
-		area.position /= content_scale
-		area.size /= content_scale
-	return area
+	# The visible rect is already in the units of the content (the stretched size), so the
+	# window's scale must not be applied to it again: that shrinks the area to a fraction of the
+	# screen and pushes the focused card out from under the cursor, which makes it flicker
+	return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
 
 
 # Get card position in hand by index

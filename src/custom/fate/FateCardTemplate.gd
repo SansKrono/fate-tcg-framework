@@ -22,6 +22,9 @@ var _play_pending := false
 var _playable_glow: Control
 # True while the card is face-down in the opponent's hand (FateHand): it ignores the mouse
 var concealed := false
+# Set when the card left a concealed hand (the AI's): it was face-down there, and turns face-up as it
+# reaches the table (an energy card stays face-down)
+var reveal_on_table := false
 const PLAYABLE_COLOR := Color(0.35, 0.72, 1.0)
 
 
@@ -65,6 +68,10 @@ func set_playable(on: bool) -> void:
 # Cards on the table take the scale of the zone they stand in (FateLayout.ZONE_SCALES) and show
 # their compact table face (FateCardFront.set_table_mode); everywhere else the full card.
 func _on_state_changed(_card, _old_state: int, new_state: int) -> void:
+	if reveal_on_table and new_state in [CardState.DROPPING_TO_BOARD, CardState.ON_PLAY_BOARD]:
+		reveal_on_table = false
+		if not is_energy and not is_faceup:
+			set_is_faceup(true, true)
 	if new_state in [CardState.DROPPING_TO_BOARD, CardState.ON_PLAY_BOARD] \
 			and _placement_slot != null and is_instance_valid(_placement_slot):
 		play_area_scale = _placement_slot.owner_grid.card_play_scale

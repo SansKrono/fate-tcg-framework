@@ -31,7 +31,7 @@ func _init() -> void:
 		pill.custom_minimum_size = Vector2(52, 20)
 		pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pill.add_theme_font_override("font", FateTheme.font("SemiBold"))
-		pill.add_theme_font_size_override("font_size", 10)
+		pill.add_theme_font_size_override("font_size", 11)
 		pill.pivot_offset = pill.custom_minimum_size / 2.0
 		add_child(pill)
 		_pills[entry[0]] = pill
@@ -49,9 +49,9 @@ func set_phase(phase: int) -> void:
 			pill.add_theme_stylebox_override("normal", FateTheme.pill_box(Color(accent, 0.9), accent.lightened(0.3)))
 			pill.add_theme_color_override("font_color", Color(0.08, 0.06, 0.02))
 		else:
-			pill.add_theme_stylebox_override("normal", FateTheme.pill_box(Color(1, 1, 1, 0.04),
+			pill.add_theme_stylebox_override("normal", FateTheme.pill_box(Color(1, 1, 1, 0.1),
 					Color(FateTheme.PANEL_BORDER, 0.5)))
-			pill.add_theme_color_override("font_color", Color(FateTheme.MUTED, 0.85))
+			pill.add_theme_color_override("font_color", FateTheme.MUTED)
 		if lit and changed and is_inside_tree():
 			pill.scale = Vector2(1.18, 1.18)
 			create_tween().tween_property(pill, "scale", Vector2.ONE, 0.25) \

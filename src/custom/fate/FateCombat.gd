@@ -588,6 +588,9 @@ func _deal_combat_damage(attack: FateAttack, result: Dictionary) -> void:
 		result.life_lost = effects.deal_damage(defender, damage, attacker, cause)
 		# Read now: a lethal hit ends the game, and the players may be gone when the result is logged
 		result.life_left = defender.life
+	elif not is_instance_valid(attack.target_card):
+		# The target was freed since the declaration (its typed-Card checks below would error on it)
+		result.kind = "target_gone"
 	elif is_perpetual_spell(attack.target_card) or is_relic_on_table(attack.target_card):
 		# An attacked perpetual spell or relic that was not intercepted is destroyed (Zelith, Battering Ram)
 		result.kind = "spell"

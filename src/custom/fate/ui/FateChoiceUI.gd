@@ -183,6 +183,7 @@ func _open(req: Dictionary, kind: String) -> void:
 	visible = true
 	shield.mouse_filter = Control.MOUSE_FILTER_STOP
 	shield.color = SHIELD_DIM if kind == "list" else Color(0, 0, 0, 0)
+	_move_to_front()
 	set_process(true)
 	_populate()
 	opened.emit(req)
@@ -208,6 +209,15 @@ func _finish(value) -> void:
 	queue_redraw()
 	closed.emit(req, value)
 	answered.emit(value)
+
+
+# Mouse clicks go to the Control that is last in the tree under the cursor, whatever the z_index: the
+# cards on the table, made after this overlay, would take the clicks the shield must get. So while a
+# question is open the overlay is kept the last child of the table (cards spawned meanwhile included).
+func _move_to_front() -> void:
+	var parent := get_parent()
+	if parent != null and get_index() != parent.get_child_count() - 1:
+		parent.move_child(self, -1)
 
 
 # A list that shows hidden cards of a player who is not at the screen waits behind a gate
@@ -237,6 +247,7 @@ func _process(_delta: float) -> void:
 	if _resolves_itself(request):
 		_finish(request.get("default"))
 		return
+	_move_to_front()
 	if mode == "table":
 		queue_redraw()
 

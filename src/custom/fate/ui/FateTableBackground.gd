@@ -3,7 +3,7 @@
 class_name FateTableBackground
 extends Control
 
-const TINT_ALPHA := 0.05
+const TINT_ALPHA := 0.1
 
 # The domain colour of the player at the bottom and at the top
 var bottom_color := FateTheme.NEUTRAL_DOMAIN
@@ -24,7 +24,7 @@ func _init() -> void:
 	_vignette.stretch_mode = TextureRect.STRETCH_SCALE
 	var gradient := Gradient.new()
 	gradient.set_color(0, FateTheme.BG_LIGHT)
-	gradient.set_color(1, Color(0.02, 0.025, 0.04))
+	gradient.set_color(1, Color(0.1, 0.115, 0.18))
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient
 	texture.fill = GradientTexture2D.FILL_RADIAL
@@ -54,7 +54,7 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, table_left, FateLayout.SCREEN.y), FateTheme.RAIL)
 	draw_rect(Rect2(table_right, 0, FateLayout.SCREEN.x - table_right, FateLayout.SCREEN.y),
 			FateTheme.RAIL)
-	var edge := Color(FateTheme.PANEL_BORDER, 0.35)
+	var edge := Color(FateTheme.PANEL_BORDER, 0.5)
 	draw_line(Vector2(table_left, 0), Vector2(table_left, FateLayout.SCREEN.y), edge, 1.0)
 	draw_line(Vector2(table_right, 0), Vector2(table_right, FateLayout.SCREEN.y), edge, 1.0)
 	# The midline: a soft gold glow under a thin line

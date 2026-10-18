@@ -62,7 +62,7 @@ func _build() -> void:
 	var top := HBoxContainer.new()
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(top)
-	var name_label := FateTheme.label(player.display_name, 12, FateTheme.TEXT, "SemiBold")
+	var name_label := FateTheme.label(player.display_name, 13, FateTheme.TEXT, "SemiBold")
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(name_label)
 	var heart := FateTheme.label("♥", 14, FateTheme.LIFE, "Bold")
@@ -75,9 +75,9 @@ func _build() -> void:
 	_chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_chips.add_theme_constant_override("separation", 4)
 	column.add_child(_chips)
-	counts_label = FateTheme.label("", 10, FateTheme.MUTED, "Regular")
+	counts_label = FateTheme.label("", 11, FateTheme.MUTED, "Regular")
 	column.add_child(counts_label)
-	counters_label = FateTheme.label("", 10, FateTheme.GOLD, "SemiBold")
+	counters_label = FateTheme.label("", 11, FateTheme.GOLD, "SemiBold")
 	counters_label.visible = false
 	column.add_child(counters_label)
 
@@ -120,11 +120,11 @@ func _process(_delta: float) -> void:
 
 func _chip(domain: String, untapped: int, total: int) -> Label:
 	var color := FateTheme.domain_color(domain)
-	var chip := FateTheme.label("%s %d/%d" % [domain.substr(0, 3), untapped, total], 10,
-			color.lightened(0.35) if untapped > 0 else Color(color, 0.55), "Bold")
+	var chip := FateTheme.label("%s %d/%d" % [domain.substr(0, 3), untapped, total], 11,
+			color.lightened(0.35) if untapped > 0 else Color(color, 0.9), "Bold")
 	chip.tooltip_text = "%s mana: %d untapped of %d" % [domain, untapped, total]
 	chip.add_theme_stylebox_override("normal",
-			FateTheme.pill_box(Color(color, 0.16 if untapped > 0 else 0.06), Color(color, 0.5)))
+			FateTheme.pill_box(Color(color, 0.2 if untapped > 0 else 0.12), Color(color, 0.5)))
 	return chip
 
 

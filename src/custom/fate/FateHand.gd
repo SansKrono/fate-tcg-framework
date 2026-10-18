@@ -67,6 +67,9 @@ func _process(delta: float) -> void:
 
 func _on_card_leaving(node: Node) -> void:
 	if node is Card and "concealed" in node:
+		# It was face-down in here: it must not stay so on the table (FateCardTemplate)
+		if node.concealed and "reveal_on_table" in node:
+			node.reveal_on_table = true
 		node.concealed = false
 
 

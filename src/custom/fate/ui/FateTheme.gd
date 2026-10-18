@@ -7,22 +7,22 @@
 class_name FateTheme
 extends RefCounted
 
-const BG := Color(0.055, 0.065, 0.1)
-const BG_LIGHT := Color(0.1, 0.12, 0.18)
-const PANEL := Color(0.075, 0.085, 0.125, 0.92)
-const PANEL_BORDER := Color(0.3, 0.33, 0.45, 0.55)
-const RAIL := Color(0.0, 0.0, 0.0, 0.28)
-const TEXT := Color(0.9, 0.91, 0.95)
-const MUTED := Color(0.55, 0.58, 0.68)
+const BG := Color(0.13, 0.15, 0.22)
+const BG_LIGHT := Color(0.25, 0.29, 0.42)
+const PANEL := Color(0.16, 0.185, 0.27, 0.95)
+const PANEL_BORDER := Color(0.5, 0.55, 0.74, 0.8)
+const RAIL := Color(0.06, 0.07, 0.13, 0.35)
+const TEXT := Color(0.97, 0.98, 1.0)
+const MUTED := Color(0.74, 0.78, 0.89)
 const GOLD := Color(0.95, 0.76, 0.3)
 const GOLD_DARK := Color(0.55, 0.4, 0.12)
 const DANGER := Color(0.85, 0.3, 0.3)
 const LIFE := Color(0.92, 0.36, 0.4)
 const DOMAIN_COLORS := {
-	"Innovation": Color(0.29, 0.64, 1.0),
+	"Innovation": Color(0.9, 0.3, 0.32),
 	"Primal": Color(0.36, 0.81, 0.42),
 	"Order": Color(0.91, 0.82, 0.48),
-	"Chaos": Color(0.82, 0.31, 0.42),
+	"Chaos": Color(0.62, 0.38, 0.92),
 }
 const NEUTRAL_DOMAIN := Color(0.6, 0.62, 0.7)
 
@@ -57,19 +57,19 @@ static func build() -> Theme:
 	theme.set_color("font_color", "Button", TEXT)
 	theme.set_color("font_hover_color", "Button", Color.WHITE)
 	theme.set_color("font_pressed_color", "Button", GOLD)
-	theme.set_color("font_disabled_color", "Button", Color(MUTED, 0.6))
+	theme.set_color("font_disabled_color", "Button", Color(MUTED, 0.8))
 	theme.set_color("font_focus_color", "Button", TEXT)
-	var normal := box(Color(0.14, 0.16, 0.24), PANEL_BORDER, 6, 1)
+	var normal := box(Color(0.22, 0.25, 0.37), PANEL_BORDER, 6, 1)
 	theme.set_stylebox("normal", "Button", normal)
-	theme.set_stylebox("hover", "Button", box(Color(0.19, 0.22, 0.32), Color(GOLD, 0.6), 6, 1))
-	theme.set_stylebox("pressed", "Button", box(Color(0.1, 0.11, 0.17), GOLD, 6, 1))
-	theme.set_stylebox("hover_pressed", "Button", box(Color(0.12, 0.13, 0.2), GOLD, 6, 1))
-	theme.set_stylebox("disabled", "Button", box(Color(0.09, 0.1, 0.14), Color(PANEL_BORDER, 0.3), 6, 1))
+	theme.set_stylebox("hover", "Button", box(Color(0.29, 0.33, 0.48), Color(GOLD, 0.8), 6, 1))
+	theme.set_stylebox("pressed", "Button", box(Color(0.17, 0.19, 0.29), GOLD, 6, 1))
+	theme.set_stylebox("hover_pressed", "Button", box(Color(0.19, 0.21, 0.32), GOLD, 6, 1))
+	theme.set_stylebox("disabled", "Button", box(Color(0.15, 0.17, 0.24), Color(PANEL_BORDER, 0.4), 6, 1))
 	theme.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 	theme.set_stylebox("panel", "PanelContainer", panel_box())
-	theme.set_stylebox("normal", "LineEdit", box(Color(0.04, 0.05, 0.08), PANEL_BORDER, 4, 1))
-	theme.set_stylebox("focus", "LineEdit", box(Color(0.04, 0.05, 0.08), Color(GOLD, 0.7), 4, 1))
-	theme.set_stylebox("panel", "ItemList", box(Color(0.04, 0.05, 0.08), PANEL_BORDER, 4, 1))
+	theme.set_stylebox("normal", "LineEdit", box(Color(0.09, 0.105, 0.16), PANEL_BORDER, 4, 1))
+	theme.set_stylebox("focus", "LineEdit", box(Color(0.09, 0.105, 0.16), Color(GOLD, 0.7), 4, 1))
+	theme.set_stylebox("panel", "ItemList", box(Color(0.09, 0.105, 0.16), PANEL_BORDER, 4, 1))
 	theme.set_stylebox("selected", "ItemList", box(Color(GOLD_DARK, 0.7), Color.TRANSPARENT, 3, 0))
 	theme.set_stylebox("selected_focus", "ItemList", box(Color(GOLD_DARK, 0.85), Color.TRANSPARENT, 3, 0))
 	theme.set_stylebox("focus", "ItemList", StyleBoxEmpty.new())
@@ -101,7 +101,7 @@ static func box(bg: Color, border := Color.TRANSPARENT, radius := 6, border_widt
 # The background of the HUD panels (player plates, the action panel, the log)
 static func panel_box() -> StyleBoxFlat:
 	var style := box(PANEL, PANEL_BORDER, 10, 1, 8.0)
-	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_color = Color(0, 0, 0, 0.3)
 	style.shadow_size = 6
 	return style
 
@@ -116,7 +116,7 @@ static func pill_box(bg: Color, border := Color.TRANSPARENT) -> StyleBoxFlat:
 
 # The outline of a zone on the table: barely there, so the cards stand out
 static func zone_box() -> StyleBoxFlat:
-	var style := box(Color(1, 1, 1, 0.025), Color(0.62, 0.68, 0.85, 0.16), 8, 1, 0.0)
+	var style := box(Color(1, 1, 1, 0.07), Color(0.7, 0.76, 0.92, 0.4), 8, 1, 0.0)
 	style.content_margin_left = 2
 	style.content_margin_right = 2
 	style.content_margin_top = 2

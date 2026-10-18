@@ -45,8 +45,10 @@ func _init(attacking_card: Card, target, attack_order := 0) -> void:
 		target_player = int(target)
 
 
+# Decided by target_player, not by target_card == null: a targeted creature that was freed since the
+# declaration compares equal to null, and must not turn into an attack on player 0
 func targets_player() -> bool:
-	return target_card == null
+	return target_player != 0
 
 
 # Is the attack still going to resolve with effect? (not removed, negated or resolved)

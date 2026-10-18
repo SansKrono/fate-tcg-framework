@@ -378,6 +378,20 @@ func test_an_earlier_attack_can_change_a_later_one():
 	assert_eq(_life(2), LIFE - 1, "Only the victim's death cost life")
 
 
+func test_an_attack_on_a_freed_creature_is_not_taken_for_an_attack_on_a_player():
+	var attacker := await put_creature(1, 3, 1)
+	var victim := await put_creature(2, 1, 1)
+	start_combat()
+	assert_true(combat.declare_attack(attacker, victim))
+	var made: FateAttack = combat.attack_of(attacker)
+	victim.free()
+	assert_false(made.targets_player(), "A freed target compares equal to null, but it was a creature")
+	combat.confirm_attackers()
+	combat.confirm_blocks()
+	assert_eq(made.result.kind, "target_gone")
+	assert_eq(_life(2), LIFE, "Nobody was hit")
+
+
 func test_a_blocked_attack_still_fights_the_blockers_when_its_target_is_gone():
 	var killer := await put_creature(1, 5, 1)
 	var second := await put_creature(1, 4, 1)
