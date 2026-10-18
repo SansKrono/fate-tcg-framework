@@ -48,6 +48,8 @@ var debug_button: Button
 # The combat overlay (clicks, arrows, player plates, log), the "Player N's turn" and the
 # "Player N wins" banners
 var combat_ui: FateCombatUI
+# The choice UI of the human players (targets, "you may" questions of card effects), see FateChoiceUI
+var choice_ui: Control
 var turn_banner: FateTurnBanner
 var winner_banner: FateTurnBanner
 var _curtain: ColorRect
@@ -69,6 +71,7 @@ func _ready() -> void:
 	_build_zones()
 	_build_hud()
 	_build_combat_ui()
+	_build_choice_ui()
 	_build_debug()
 	# Godot 4 does not call the parent _ready() automatically
 	super._ready()
@@ -94,6 +97,7 @@ func _ready() -> void:
 		var deck: Pile = FateZones.container("deck", pid)
 		deck.draw_requested.connect(_on_deck_clicked)
 	await get_tree().process_frame
+	_apply_ai_args()
 	await _start_game()
 	_refresh_hud()
 
@@ -110,6 +114,47 @@ func _start_game() -> void:
 			return
 		push_error("Board state \"%s\" was not loaded: %s" % [wanted, "; ".join(result["errors"])])
 	await game.start_game()
+
+
+# Gives the seats named by `--ai=` an AI player: `--ai=1`, `--ai=2`, `--ai=both` (or `--ai=1,2`), and
+# `--ai-level=easy|normal|hard` for the strength (normal by default). Not in tests, which switch the AI
+# on themselves (FateGame.set_ai). Example:
+#   godot --path . src/custom/fate/FateMain.tscn -- --ai=2 --ai-level=hard
+func _apply_ai_args() -> void:
+	if cfc.is_testing:
+		return
+	var args := OS.get_cmdline_user_args()
+	var level := ai_level_from_args(args)
+	for seat in ai_seats_from_args(args):
+		game.set_ai(seat, true, level)
+
+
+# The seats after `--ai=` in the arguments: [] when there is no such argument
+static func ai_seats_from_args(args: Array) -> Array:
+	var seats: Array = []
+	for arg in args:
+		if not str(arg).begins_with("--ai="):
+			continue
+		for part in str(arg).substr("--ai=".length()).split(","):
+			match part.strip_edges().to_lower():
+				"both", "all":
+					seats = [1, 2]
+				"1", "2":
+					if not int(part) in seats:
+						seats.append(int(part))
+	return seats
+
+
+# The strength after `--ai-level=`: FateAIProfile.Level (0 easy, 1 normal, 2 hard); normal if missing
+static func ai_level_from_args(args: Array) -> int:
+	for arg in args:
+		if str(arg).begins_with("--ai-level="):
+			match str(arg).substr("--ai-level=".length()).to_lower():
+				"easy":
+					return 0
+				"hard":
+					return 2
+	return 1
 
 
 # The name or path after `--board=` in the arguments, or ""
@@ -433,9 +478,29 @@ func _build_combat_ui() -> void:
 	add_child(winner_banner)
 
 
+# The questions of card effects are answered by the people at the table. Tests keep the deterministic
+# defaults of game.choices (or plug their own chooser in), so they get no choice UI from the board.
+func _build_choice_ui() -> void:
+	if cfc.is_testing:
+		return
+	choice_ui = load("res://src/custom/fate/ui/FateChoiceUI.gd").new()
+	add_child(choice_ui)
+	choice_ui.setup(game)
+
+
+# Which player sits at the bottom while `active` has the turn. Hotseat: the active player. With one
+# AI player the person stays at the bottom, so the AI's hand stays hidden and the table does not flip
+# on every turn.
+func seat_for_turn(active: int) -> int:
+	if game.ai_controllers.size() == 1:
+		return FateZones.opponent_of(game.ai_controllers.keys()[0])
+	return active
+
+
 # Hotseat: the player whose turn it is moves to the bottom seat, behind a short fade
 func _on_turn_started(player_id: int, _turn_number: int) -> void:
 	turn_banner.flash("Player %d's turn" % player_id)
+	player_id = seat_for_turn(player_id)
 	if bottom_id == player_id:
 		return
 	if cfc.is_testing or not is_inside_tree():
@@ -470,7 +535,8 @@ func _reveal_reacting_hand() -> void:
 	var top_hand = FateZones.container("hand", top_id)
 	if top_hand == null or not top_hand.has_method("set_concealed"):
 		return
-	var reacting: bool = game.reactions != null and game.reactions.window_open_for(top_id)
+	var reacting: bool = game.reactions != null and game.reactions.window_open_for(top_id) \
+			and not game.ai_controllers.has(top_id)
 	if top_hand.concealed == reacting:
 		top_hand.set_concealed(not reacting)
 	if reacting:

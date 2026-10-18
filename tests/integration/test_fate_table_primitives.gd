@@ -197,3 +197,27 @@ func test_reset_table_cancels_a_combat_in_progress():
 	assert_eq(game.combat.attacks.size(), 0)
 	assert_null(game.combat_ui.selected)
 	assert_eq(_live_cards(), 0)
+
+
+# A creature that moved to a new slot just before the seats swapped (an occupied creature returning to the
+# creature zone in the maintenance step, while the hotseat curtain delays the swap) must end up on its slot
+# in the new layout, not on the old slot position (it appeared in the other player's half of the table)
+func test_a_card_moving_while_the_seats_swap_ends_on_its_slot():
+	var creature := await put_creature(1, "Moral Captain", 1, {}, false, "occupied")
+	var slot := game.player(1).grid("creatures").find_available_slot()
+	creature.move_to(cfc.NMAP.board, -1, slot, ["Scripted"])
+	board.apply_seats(2)
+	await wait_seconds(1.0)
+	var expected: Vector2 = slot.global_position - board.global_position
+	assert_lt(creature.position.distance_to(expected), 1.0, "On its slot after the swap")
+
+
+# Redirecting the slide of a card at a seat swap must not stop the tween that tilts it: a guarding creature
+# stayed upright on screen although it was in the guard position
+func test_a_card_tilting_while_the_seats_swap_ends_tilted():
+	var creature := await put_creature(1, "Moral Captain")
+	creature.set_card_rotation(90)
+	board.apply_seats(2)
+	await wait_seconds(1.0)
+	assert_eq(creature.card_rotation, 90)
+	assert_almost_eq(float(creature.get_node("Control").rotation_degrees), 90.0, 1.0, "Drawn tilted")

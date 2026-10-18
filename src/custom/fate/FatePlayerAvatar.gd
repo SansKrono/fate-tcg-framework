@@ -14,6 +14,8 @@ var is_active_player := false
 var is_target := false
 var life_label: Label
 var counts_label: Label
+# "Scrap 2   Ingot 1", only shown while the player has some (FateTokens)
+var counters_label: Label
 var _emblem: Panel
 var _chips: HBoxContainer
 var _mana_text := "-"
@@ -75,6 +77,9 @@ func _build() -> void:
 	column.add_child(_chips)
 	counts_label = FateTheme.label("", 10, FateTheme.MUTED, "Regular")
 	column.add_child(counts_label)
+	counters_label = FateTheme.label("", 10, FateTheme.GOLD, "SemiBold")
+	counters_label.visible = false
+	column.add_child(counters_label)
 
 
 # Updates the life total, the mana chips and the counts
@@ -108,6 +113,9 @@ func _process(_delta: float) -> void:
 	var deck = player.deck()
 	counts_label.text = "Hand %d   Deck %d" % [
 			hand.get_card_count() if hand else 0, deck.get_card_count() if deck else 0]
+	var counters := counters_text()
+	counters_label.text = counters
+	counters_label.visible = counters != ""
 
 
 func _chip(domain: String, untapped: int, total: int) -> Label:
@@ -118,6 +126,18 @@ func _chip(domain: String, untapped: int, total: int) -> Label:
 	chip.add_theme_stylebox_override("normal",
 			FateTheme.pill_box(Color(color, 0.16 if untapped > 0 else 0.06), Color(color, 0.5)))
 	return chip
+
+
+# The scrap and ingot counters of the player, "Scrap 2   Ingot 1" ("" when there are none)
+func counters_text() -> String:
+	if game == null or game.tokens == null:
+		return ""
+	var parts := []
+	for counter_name in game.tokens.COUNTERS:
+		var amount: int = game.tokens.counter(player.id, counter_name)
+		if amount > 0:
+			parts.append("%s %d" % [counter_name.capitalize(), amount])
+	return "   ".join(parts)
 
 
 # The life total, as shown

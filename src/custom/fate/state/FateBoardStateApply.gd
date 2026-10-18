@@ -84,6 +84,7 @@ func _run() -> Dictionary:
 	await _create_cards(data)
 	if errors.is_empty():
 		_attach_cards()
+		_equip_cards()
 		_set_special_state()
 		_set_game_state(data)
 		_import_stats()
@@ -106,11 +107,33 @@ func _result() -> Dictionary:
 
 # --- before ------------------------------------------------------------------------------------------
 
-# The test cards of the state become real definitions (the keys are card names)
+# The test cards of the state become real definitions (the keys are card names). A definition in a
+# file only has to say what it needs (see docs/FATE_BOARD_STATE.md), so the properties the card faces,
+# the hover panels and the rules read are filled in with empty values (a card without Tags crashed the
+# hover panel: OVUtils.populate_info_panels iterates them).
 func _register_definitions() -> void:
 	var defs: Dictionary = state.data["definitions"]
 	for card_name in defs:
-		cfc.card_definitions[card_name] = defs[card_name].duplicate(true)
+		cfc.card_definitions[card_name] = complete_definition(defs[card_name])
+
+
+# A card definition with every property the game reads, the missing ones empty
+static func complete_definition(definition: Dictionary) -> Dictionary:
+	var out: Dictionary = definition.duplicate(true)
+	var defaults := {
+		"Tags": [], "Abilities": "", "Cost": 0, "Pips": "", "_domains": [],
+		"_innate_keywords": {}, "_unique": false, "_max_allowed": 3,
+	}
+	for key in defaults:
+		if not out.has(key):
+			out[key] = defaults[key]
+	if not out.has("Domain"):
+		out["Domain"] = out["_domains"][0] if not out["_domains"].is_empty() else ""
+	if out.get("Type") == "Creature":
+		for stat in ["Strike", "Guard"]:
+			if not out.has(stat):
+				out[stat] = 0
+	return out
 
 
 # The keywords can be given a "chooser" by tests (static, so it outlives the game): a loaded board
@@ -231,6 +254,9 @@ func _attach_cards() -> void:
 				return
 			if energy is FateCardTemplate:
 				energy.apply_zone_look("energy")
+				# A card taken over together with its host keeps its owner
+				energy.owner_id = attached.get("owner", energy.owner_id)
+				energy.controller_id = attached.get("controller", pid)
 			var embody = game.keywords.get_keyword("Embody")
 			if embody == null or not embody.embody(host, energy, true):
 				var why: String = embody.embody_problem(host, energy, true) if embody != null else "no Embody keyword"
@@ -238,6 +264,23 @@ func _attach_cards() -> void:
 				return
 			if attached.has("id"):
 				_by_id[attached["id"]] = energy
+
+
+# Relics with "equipped_to": the relic stands in its slot of the relic zone and is equipped to the creature
+# with that id (game.equip, free: nothing is paid)
+func _equip_cards() -> void:
+	for created in _created:
+		var target = created["entry"].get("equipped_to", null)
+		if target == null:
+			continue
+		var host: Card = _by_id.get(target)
+		if host == null:
+			errors.append("%s.equipped_to: no card with the id \"%s\"" % [created["path"], target])
+			return
+		if game.equip == null or not game.equip.equip(created["card"], host):
+			var why: String = game.equip.equip_problem(created["card"], host) if game.equip != null else "no equipment system"
+			errors.append("%s: cannot be equipped to %s (%s)" % [created["path"], host.canonical_name, why])
+			return
 
 
 # Forced blockers: the creature must block `target` this turn (a card meta, see KwForcedBlocker)
@@ -266,6 +309,10 @@ func _set_game_state(data: Dictionary) -> void:
 	game.winner_id = 0
 	for pid in FateBoardState.PLAYER_IDS:
 		game.player(pid).life = data["players"].get(str(pid), {}).get("life", FatePlayer.STARTING_LIFE)
+		# Scrap and ingot counters (the table reset forgot the old ones)
+		var counters: Dictionary = data["players"].get(str(pid), {}).get("counters", {})
+		for counter_name in FateBoardState.COUNTERS:
+			game.tokens.set_counter(pid, counter_name, int(counters.get(counter_name, 0)))
 	if game.phase == FateTurn.Phase.COMBAT_DECLARE:
 		game.combat.begin_declaration()
 
@@ -357,7 +404,9 @@ func _comparable(source: Dictionary) -> Dictionary:
 					item["source"] = paths.get(item["source"], item["source"])
 		if entry.has("forced_blocker"):
 			entry["forced_blocker"]["target"] = paths.get(entry["forced_blocker"]["target"],
-					entry["forced_blocker"]["target"]))
+					entry["forced_blocker"]["target"])
+		if entry.has("equipped_to"):
+			entry["equipped_to"] = paths.get(entry["equipped_to"], entry["equipped_to"]))
 	return copy
 
 

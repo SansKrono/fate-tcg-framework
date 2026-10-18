@@ -58,6 +58,8 @@ var _bs_repo_check: CheckBox
 var _bs_buttons := {}
 var _bs_status: Label
 var _bs_busy := false
+# Strength for AI players switched on from the panel (FateAIProfile.Level)
+var _ai_level := 1
 
 
 func setup(fate_game: FateGame) -> void:
@@ -383,6 +385,7 @@ func _build_panel() -> void:
 	tools2.add_child(_button("Clear zone", func(): _clear_zone()))
 	tools2.add_child(_button("Skip to Main phase", func(): _go_to_main()))
 
+	_build_ai_section(_body)
 	_build_board_states(_body)
 
 	_status = _label("", 10)
@@ -444,6 +447,31 @@ const BS_ERROR_COLOR := Color(1.0, 0.65, 0.6)
 
 # A collapsible section (starts collapsed) to save, load, copy and paste whole tables. Plain
 # Controls only: this panel lives in a SubViewport, so no OptionButton / PopupMenu.
+# AI players: a toggle per seat and the strength. Turning one on makes it play from wherever the game is.
+func _build_ai_section(parent: Control) -> void:
+	parent.add_child(_label("AI players (play a seat for you)", 10))
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	for pid in [1, 2]:
+		var toggle := _button("Player %d AI" % pid, func(): pass)
+		toggle.toggle_mode = true
+		toggle.button_pressed = game.ai_controllers.has(pid)
+		toggle.toggled.connect(func(on): game.set_ai(pid, on, _ai_level))
+		toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(toggle)
+	var level := OptionButton.new()
+	level.add_theme_font_size_override("font_size", 11)
+	level.focus_mode = Control.FOCUS_NONE
+	for entry in ["Easy", "Normal", "Hard"]:
+		level.add_item(entry)
+	level.select(_ai_level)
+	level.item_selected.connect(func(i):
+		_ai_level = i
+		for controller in game.ai_controllers.values():
+			controller.set_level(i))
+	row.add_child(level)
+
+
 func _build_board_states(parent: Control) -> void:
 	_bs_toggle = _button("", func(): _bs_set_open(not _bs_body.visible))
 	_bs_toggle.alignment = HORIZONTAL_ALIGNMENT_LEFT

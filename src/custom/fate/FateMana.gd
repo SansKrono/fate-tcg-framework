@@ -67,14 +67,16 @@ func pips_of(pips: String) -> Dictionary:
 	return counted
 
 
-# Chooses the energy cards that would pay for a card (D4). Returns
-# {"ok": bool, "cards": Array of energy cards to tap}. Nothing is tapped.
+# Chooses what would pay for a card (D4). Returns
+# {"ok": bool, "cards": Array of energy cards to tap, "ingots": int}. Nothing is tapped or spent.
 #
 # 1. Pips first, each with energy of its own domain.
 # 2. The generic cost with whatever is left, one mana at a time, always from the domain
 #    that is most spare once the other cards still in the player's hand are accounted for
 #    (domains the hand still needs pips of are kept as long as possible). Ties go to the
 #    order of DOMAINS, then to slot order.
+# 3. Only what the untapped energy cannot cover is paid with ingot counters (FateTokens): an ingot is 1
+#    mana of any colour, so it pays a pip of any domain or 1 generic. "ingots" is how many are spent.
 func plan_payment(card: Card) -> Dictionary:
 	var pid: int = card.owner_id
 	var cost := cost_of(card)
@@ -86,18 +88,21 @@ func plan_payment(card: Card) -> Dictionary:
 		if by_domain.has(d):
 			by_domain[d].append(energy)
 	var chosen := []
+	var ingots := 0
 	for d in cost.pips:
-		if not by_domain.has(d) or by_domain[d].size() < cost.pips[d]:
-			return {"ok": false, "cards": []}
-		for _i in range(cost.pips[d]):
-			chosen.append(by_domain[d].pop_front())
+		var own: Array = by_domain.get(d, [])
+		var take := mini(own.size(), cost.pips[d])
+		for _i in range(take):
+			chosen.append(own.pop_front())
+		ingots += cost.pips[d] - take
 	var left := 0
 	for d in by_domain:
 		left += by_domain[d].size()
-	if left < cost.generic:
-		return {"ok": false, "cards": []}
+	ingots += maxi(0, cost.generic - left)
+	if ingots > ingots_available(pid):
+		return {"ok": false, "cards": [], "ingots": 0}
 	var demand := _hand_demand(pid, card)
-	for _i in range(cost.generic):
+	for _i in range(cost.generic - maxi(0, cost.generic - left)):
 		var best := ""
 		var best_spare := 0
 		for d in DOMAINS:
@@ -108,23 +113,34 @@ func plan_payment(card: Card) -> Dictionary:
 				best = d
 				best_spare = spare
 		chosen.append(by_domain[best].pop_front())
-	return {"ok": true, "cards": chosen}
+	return {"ok": true, "cards": chosen, "ingots": ingots}
 
 
 func can_pay(card: Card) -> bool:
 	return plan_payment(card).ok
 
 
-# Pays for a card: taps the chosen energy cards. Returns false (and taps nothing) if the
-# card cannot be paid for.
+# Pays for a card: taps the chosen energy cards (and spends the ingots the plan needs). Returns false (and
+# taps nothing) if the card cannot be paid for.
 func pay(card: Card) -> bool:
 	var plan := plan_payment(card)
 	if not plan.ok:
 		return false
 	for energy in plan.cards:
 		energy.set_card_rotation(90)
+	_spend_ingots(card.owner_id, plan.ingots)
 	game.mana_changed.emit(card.owner_id)
 	return true
+
+
+# How many ingot counters a player can spend as mana
+func ingots_available(player_id: int) -> int:
+	return game.tokens.ingot_mana(player_id) if game.tokens != null else 0
+
+
+func _spend_ingots(player_id: int, amount: int) -> void:
+	if amount > 0:
+		game.tokens.spend(player_id, game.tokens.MANA_COUNTER, amount)
 
 
 # Plans paying `amount` generic mana (no domain pips), for abilities such as "Pay 3". Returns the
@@ -167,18 +183,35 @@ func plan_generic(player_id: int, amount: int, avoid: Array = [], slot_order := 
 
 
 func can_pay_generic(player_id: int, amount: int, avoid: Array = [], slot_order := false) -> bool:
-	return amount <= 0 or not plan_generic(player_id, amount, avoid, slot_order).is_empty()
+	return amount <= 0 or plan_generic_payment(player_id, amount, avoid, slot_order).ok
 
 
-# Taps energy for `amount` generic mana. Returns false (and taps nothing) if it cannot be paid.
+# Like plan_generic, but ingot counters make up what the untapped energy cannot cover (the energy is
+# all used first). Returns {"ok": bool, "cards": Array of energy cards, "ingots": int}.
+func plan_generic_payment(player_id: int, amount: int, avoid: Array = [], slot_order := false) -> Dictionary:
+	if amount <= 0:
+		return {"ok": true, "cards": [], "ingots": 0}
+	var cards := plan_generic(player_id, amount, avoid, slot_order)
+	if not cards.is_empty():
+		return {"ok": true, "cards": cards, "ingots": 0}
+	var all := plan_generic(player_id, untapped_energy(player_id).size(), avoid, slot_order)
+	var short := amount - all.size()
+	if short > ingots_available(player_id):
+		return {"ok": false, "cards": [], "ingots": 0}
+	return {"ok": true, "cards": all, "ingots": short}
+
+
+# Taps energy (and spends ingots if the energy is not enough) for `amount` generic mana. Returns false (and
+# taps nothing) if it cannot be paid.
 func pay_generic(player_id: int, amount: int, avoid: Array = [], slot_order := false) -> bool:
 	if amount <= 0:
 		return true
-	var plan := plan_generic(player_id, amount, avoid, slot_order)
-	if plan.is_empty():
+	var plan := plan_generic_payment(player_id, amount, avoid, slot_order)
+	if not plan.ok:
 		return false
-	for energy in plan:
+	for energy in plan.cards:
 		energy.set_card_rotation(90)
+	_spend_ingots(player_id, plan.ingots)
 	game.mana_changed.emit(player_id)
 	return true
 

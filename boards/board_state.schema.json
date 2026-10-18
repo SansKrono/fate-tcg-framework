@@ -43,6 +43,15 @@
 			"type": "object",
 			"properties": {
 				"life": { "type": "integer" },
+				"counters": {
+					"type": "object",
+					"description": "Scrap and ingot counters. Left out when both are 0.",
+					"properties": {
+						"scrap": { "type": "integer", "minimum": 0 },
+						"ingot": { "type": "integer", "minimum": 0 }
+					},
+					"additionalProperties": false
+				},
 				"hand": { "$ref": "#/definitions/pile" },
 				"deck": {
 					"oneOf": [

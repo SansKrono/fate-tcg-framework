@@ -202,6 +202,19 @@ func test_definitions_of_test_cards_are_registered():
 	assert_eq(game.stats.base(game.player(1).cards_in_grid("creatures")[0], "Strike"), 9)
 
 
+func test_a_definition_without_tags_gets_empty_defaults():
+	# Hovering such a card crashed the info panels (OVUtils.populate_info_panels iterates the Tags)
+	var state := _state(_wrap('"definitions": {"Test bare": {"Type": "Creature", "Strike": 2, "Guard": 2}},
+			"players": {"1": {"creatures": ["Test bare"]}}'))
+	await load_board(state)
+	var card: Card = game.player(1).cards_in_grid("creatures")[0]
+	assert_eq(card.get_property("Tags"), [], "Tags exist, empty")
+	assert_eq(card.get_property("Abilities"), "")
+	var panels := DetailPanels.new()
+	cfc.ov_utils.populate_info_panels(card, panels)
+	panels.free()
+
+
 func test_embody_attachments_are_rebuilt_without_paying():
 	var state := _state(_wrap('"players": {"1": {"creatures": [{"card": "Spirit Wielder", "attached": ["Beetle Brawler"]}],
 			"energy": [{"card": "Scrap Cannon", "tapped": true}]}}'))
