@@ -49,7 +49,7 @@ func test_innate_charge_attacks_the_turn_it_enters():
 	assert_true(game.combat.declare_attack(card, 2))
 	game.combat.confirm_attackers()
 	game.combat.confirm_blocks()
-	assert_eq(game.player(2).life, LIFE - 2, "The charging creature hit for its Strike 2")
+	assert_eq(game.player(2).life, LIFE - 1, "The charging creature hit the player")
 
 
 func test_granted_charge_works_and_expires_at_the_end_of_the_turn():

@@ -75,7 +75,7 @@ func test_an_unblockable_attacker_hits_the_player_with_no_intercept():
 	assert_false(combat.declare_block(guard, attack))
 	assert_false(combat.declare_block(occupied, attack))
 	combat.confirm_blocks()
-	assert_eq(_life(2), LIFE - 3, "Strike 3 went straight to the life total")
+	assert_eq(_life(2), LIFE - 1, "The hit went straight to the life total")
 	assert_true(attack.resolved)
 	assert_eq(attack.result.kind, "player")
 	assert_true(FateZones.is_creature_in_play(guard), "Nobody fought")
@@ -345,7 +345,7 @@ func test_if_the_named_creature_is_gone_nobody_can_block():
 	var attack := _to_intercept(brawler, 2)
 	assert_false(combat.declare_block(other, attack), "The named creature left: nobody may block")
 	combat.confirm_blocks()
-	assert_eq(_life(2), LIFE - 2, "Unblocked: Strike 2 hit the player")
+	assert_eq(_life(2), LIFE - 1, "Unblocked: the attack hit the player")
 
 
 func test_if_the_named_creature_leaves_after_the_declaration_nobody_can_block():

@@ -65,6 +65,9 @@ const PLAYER_DOMAINS := {1: ["Order"], 2: ["Primal"]}
 # Replaces PLAYER_DOMAINS for the games started after it is set (player id -> domains). Tests and the AI
 # tournament use it for mirror matches; leave it empty otherwise.
 static var domain_override := {}
+# Replaces the deck list of a player for the games started after it is set (player id -> {card name: copies}).
+# The AI simulation (src/custom/fate/sim/) plays custom decks with it; leave it empty otherwise.
+static var decklist_override := {}
 const DOMAIN_BY_INITIAL := {"I": "Innovation", "C": "Chaos", "O": "Order", "P": "Primal"}
 # What the ENERGY phase choice was this turn (`energy_choice`)
 const CHOICE_ENERGY := "energy"
@@ -206,7 +209,7 @@ func start_game() -> void:
 
 
 func _build_deck(p: FatePlayer) -> void:
-	var names := FateDecks.build(p.domains, cfc.game_rng)
+	var names := FateDecks.build(p.domains, cfc.game_rng, decklist_override.get(p.id, {}))
 	var pile := p.deck()
 	for card_name in names:
 		var card: Card = cfc.instance_card(card_name)

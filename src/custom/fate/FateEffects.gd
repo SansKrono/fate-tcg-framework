@@ -29,6 +29,8 @@ func _init(owner_game: FateGame) -> void:
 
 # --- destruction --------------------------------------------------------------------------------
 
+# A creature destroyed with CAUSE_COMBAT also costs its controller FateCombat.CREATURE_LOSS_DAMAGE life.
+#
 # Destroys a card on the table (any grid): asks would_be_destroyed of its keywords, moves it to
 # its OWNER's zone from death_destination (default "discard") with the "Scripted" tag, frees its
 # slot, runs on_destroyed, forgets its stats and emits game.creature_destroyed(card, cause).
@@ -39,6 +41,10 @@ func destroy(card: Card, source = null, cause := CAUSE_EFFECT) -> bool:
 	if not game.keywords.would_be_destroyed(card, cause, source):
 		return false
 	var id := card.get_instance_id()
+	# A creature lost in combat costs its controller life (read now: the controller is gone once it moved)
+	var combat_loss_for := 0
+	if cause == CAUSE_COMBAT and FateZones.is_creature_in_play(card) and card is FateCardTemplate:
+		combat_loss_for = card.controller_id
 	_dying[id] = true
 	var zone: String = game.keywords.death_destination(card, cause)
 	var owner_id: int = card.owner_id if card is FateCardTemplate else game.active_id
@@ -58,6 +64,9 @@ func destroy(card: Card, source = null, cause := CAUSE_EFFECT) -> bool:
 	game.stats.clear_card(card)
 	_dying.erase(id)
 	game.creature_destroyed.emit(card, cause)
+	if combat_loss_for != 0 and game.player(combat_loss_for) != null:
+		# No source: the loss is not damage dealt by a creature (its keywords do not hear about it)
+		_damage_player(game.player(combat_loss_for), FateCombat.CREATURE_LOSS_DAMAGE, null, cause)
 	return true
 
 

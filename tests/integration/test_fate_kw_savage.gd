@@ -36,7 +36,7 @@ func test_savage_1_deals_1_damage_to_the_blocking_player():
 	var blocker := await put_creature(2, 1, 9, {}, true)
 	_blocked_attack(attacker, 2, [blocker])
 	assert_eq(_life(2), LIFE - 1)
-	assert_eq(_life(1), LIFE, "The attacking player is untouched")
+	assert_eq(_life(1), LIFE - 1, "Only the attacker dying to Guard 9 costs its player a life, Savage does not")
 
 
 func test_savage_2_deals_2_damage():
@@ -95,7 +95,7 @@ func test_it_does_not_trigger_when_the_attack_is_not_blocked():
 	var attacker := await put_creature(1, 3, 3, {"Savage": 2})
 	await put_creature(2, 1, 9, {}, true)
 	var attack := _blocked_attack(attacker, 2, [])
-	assert_eq(_life(2), LIFE - 3, "Only the attack's own damage")
+	assert_eq(_life(2), LIFE - 1, "Only the attack's own damage")
 	assert_false(attack.metadata.has("savage"))
 
 

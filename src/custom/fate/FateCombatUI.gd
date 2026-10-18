@@ -419,8 +419,9 @@ func _arrow(from: Vector2, to: Vector2, color: Color, width: float, trim: float)
 	draw_colored_polygon(PackedVector2Array([tip + direction * 8.0, tip + side, tip - side]), color)
 
 
-# The middle of a card on the table in this overlay's coordinates, or null
-func _center_of(card: Card):
+# The middle of a card on the table in this overlay's coordinates, or null. `card` is untyped on purpose:
+# a card freed since the attack was declared cannot be passed as a `Card` argument.
+func _center_of(card):
 	if not is_instance_valid(card):
 		return null
 	var slot = card._placement_slot
@@ -436,7 +437,7 @@ func _local(point: Vector2) -> Vector2:
 	return get_global_transform().affine_inverse() * point
 
 
-func _rect_of(card: Card) -> Rect2:
+func _rect_of(card) -> Rect2:
 	var center = _center_of(card)
 	if center == null:
 		return Rect2()

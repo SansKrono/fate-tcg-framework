@@ -34,6 +34,10 @@ const WINDOW_DECLARE_END := "declare_end"
 const WINDOW_INTERCEPT_END := "intercept_end"
 # How many log lines are kept
 const LOG_SIZE := 12
+# Life an unblocked attack takes from a player, whatever its Strike (an attacker with 0 Strike deals none)
+const PLAYER_HIT_DAMAGE := 1
+# Life a player loses for each of their creatures destroyed by combat damage (not by effects)
+const CREATURE_LOSS_DAMAGE := 1
 
 # The step changed (also back to IDLE when combat ends)
 signal step_changed(step: int)
@@ -464,6 +468,7 @@ func _pause() -> void:
 #   damage_to_target  damage dealt to the target creature / the blockers (sum)
 #   damage_to_attacker  damage the attacker took
 #   life_lost         life the defending player lost
+#   life_left         their life afterwards (only set for "player")
 #   destroyed         the cards destroyed during this resolution
 #
 # Damage, for an attacker with Strike A and one defender with the stat D it uses (a blocker or a
@@ -476,7 +481,7 @@ func resolve_attack(attack: FateAttack) -> Dictionary:
 	var result := {
 		"kind": "", "attacker": attacker, "target": attack.target_card,
 		"target_player": attack.target_player, "blockers": [], "damage_to_target": 0,
-		"damage_to_attacker": 0, "life_lost": 0, "destroyed": [],
+		"damage_to_attacker": 0, "life_lost": 0, "life_left": 0, "destroyed": [],
 	}
 	var destroyed: Array = result.destroyed
 	var track := func(card, _cause): destroyed.append(card)
@@ -534,8 +539,11 @@ func _deal_combat_damage(attack: FateAttack, result: Dictionary) -> void:
 			damaged.push_front([attacker, "Strike", blockers[0]])
 	elif attack.targets_player():
 		result.kind = "player"
-		var strike := stats.current(attacker, "Strike")
-		result.life_lost = effects.deal_damage(game.player(attack.target_player), strike, attacker, cause)
+		var damage := mini(PLAYER_HIT_DAMAGE, stats.current(attacker, "Strike"))
+		var defender := game.player(attack.target_player)
+		result.life_lost = effects.deal_damage(defender, damage, attacker, cause)
+		# Read now: a lethal hit ends the game, and the players may be gone when the result is logged
+		result.life_left = defender.life
 	elif not FateZones.is_creature_in_play(attack.target_card):
 		result.kind = "target_gone"
 	else:
@@ -657,7 +665,7 @@ func _log_result(attack: FateAttack, result: Dictionary) -> void:
 	match result.kind:
 		"player":
 			_log("%s hits Player %d for %d (life %d)" % [attacker_name, attack.target_player,
-					result.life_lost, game.player(attack.target_player).life])
+					result.life_lost, result.life_left])
 		"creature":
 			_log("%s fights %s: %d each" % [attacker_name, attack.target_card.canonical_name,
 					result.damage_to_target])

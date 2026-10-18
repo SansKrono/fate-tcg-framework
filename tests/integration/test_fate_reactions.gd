@@ -73,7 +73,7 @@ func test_a_window_with_nothing_castable_continues_at_once():
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END)
 	assert_true(made[0].resolved)
-	assert_eq(game.player(2).life, LIFE - 2)
+	assert_eq(game.player(2).life, LIFE - 1)
 
 
 func test_a_window_without_any_reaction_in_hand_continues_at_once():
@@ -102,7 +102,7 @@ func test_a_castable_reaction_holds_the_window_until_the_player_passes():
 	assert_eq(combat.current_window.step, "intercept_end")
 	_next()
 	assert_eq(game.phase, Phase.END)
-	assert_eq(game.player(2).life, LIFE - 2, "Nothing was cast: the attack hit")
+	assert_eq(game.player(2).life, LIFE - 1, "Nothing was cast: the attack hit")
 
 
 func test_holding_is_off_by_default_while_tests_run():
@@ -199,7 +199,7 @@ func test_safety_measure_destroys_the_attacker_with_the_highest_strike_by_defaul
 	_next()
 	combat.confirm_blocks()
 	assert_eq(game.phase, Phase.END, "Nothing castable is left: the intercept window did not wait")
-	assert_eq(game.player(2).life, LIFE - 2, "Only the weak attacker hit")
+	assert_eq(game.player(2).life, LIFE - 1, "Only the weak attacker hit")
 
 
 func test_safety_measure_ties_go_to_the_first_declared_attacker_and_uses_current_strike():
@@ -418,7 +418,7 @@ func test_wave_of_fear_with_chosen_attackers():
 	assert_true(made[1].removed)
 	_next()
 	combat.confirm_blocks()
-	assert_eq(game.player(2).life, LIFE - 3, "Only the first attacker hit")
+	assert_eq(game.player(2).life, LIFE - 1, "Only the first attacker hit")
 
 
 func test_wave_of_fear_with_a_chooser_and_in_the_intercept_window():
@@ -436,7 +436,7 @@ func test_wave_of_fear_with_a_chooser_and_in_the_intercept_window():
 	assert_true(made[0].blockers.is_empty())
 	_next()
 	assert_eq(game.stats.current(blocker, "Guard"), 5, "The removed attack did not hurt the blocker")
-	assert_eq(game.player(2).life, LIFE - 2, "The second attacker hit")
+	assert_eq(game.player(2).life, LIFE - 1, "The second attacker hit")
 
 
 # --- can_cast reasons -------------------------------------------------------------------------------------------------

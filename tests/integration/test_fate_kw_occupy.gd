@@ -150,7 +150,7 @@ func test_an_occupied_creature_blocks_with_its_guard():
 	assert_eq(attack.result.kind, "blocked")
 	assert_eq(game.stats.current(attacker, "Strike"), 1, "3 - 2")
 	assert_eq(blocker.get_parent(), FateZones.container("discard", 2), "Guard 2 - 3 = 0: destroyed")
-	assert_eq(game.player(2).life, LIFE, "The player took nothing")
+	assert_eq(game.player(2).life, LIFE - 1, "The attack did not reach the player, the lost blocker cost a life")
 
 
 func test_a_blocking_occupied_creature_that_survives_deals_its_guard():

@@ -461,7 +461,7 @@ func test_an_unblocked_attack_on_the_player_hits_for_the_boosted_strike():
 	start_combat()
 	game.combat.declare_attack(s[0], 2)
 	run_combat()
-	assert_eq(game.player(2).life, life - 4, "Strike 1 + 3")
+	assert_eq(game.player(2).life, life - 1, "A hit takes 1 life whatever the boosted Strike")
 
 
 func test_a_blocker_uses_the_boosted_guard():

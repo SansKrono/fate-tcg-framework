@@ -56,7 +56,7 @@ The creature whose used stat reaches 0 is destroyed (both are, if both reach 0).
 Guard 2 leaves the attacker at 1 and destroys the defender. With several blockers on one attacker, the attacking
 player orders them; the attacker's Strike is spent on each in order (a blocker absorbs at most its current Guard
 before the next one takes damage), and the attacker loses the sum of the blockers' used stats. An unblocked
-attack on a player lowers their life by the attacker's current Strike. If an attacker's target was removed before
+attack on a player lowers their life by 1, whatever the attacker's Strike (an attacker with 0 Strike deals none). If an attacker's target was removed before
 it resolves, the attack deals no damage unless blocked. Reduced stats stay reduced until that creature's owner's
 next maintenance.
 At any time, a creature whose Strike **and** Guard are both 0 is destroyed. Destroyed creatures go to their owner's

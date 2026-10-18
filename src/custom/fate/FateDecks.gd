@@ -132,12 +132,13 @@ static func problems(list: Dictionary, domains: Array) -> Array:
 	return found
 
 
-# Returns an array of card names forming a legal deck for the given domains: the mono deck list
-# if there is one, else DECK_SIZE cards taken evenly from the domains' cards (up to their copy
-# limit) cheapest first. Shuffled with the game RNG so that seeded games are repeatable.
-static func build(domains: Array, rng: RandomNumberGenerator) -> Array:
+# Returns an array of card names forming a legal deck for the given domains: `custom_list` (card name ->
+# copies, not checked here, see `problems`) if given, else the mono deck list if there is one, else
+# DECK_SIZE cards taken evenly from the domains' cards (up to their copy limit) cheapest first.
+# Shuffled with the game RNG so that seeded games are repeatable.
+static func build(domains: Array, rng: RandomNumberGenerator, custom_list := {}) -> Array:
 	var deck := []
-	var list := decklist(domains)
+	var list: Dictionary = custom_list if not custom_list.is_empty() else decklist(domains)
 	if list.is_empty():
 		deck = _generated(domains)
 	else:

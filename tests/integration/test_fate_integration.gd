@@ -59,9 +59,10 @@ func test_whole_turn_cycle_with_combat_damage_and_reset():
 
 func test_unblocked_attack_reduces_life_and_can_end_the_game():
 	var attacker := await put_creature(1, LIFE, 1)
+	game.player(2).life = 1
 	start_combat()
 	assert_true(game.combat.declare_attack(attacker, game.player(2)))
 	run_combat()
-	assert_eq(game.player(2).life, 0, "A Strike as big as the life total")
+	assert_eq(game.player(2).life, 0, "A hit takes 1 life, whatever the Strike")
 	assert_true(game.is_over, "The game is over")
 	assert_eq(game.winner_id, 1)

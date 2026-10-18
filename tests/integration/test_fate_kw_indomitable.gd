@@ -197,8 +197,8 @@ func test_an_unblocked_attack_on_a_player_is_unchanged():
 	var attacker := await put_creature(1, 3, 2, IND)
 	start_combat()
 	var made := _fight([[attacker, 2]])
-	assert_eq(game.player(2).life, LIFE - 3, "The full Strike")
-	assert_eq(made[0].result.life_lost, 3)
+	assert_eq(game.player(2).life, LIFE - 1, "1 life, whatever the Strike")
+	assert_eq(made[0].result.life_lost, 1)
 	assert_eq(_stat(attacker, "Strike"), 3, "The attacker takes no damage from a player")
 
 
