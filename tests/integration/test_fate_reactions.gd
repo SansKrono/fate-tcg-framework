@@ -59,7 +59,7 @@ func _next() -> void:
 func test_every_reaction_effect_script_is_registered():
 	for n in ["Factory Shutdown", "Safety Measure", "Hold the Line", "Forests Protection", "Wave of Fear"]:
 		assert_not_null(reactions.effect_of(n), n)
-	assert_null(reactions.effect_of("Double Agent"), "Out of scope: needs take-control")
+	assert_not_null(reactions.effect_of("Double Agent"), "Double Agent")
 	assert_eq(reactions.script_file_name("ReactWaveOfFear.gd.remap"), "ReactWaveOfFear.gd")
 	assert_eq(reactions.script_file_name("FateReactionEffect.gd"), "", "The base class is not an effect")
 
@@ -451,7 +451,7 @@ func test_can_cast_explains_why_not():
 	assert_eq(reactions.cast_problem(cards[2]), "Not a reaction spell")
 	assert_eq(reactions.cast_problem(attacker), "Not a reaction spell")
 	assert_eq(reactions.cast_problem(mine), "It is not your reaction window (Player 2 reacts)")
-	assert_eq(reactions.cast_problem(cards[1]), "Double Agent cannot be cast yet")
+	assert_ne(reactions.cast_problem(cards[1]), "Double Agent cannot be cast yet", "it has an effect now")
 	assert_eq(reactions.cast_problem(cards[0]), "")
 	assert_true(reactions.can_cast(cards[0]))
 	assert_false(reactions.cast(mine), "The attacking player cannot react to their own attack")

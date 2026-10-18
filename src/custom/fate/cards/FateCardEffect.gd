@@ -132,6 +132,37 @@ func on_energy_played(_card: Card, _energy: Card) -> void:
 	pass
 
 
+# An alternative to playing a card from the hand into the energy zone in the ENERGY phase, offered by the host
+# on the table to `player_id` (any player: Broadening Influence is a world spell). The button label, or "" if it
+# is not offered now. FateGame.energy_alternatives / use_energy_alternative.
+func energy_alternative(_host: Card, _player_id: int) -> String:
+	return ""
+
+
+# Does it: returns whether it worked (then the ENERGY choice counts as made)
+func use_energy_alternative(_host: Card, _player_id: int) -> bool:
+	return false
+
+
+# Another card left the table for `destination` ("discard", "hand", "energy", "gone" for a token ...), whoever's it
+# was; it is already there. "Whenever a non-token relic leaves the battlefield" (Rarink). Check the card yourself.
+func on_card_left(_card: Card, _left: Card, _destination: String) -> void:
+	pass
+
+
+# A card was placed in a pile (`zone`: "discard", "removed" or "deck" of its owner), from anywhere: the table, the hand,
+# a resolved spell. It is already there. "If a card is placed in your discard, move it to your energy zone" (Cycle of
+# Life). Check `placed.owner_id` and `zone` yourself. May be a coroutine.
+func on_card_to_pile(_card: Card, _placed: Card, _zone: String) -> void:
+	pass
+
+
+# Any card on the table is about to be destroyed: it has not moved yet, so relics equipped to it are still
+# attached. `source` is the Card or null that destroys it. Use it to remember something for on_leave.
+func on_card_dying(_card: Card, _dying: Card, _cause: String, _source) -> void:
+	pass
+
+
 # A card was flip cast from an energy zone by `caster_id` (game.casting.flip_cast), after it was cast
 # completely. `cast_card` is the card that was cast: on the table if it is a permanent (a script also hears
 # its own flip cast: Dockside Ambusher), already in its destination if it is a spell. "Whenever you flip

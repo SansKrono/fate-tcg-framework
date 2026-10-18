@@ -220,6 +220,22 @@ func can_be_attacked(target: Card, attacker: Card) -> bool:
 	return true
 
 
+# Hooks of the attacker's keywords; unlike the others ANY keyword that says yes allows it
+func can_attack_card(attacker: Card, target: Card) -> bool:
+	for keyword in hooks_for(attacker):
+		if keyword.can_attack_card(attacker, target):
+			return true
+	return false
+
+
+# Hooks of the relic's keywords; ANY keyword that says yes allows it
+func can_block_as_relic(relic: Card, attack: FateAttack) -> bool:
+	for keyword in hooks_for(relic):
+		if keyword.can_block_as_relic(relic, attack):
+			return true
+	return false
+
+
 # --- combat events -----------------------------------------------------------------------------
 
 func attack_declared(attack: FateAttack) -> void:

@@ -26,7 +26,11 @@ func _init(owner_game: FateGame) -> void:
 func list(card: Card) -> Array:
 	if game.is_over or not game.is_started or not card is FateCardTemplate:
 		return []
-	if FateZones.zone_of(card) == "" or card.controller_id != game.active_id:
+	# A card in its owner's discard pile may offer actions too (Unending Echo: cast from the discard pile)
+	if FateZones.zone_of(card) == "":
+		if card.owner_id != game.active_id or card.get_parent() != FateZones.container("discard", card.owner_id):
+			return []
+	elif card.controller_id != game.active_id:
 		return []
 	return game.keywords.actions(card)
 

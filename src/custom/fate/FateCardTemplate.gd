@@ -202,6 +202,11 @@ func common_post_move_scripts(new_host: String, old_host: String, _move_tags: Ar
 		var left_game := _game()
 		if left_game and left_game.stats:
 			left_game.stats.clear_card(self)
+	# A card placed in a pile: the cards on the table that watch the piles hear it (Cycle of Life)
+	if new_host != old_host and _zone_name_of(new_host) in FateZones.PILES:
+		var pile_game := _game()
+		if pile_game and pile_game.is_started and pile_game.card_effects:
+			pile_game.card_effects.card_placed_in_pile.call_deferred(self, _zone_name_of(new_host))
 	var entering := _is_board(new_host) and not _is_board(old_host)
 	if not _play_pending:
 		# Entered the table without being played from the hand: returned, created, taken ...

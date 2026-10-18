@@ -225,6 +225,8 @@ func _finish_card(card: Card, entry: Dictionary, zone: String, pid: int, path: S
 		# Unless the state says otherwise the controller is the player whose zone it is
 		card.controller_id = entry.get("controller", pid if pid != 0 else owner)
 		card.entered_turn = entry.get("entered_turn", 0)
+		if entry.get("achieved", false):
+			card.set_meta("doctrine_achieved", true)
 	_created.append({"card": card, "entry": entry, "path": path})
 	if entry.has("id"):
 		_by_id[entry["id"]] = card

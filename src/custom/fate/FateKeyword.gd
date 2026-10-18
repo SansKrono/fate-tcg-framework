@@ -70,6 +70,24 @@ func can_be_attacked(_target: Card, _attacker: Card) -> bool:
 	return true
 
 
+# May this attacker attack `target`, a card on the table that is NOT a creature in play (a perpetual
+# spell in a field or world slot)? `attacker` is the host. Unlike the other eligibility hooks ANY keyword
+# that answers true allows it (the default is false: creatures cannot attack spells). The attacked card is
+# destroyed when the attack hits it (Zelith, Battering Ram). The core still requires that the target is a
+# spell of the opponent in the field or world zone.
+func can_attack_card(_attacker: Card, _target: Card) -> bool:
+	return false
+
+
+# May this relic on the table (the host, controlled by the defending player) intercept this attack, as if
+# it were a guarding creature? `attack` is null when only "could it block at all" is asked. ANY keyword that
+# answers true allows it (default false). The block then runs the normal events (on_blocking of the relic);
+# the relic has no Guard, so it takes no damage and deals none (Spiked Barricade destroys the attacker in
+# on_blocking instead).
+func can_block_as_relic(_relic: Card, _attack: FateAttack) -> bool:
+	return false
+
+
 # --- combat events -----------------------------------------------------------------------------
 
 # The attackers were confirmed (the declare step ends). Runs for the attacker, once per attack, in

@@ -123,6 +123,8 @@ var casting
 var library
 var equip
 var limiter
+# doctrines  FateDoctrines  goals and achieved state of the doctrine cards (rewards: cards/Fx<Doctrine>.gd)
+var doctrines
 
 # The AI players, seat -> FateAIController (src/custom/fate/ai/). A seat without an entry is played by a
 # person. See set_ai().
@@ -169,6 +171,7 @@ func _init() -> void:
 	equip = load("res://src/custom/fate/FateEquip.gd").new(self)
 	limiter = load("res://src/custom/fate/FateLimiter.gd").new(self)
 	card_effects = load("res://src/custom/fate/FateCardEffects.gd").new(self)
+	doctrines = load("res://src/custom/fate/FateDoctrines.gd").new(self)
 
 
 func _ready() -> void:
@@ -523,6 +526,25 @@ func draw_extra_card() -> bool:
 	# An empty deck loses the game (FateLibrary.draw)
 	library.draw(active_id)
 	_make_energy_choice(CHOICE_DRAW)
+	return true
+
+
+# Extra ways to make the "play energy" half of the ENERGY choice that cards on the table offer (Broadening
+# Influence: take the top card of an opponent's library). Each entry: {"host": Card, "label": String}. Empty
+# unless the active player may still choose. For the UI and the AI; use_energy_alternative() takes one.
+func energy_alternatives() -> Array:
+	if not can_draw_extra_card() or card_effects == null:
+		return []
+	return card_effects.energy_alternatives(active_id)
+
+
+# Uses an entry of energy_alternatives() instead of playing a card from the hand; counts as playing energy.
+func use_energy_alternative(host: Card) -> bool:
+	if not can_draw_extra_card() or card_effects == null:
+		return false
+	if not card_effects.use_energy_alternative(active_id, host):
+		return false
+	_make_energy_choice(CHOICE_ENERGY)
 	return true
 
 

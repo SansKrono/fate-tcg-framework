@@ -612,3 +612,6 @@ func _on_deck_clicked(deck: Pile) -> void:
 	var pid := int(str(deck.name).right(1))
 	if pid == game.active_id:
 		game.draw_extra_card()
+	elif game.doctrines != null and game.doctrines.can_take_opponent_card(game.active_id):
+		# Ensue Chaos: the top card of the opponent's deck goes to the active player's energy zone
+		game.doctrines.take_opponent_card_as_energy(game.active_id)

@@ -146,6 +146,8 @@ func test_relic_goes_to_relic_zone_and_instant_spell_to_discard():
 	# phase (rules spec D8), so picking "any spell" from it would make this test depend on the shuffle
 	var relic: Card = await put_in_hand(1, "Holy Amulet")
 	var spell: Card = await put_in_hand(1, "Smite")
+	# Smite needs a target (cards/FxSmite.gd)
+	await put_creature(2, 1, 1)
 	relic.move_to(board)
 	await wait_seconds(0.6)
 	assert_eq(relic._placement_slot.get_grid_name(), "Relics P1")

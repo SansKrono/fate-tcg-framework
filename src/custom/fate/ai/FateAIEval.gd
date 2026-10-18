@@ -9,6 +9,8 @@
 # designer can change them in one place.
 extends RefCounted
 
+const Snapshot := preload("res://src/custom/fate/ai/FateAISnapshot.gd")
+
 # The score of a position in which the player lost (and minus that when the opponent lost)
 const LOSS := 1000.0
 
@@ -182,6 +184,9 @@ static func hand_value(game: FateGame, card: Card) -> float:
 		"live":
 			if LIVE_EFFECTS.has(card.canonical_name):
 				return float(LIVE_EFFECTS[card.canonical_name])
+			var hint := spell_hint(game, card)
+			if hint >= 0.0:
+				return hint
 			if effect != null:
 				var stated: float = effect.ai_value(card, card.owner_id)
 				if stated >= 0.0:
@@ -189,6 +194,28 @@ static func hand_value(game: FateGame, card: Card) -> float:
 			var kind := str(card.properties.get("_spell_kind", ""))
 			return 1.5 + (0.8 if kind == "Regular" else 0.5) * float(card.mana_value())
 	return 0.0
+
+
+# What a card whose effect hurts its caster as well is worth right now, or -1 when the AI has no special
+# knowledge of the card. The AI cannot read an effect, so the known sweepers and self-harming cards are listed
+# here (a card script can say better with ai_value): Toll of War / No Where to Hide destroy every creature in
+# strike / guard position, theirs AND the AI's; War of Attrition occupies the AI's own creatures; Self-destruction
+# makes the caster consume permanents. 0 = never cast.
+static func spell_hint(game: FateGame, card: Card) -> float:
+	match card.canonical_name:
+		"Toll of War", "No Where to Hide":
+			var tilted: bool = card.canonical_name == "No Where to Hide"
+			var net := 0.0
+			for c in game.creatures_in_play():
+				var u := Snapshot.unit_of(game, c)
+				var hit: bool = (u.pos != "strike") if tilted else (u.pos == "strike")
+				if not hit:
+					continue
+				net += unit_value(u) if u.ctrl != card.owner_id else -unit_value(u)
+			return maxf(0.0, 0.9 * net - 0.5)
+		"War of Attrition", "Self-destruction":
+			return 0.0
+	return -1.0
 
 
 # Does a script define a hook beyond the keyword defaults? (creatures: an enters or activated effect)

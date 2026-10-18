@@ -20,7 +20,9 @@ func _zone(card: Card) -> String:
 
 
 func _occupy_ids(card: Card) -> Array:
-	return game.actions.list(card).map(func(a): return a.id)
+	# Only the keyword actions: a card script may offer its own ability (Rustmarket Tinkerer's recast)
+	return game.actions.list(card).map(func(a): return a.id).filter(
+			func(id): return id in ["occupy", "embody", "force_block", "evolve"])
 
 
 # A creature on the table with the Occupy ability and the game in the main phase

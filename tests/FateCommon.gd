@@ -26,6 +26,9 @@ func before_each():
 	game = board.game
 	if not game.is_started:
 		await wait_for_signal(game.game_started, 30)
+	# The doctrines both players start with fire on creatures that a test puts on the table: off unless
+	# the test is about doctrines (tests/integration/test_fate_fx_doctrines.gd switches them on)
+	game.doctrines.enabled = false
 	await wait_seconds(0.2)
 
 

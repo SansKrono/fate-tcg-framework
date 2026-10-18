@@ -23,6 +23,9 @@ const EFFECT_PREFIX := "Fx"
 # energy cards have no abilities, docs/FATE_TCG_DESIGN.md Section 6)
 const TABLE_ZONES := ["creatures", "occupied", "relics", "field", "doctrines"]
 
+# The set of cards on the table changed: a card entered or left (FateDoctrines re-checks its goals)
+signal table_changed
+
 var game: FateGame
 # card name -> script instance
 var _effects := {}
@@ -150,6 +153,28 @@ func spell_destination(spell: Card) -> String:
 	return "discard"
 
 
+# The alternatives to playing a card from the hand as energy that the cards on the table offer `player_id`
+# (FateCardEffect.energy_alternative): [{"host": Card, "label": String}]
+func energy_alternatives(player_id: int) -> Array:
+	var found := []
+	for host in table_cards():
+		var effect = _effects.get(host.canonical_name)
+		if effect == null:
+			continue
+		var label: String = effect.energy_alternative(host, player_id)
+		if label != "":
+			found.append({"host": host, "label": label})
+	return found
+
+
+# Uses the alternative of `host`; returns whether it worked (FateGame.use_energy_alternative)
+func use_energy_alternative(player_id: int, host: Card) -> bool:
+	var effect = _effects.get(host.canonical_name)
+	if effect == null or effect.energy_alternative(host, player_id) == "":
+		return false
+	return effect.use_energy_alternative(host, player_id)
+
+
 # Keywords that the cards on the table give to `target` ({name: value}); merged into all_on()
 func static_keywords(target: Card) -> Dictionary:
 	var merged := {}
@@ -187,6 +212,7 @@ func _enter(card: Card) -> void:
 	var effect = _effects.get(card.canonical_name)
 	if effect != null:
 		await effect.on_enter(card)
+	table_changed.emit()
 
 
 # A card left the table for `destination`. Called (deferred) by FateCardTemplate.common_pre_move_scripts.
@@ -198,6 +224,12 @@ func card_left(card: Card, destination: String) -> void:
 	var effect = _effects.get(card.canonical_name)
 	if effect != null:
 		effect.on_leave(card, destination)
+	table_changed.emit()
+	# The cards on the table that watch others leave ("whenever a relic leaves the battlefield")
+	for table_card in table_cards():
+		var watcher = _effects.get(table_card.canonical_name)
+		if watcher != null and table_card != card:
+			watcher.on_card_left(table_card, card, destination)
 	# A token that left the table ceases to exist (it never reaches a pile)
 	if game.tokens != null and game.tokens.is_token(card):
 		game.tokens.token_left(card, destination)
@@ -266,6 +298,25 @@ func end_cast(card: Card) -> bool:
 	return bool(info.get("resolved", false))
 
 
+# A card was placed in one of its owner's piles (FateCardTemplate.common_post_move_scripts). Deferred by the caller
+func card_placed_in_pile(card: Card, zone: String) -> void:
+	if not is_instance_valid(card) or game.is_over:
+		return
+	for table_card in table_cards():
+		var watcher = _effects.get(table_card.canonical_name)
+		if watcher != null and table_card != card:
+			await watcher.on_card_to_pile(table_card, card, zone)
+
+
+# `card` is about to be destroyed (it passed would_be_destroyed, it has not moved yet: relics equipped to it are
+# still attached). Tells every table card's script (on_card_dying), Murkmist Gemstone.
+func card_dying(card: Card, cause: String, source) -> void:
+	for table_card in table_cards():
+		var watcher = _effects.get(table_card.canonical_name)
+		if watcher != null and table_card != card:
+			watcher.on_card_dying(table_card, card, cause, source)
+
+
 func _on_flip_cast(card: Card, player_id: int) -> void:
 	for table_card in table_cards():
 		var watcher = _effects.get(table_card.canonical_name)
@@ -277,7 +328,7 @@ func _on_card_destroyed(card: Card, cause: String) -> void:
 	for table_card in table_cards():
 		var watcher = _effects.get(table_card.canonical_name)
 		if watcher != null and table_card != card:
-			watcher.on_card_destroyed(table_card, card, cause, null)
+			watcher.on_card_destroyed(table_card, card, cause, game.effects.last_source)
 
 
 func _on_phase_begins(active_id: int, phase: int) -> void:

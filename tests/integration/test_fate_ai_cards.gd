@@ -122,6 +122,8 @@ func test_a_seat_with_an_ai_answers_through_game_choices() -> void:
 
 
 func test_cards_without_a_real_script_are_dead_and_cards_with_one_are_live() -> void:
+	# Smite has a real script by now: take it away to see a card without one
+	game.card_effects.unregister("Smite")
 	var dead := await put_in_hand(1, "Smite")
 	assert_eq(Eval.role(game, dead), "dead", "a spell with no script does nothing")
 	var fx := TargetFx.new("Smite")

@@ -15,10 +15,15 @@ extends RefCounted
 const DOMAINS := ["Innovation", "Chaos", "Order", "Primal"]
 
 var game: FateGame
+# player id -> Array of cost reductions {"amount", "filter", "expiry", "source"}, see add_cost_reduction
+var _reductions := {}
+# player id -> {domain: amount} of floating mana, see add_floating
+var _floating := {}
 
 
 func _init(owner_game: FateGame) -> void:
 	game = owner_game
+	game.end_of_turn_expiry.connect(_on_end_of_turn_expiry)
 
 
 # The domain an energy card gives. A dual-domain card gives only its first domain: choosing
@@ -46,6 +51,10 @@ func mana_pool(player_id: int) -> Dictionary:
 		var d := energy_domain(card)
 		if pool.has(d):
 			pool[d] += 1
+	var floating: Dictionary = _floating.get(player_id, {})
+	for d in floating:
+		if pool.has(d):
+			pool[d] += floating[d]
 	return pool
 
 
@@ -79,7 +88,20 @@ func pips_of(pips: String) -> Dictionary:
 #    mana of any colour, so it pays a pip of any domain or 1 generic. "ingots" is how many are spent.
 func plan_payment(card: Card) -> Dictionary:
 	var pid: int = card.owner_id
-	var cost := cost_of(card)
+	var cost := effective_cost(card)
+	# Floating mana is spent first (it is gone at the end of the turn): pips with its own domain, generic with any
+	var floating: Dictionary = floating_of(pid)
+	var used_floating := {}
+	var pips := {}
+	for d in cost.pips:
+		var use := mini(int(floating.get(d, 0)), cost.pips[d])
+		_take_floating(floating, used_floating, d, use)
+		pips[d] = cost.pips[d] - use
+	var generic: int = cost.generic
+	for d in DOMAINS:
+		var use := mini(int(floating.get(d, 0)), generic)
+		_take_floating(floating, used_floating, d, use)
+		generic -= use
 	var by_domain := {}
 	for d in DOMAINS:
 		by_domain[d] = []
@@ -89,20 +111,20 @@ func plan_payment(card: Card) -> Dictionary:
 			by_domain[d].append(energy)
 	var chosen := []
 	var ingots := 0
-	for d in cost.pips:
+	for d in pips:
 		var own: Array = by_domain.get(d, [])
-		var take := mini(own.size(), cost.pips[d])
+		var take := mini(own.size(), pips[d])
 		for _i in range(take):
 			chosen.append(own.pop_front())
-		ingots += cost.pips[d] - take
+		ingots += pips[d] - take
 	var left := 0
 	for d in by_domain:
 		left += by_domain[d].size()
-	ingots += maxi(0, cost.generic - left)
+	ingots += maxi(0, generic - left)
 	if ingots > ingots_available(pid):
-		return {"ok": false, "cards": [], "ingots": 0}
+		return {"ok": false, "cards": [], "ingots": 0, "floating": {}}
 	var demand := _hand_demand(pid, card)
-	for _i in range(cost.generic - maxi(0, cost.generic - left)):
+	for _i in range(generic - maxi(0, generic - left)):
 		var best := ""
 		var best_spare := 0
 		for d in DOMAINS:
@@ -113,7 +135,7 @@ func plan_payment(card: Card) -> Dictionary:
 				best = d
 				best_spare = spare
 		chosen.append(by_domain[best].pop_front())
-	return {"ok": true, "cards": chosen, "ingots": ingots}
+	return {"ok": true, "cards": chosen, "ingots": ingots, "floating": used_floating}
 
 
 func can_pay(card: Card) -> bool:
@@ -129,6 +151,8 @@ func pay(card: Card) -> bool:
 	for energy in plan.cards:
 		energy.set_card_rotation(90)
 	_spend_ingots(card.owner_id, plan.ingots)
+	_spend_floating(card.owner_id, plan.floating)
+	_use_cost_reductions(card)
 	game.mana_changed.emit(card.owner_id)
 	return true
 
@@ -190,15 +214,25 @@ func can_pay_generic(player_id: int, amount: int, avoid: Array = [], slot_order 
 # all used first). Returns {"ok": bool, "cards": Array of energy cards, "ingots": int}.
 func plan_generic_payment(player_id: int, amount: int, avoid: Array = [], slot_order := false) -> Dictionary:
 	if amount <= 0:
-		return {"ok": true, "cards": [], "ingots": 0}
-	var cards := plan_generic(player_id, amount, avoid, slot_order)
+		return {"ok": true, "cards": [], "ingots": 0, "floating": {}}
+	# Floating mana first, then the energy, then ingots
+	var floating: Dictionary = floating_of(player_id)
+	var used_floating := {}
+	var rest := amount
+	for d in DOMAINS:
+		var use := mini(int(floating.get(d, 0)), rest)
+		_take_floating(floating, used_floating, d, use)
+		rest -= use
+	if rest <= 0:
+		return {"ok": true, "cards": [], "ingots": 0, "floating": used_floating}
+	var cards := plan_generic(player_id, rest, avoid, slot_order)
 	if not cards.is_empty():
-		return {"ok": true, "cards": cards, "ingots": 0}
+		return {"ok": true, "cards": cards, "ingots": 0, "floating": used_floating}
 	var all := plan_generic(player_id, untapped_energy(player_id).size(), avoid, slot_order)
-	var short := amount - all.size()
+	var short := rest - all.size()
 	if short > ingots_available(player_id):
-		return {"ok": false, "cards": [], "ingots": 0}
-	return {"ok": true, "cards": all, "ingots": short}
+		return {"ok": false, "cards": [], "ingots": 0, "floating": {}}
+	return {"ok": true, "cards": all, "ingots": short, "floating": used_floating}
 
 
 # Taps energy (and spends ingots if the energy is not enough) for `amount` generic mana. Returns false (and
@@ -212,6 +246,7 @@ func pay_generic(player_id: int, amount: int, avoid: Array = [], slot_order := f
 	for energy in plan.cards:
 		energy.set_card_rotation(90)
 	_spend_ingots(player_id, plan.ingots)
+	_spend_floating(player_id, plan.floating)
 	game.mana_changed.emit(player_id)
 	return true
 
@@ -229,3 +264,109 @@ func _hand_demand(player_id: int, except: Card) -> Dictionary:
 		for d in pips:
 			demand[d] = demand.get(d, 0) + pips[d]
 	return demand
+
+
+# --- floating mana (Ancient Tree: "produce 1 Primal energy") ----------------------------------------------------
+# Mana that does not come from an energy card: added by an effect, spent before the energy cards by every
+# payment (cards, "Pay N" abilities), gone at the end of the turn. A pip of a domain takes floating mana of that
+# domain, generic mana takes any.
+
+# Adds `amount` floating mana of a domain ("Primal") for a player
+func add_floating(player_id: int, domain: String, amount := 1) -> void:
+	if amount <= 0 or not domain in DOMAINS:
+		return
+	var pool: Dictionary = _floating.get(player_id, {})
+	pool[domain] = int(pool.get(domain, 0)) + amount
+	_floating[player_id] = pool
+	game.mana_changed.emit(player_id)
+
+
+# The floating mana of a player as {domain: amount} (a copy, only domains above 0)
+func floating_of(player_id: int) -> Dictionary:
+	var copy := {}
+	var pool: Dictionary = _floating.get(player_id, {})
+	for d in pool:
+		if pool[d] > 0:
+			copy[d] = pool[d]
+	return copy
+
+
+func floating_total(player_id: int) -> int:
+	var total := 0
+	for amount in floating_of(player_id).values():
+		total += amount
+	return total
+
+
+# Empties the floating mana (of one player, or everybody)
+func clear_floating(player_id := 0) -> void:
+	var ids := [player_id] if player_id != 0 else _floating.keys()
+	for pid in ids:
+		if _floating.erase(pid):
+			game.mana_changed.emit(pid)
+
+
+func _take_floating(pool: Dictionary, used: Dictionary, domain: String, amount: int) -> void:
+	if amount <= 0:
+		return
+	pool[domain] = int(pool.get(domain, 0)) - amount
+	used[domain] = int(used.get(domain, 0)) + amount
+
+
+func _spend_floating(player_id: int, used: Dictionary) -> void:
+	var pool: Dictionary = _floating.get(player_id, {})
+	for d in used:
+		pool[d] = maxi(0, int(pool.get(d, 0)) - int(used[d]))
+
+
+# --- cost reductions (Meek Minion: "reduce the cost of the next creature you play by 2") --------------------------
+# A one-shot alteration of what a card costs. It applies to the player's NEXT card that passes `filter`, lowers
+# the GENERIC part of the cost (never below 0; the pips of the card stay), and is used up when that card is paid
+# for (`pay`, so a flip cast or a cast from the discard pile counts as playing it). `filter` is
+# Callable(card) -> bool (empty: any card), `expiry` "" (until used) or "end_of_turn". `source` is only a label.
+# Returns the reduction record; cancel it with remove_cost_reduction.
+
+func add_cost_reduction(player_id: int, amount: int, filter := Callable(), expiry := "", source = null) -> Dictionary:
+	var reduction := {"amount": amount, "filter": filter, "expiry": expiry, "source": source}
+	if not _reductions.has(player_id):
+		_reductions[player_id] = []
+	_reductions[player_id].append(reduction)
+	game.mana_changed.emit(player_id)
+	return reduction
+
+
+func remove_cost_reduction(player_id: int, reduction: Dictionary) -> void:
+	if _reductions.has(player_id):
+		_reductions[player_id].erase(reduction)
+		game.mana_changed.emit(player_id)
+
+
+# The reductions that would apply to this card now (the player is the card's owner)
+func cost_reductions_for(card: Card) -> Array:
+	var found := []
+	for reduction in _reductions.get(card.owner_id, []):
+		if not reduction.filter.is_valid() or reduction.filter.call(card):
+			found.append(reduction)
+	return found
+
+
+# What the card costs its owner now: cost_of() minus the generic reductions that apply
+func effective_cost(card: Card) -> Dictionary:
+	var cost := cost_of(card)
+	for reduction in cost_reductions_for(card):
+		cost.generic = maxi(0, cost.generic - int(reduction.amount))
+	return cost
+
+
+func _use_cost_reductions(card: Card) -> void:
+	var applied := cost_reductions_for(card)
+	if applied.is_empty():
+		return
+	for reduction in applied:
+		_reductions[card.owner_id].erase(reduction)
+
+
+func _on_end_of_turn_expiry(_player_id: int) -> void:
+	clear_floating()
+	for pid in _reductions:
+		_reductions[pid] = _reductions[pid].filter(func(r): return r.expiry != "end_of_turn")

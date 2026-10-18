@@ -213,6 +213,21 @@ func cast_from_discard(card: Card, player_id: int, pay_cost := true, choice = nu
 	return true
 
 
+# The hover action "Cast" of a card in its owner's discard pile (Unending Echo returns it from actions()):
+# enabled in the owner's main phase when the card can be cast and paid. FateActions lists the actions of
+# discard pile cards too, so the UI, the AI and tests run it with game.actions.run(card, "cast_from_discard").
+func discard_action(card: Card, label := "Cast") -> Dictionary:
+	var why := ""
+	if game.phase != FateGame.Phase.MAIN or card.owner_id != game.active_id:
+		why = "Only in its owner's main phase"
+	else:
+		why = cast_from_discard_problem(card, card.owner_id)
+	return {"id": "cast_from_discard", "label": label,
+			"tooltip": "Cast from the discard pile by paying its cost" + ("" if why == "" else " (%s)" % why),
+			"enabled": why == "",
+			"run": func(c: Card) -> bool: return await cast_from_discard(c, c.owner_id)}
+
+
 # --- return to the table ------------------------------------------------------------------------------------
 
 # Brings a card of a pile (the discard pile) to the table without casting it ("return target creature from

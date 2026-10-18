@@ -7,9 +7,10 @@
 #   * both sides lose min(A, D); the creature whose USED stat reaches 0 dies (a 0 stat dies even when
 #     nothing was dealt); several blockers: the attacker spends its Strike on them in order
 #   * a creature with Strike and Guard both 0 dies
+#   * a creature that dies in combat costs its controller FateCombat.CREATURE_LOSS_DAMAGE (1) life
 #   * Indomitable: combat damage never takes the used stat below 1, and it does not die in combat
 #   * Savage X: when blocked, X damage to the blocking player (the engine default) before combat
-#   * an unblocked attack on a player takes Strike off their life
+#   * an unblocked attack on a player takes 1 life (FateCombat.PLAYER_HIT_DAMAGE) if its Strike is above 0
 # Parity with the engine is checked by tests/integration/test_fate_ai_sim_parity.gd: change both or
 # neither.
 #
@@ -76,14 +77,16 @@ static func _settle(res: Dictionary, u: Dictionary, key: String, combat: bool) -
 	var o := _o(res, u)
 	if o.dead:
 		return false
-	var die := false
 	if combat and o[key] <= 0 and not u.kw.has("Indomitable"):
-		die = true
-	if o.strike <= 0 and o.guard <= 0:
-		die = true
-	if die:
 		o.dead = true
-	return die
+		# A creature lost in combat costs its controller life (FateEffects.destroy, FateCombat.CREATURE_LOSS_DAMAGE);
+		# creatures destroyed by effects (Savage, the both-stats-zero rule) do not
+		res.life[u.ctrl] -= FateCombat.CREATURE_LOSS_DAMAGE
+		return true
+	if o.strike <= 0 and o.guard <= 0:
+		o.dead = true
+		return true
+	return false
 
 
 # --- running attacks ----------------------------------------------------------------------------
@@ -156,7 +159,7 @@ static func _resolve(state: Dictionary, res: Dictionary, a: Dictionary, attacker
 		_blocked(res, attacker, blockers)
 		return
 	if a.kind == "player":
-		res.life[a.target] -= stat(res, attacker, "strike")
+		res.life[a.target] -= mini(FateCombat.PLAYER_HIT_DAMAGE, stat(res, attacker, "strike"))
 		return
 	var target: Dictionary = state.units.get(a.target, {})
 	if target.is_empty() or not is_alive(res, target):

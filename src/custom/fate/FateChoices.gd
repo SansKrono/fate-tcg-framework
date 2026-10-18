@@ -32,6 +32,9 @@ func _init(owner_game: FateGame) -> void:
 # Picks `count` of `options` for `player`. Returns one option (count 1), an Array (count > 1), or null
 # (optional and nothing wanted, or no options at all).
 func pick(kind: String, player: int, source: Card, options: Array, count := 1, optional := false):
+	# "target ..." picks of a spell never offer a card that cannot be targeted by spells (see targetable)
+	if kind.begins_with("target"):
+		options = legal_targets(source, options)
 	var wanted := mini(count, options.size())
 	if wanted <= 0:
 		return null if count == 1 else []
@@ -52,14 +55,35 @@ func pick(kind: String, player: int, source: Card, options: Array, count := 1, o
 # The choice of a spell or an enters trigger that has_choice: asks for it with the script's own list
 # (candidates) and default, and validates with its choice_problem. `effect` is the card script.
 func pick_for_card(effect, card: Card, player: int):
-	var options: Array = effect.candidates(card, player)
+	var options: Array = legal_targets(card, effect.candidates(card, player))
 	var fallback = effect.default_choice(card, player)
+	if fallback is Card and not targetable(card, fallback):
+		fallback = options[0] if not options.is_empty() else null
 	var request := {"kind": card.canonical_name, "player": player, "source": card, "options": options,
 			"count": 1, "optional": false, "default": fallback, "script": effect}
 	var answer = await _ask(player, request)
 	if answer != null and effect.choice_problem(card, player, answer) == "":
 		return answer
 	return fallback
+
+
+# Can `source` target `target`? A card script that cannot be targeted by some sources (Thrang, Perpetual
+# Innovation: "cannot be targeted by spells") defines `can_be_targeted_by(target: Card, source: Card) -> bool`.
+# Only the script of the target is asked; anything that is not a card on a script is targetable.
+func targetable(source, target) -> bool:
+	if not target is Card or not is_instance_valid(target) or game.card_effects == null:
+		return true
+	var effect = game.card_effects.effect_of(target.canonical_name)
+	if effect == null or not effect.has_method("can_be_targeted_by"):
+		return true
+	return effect.can_be_targeted_by(target, source)
+
+
+# `options` without what `source` may not target. Spells that build their own candidate lists call this
+# too (pick() and pick_for_card() already apply it to "target ..." picks and to the has_choice list of a
+# spell), so a spell cannot forget it.
+func legal_targets(source, options: Array) -> Array:
+	return options.filter(func(option): return targetable(source, option))
 
 
 # A yes/no question to `player`. The default answer when nobody answers is `default`.

@@ -132,6 +132,17 @@ func unequip(relic: Card) -> bool:
 	return true
 
 
+# The relic stops being equipped but stays on the table where it is ("Return to Nature" moves it to the energy
+# zone afterwards). Returns false if it was not equipped.
+func release(relic: Card) -> bool:
+	var host := host_of(relic)
+	if host == null:
+		return false
+	_detach(relic, host)
+	game.stats.refresh(host)
+	return true
+
+
 # Every relic equipped to the creature leaves for the discard pile. Returns how many.
 func release_all(creature: Card) -> int:
 	var count := 0

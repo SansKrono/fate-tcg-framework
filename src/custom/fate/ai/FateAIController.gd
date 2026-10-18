@@ -191,7 +191,13 @@ func _run_turn(turn_number: int) -> void:
 	if game.phase == FateGame.Phase.ENERGY:
 		var choice := Energy.decide(game, snapshot(), profile)
 		var done := false
-		if choice.kind == "energy" and choice.card != null:
+		if choice.kind == "alternative":
+			note("energy: %s" % choice.why)
+			done = game.use_energy_alternative(choice.host)
+		elif choice.kind == "doctrine":
+			note("energy: %s" % choice.why)
+			done = game.doctrines.take_opponent_card_as_energy(seat) != null
+		elif choice.kind == "energy" and choice.card != null:
 			note("energy: %s (%s)" % [choice.card.canonical_name, choice.why])
 			done = game.play_as_energy(choice.card)
 			if not done:

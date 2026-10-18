@@ -21,6 +21,9 @@ const ZERO_KILLS_CAUSES := [CAUSE_COMBAT]
 var game: FateGame
 # Instance ids of the cards being destroyed right now, so that nothing destroys them twice
 var _dying := {}
+# The source (Card or null) of the destruction being announced right now; read by FateCardEffects so that
+# watchers of game.creature_destroyed know who destroyed the card (Krelga)
+var last_source = null
 
 
 func _init(owner_game: FateGame) -> void:
@@ -46,6 +49,7 @@ func destroy(card: Card, source = null, cause := CAUSE_EFFECT) -> bool:
 	if cause == CAUSE_COMBAT and FateZones.is_creature_in_play(card) and card is FateCardTemplate:
 		combat_loss_for = card.controller_id
 	_dying[id] = true
+	game.card_effects.card_dying(card, cause, source)
 	var zone: String = game.keywords.death_destination(card, cause)
 	var owner_id: int = card.owner_id if card is FateCardTemplate else game.active_id
 	var destination = FateZones.container(zone, owner_id)
@@ -63,7 +67,9 @@ func destroy(card: Card, source = null, cause := CAUSE_EFFECT) -> bool:
 	game.keywords.destroyed(card, cause, source)
 	game.stats.clear_card(card)
 	_dying.erase(id)
+	last_source = source
 	game.creature_destroyed.emit(card, cause)
+	last_source = null
 	if combat_loss_for != 0 and game.player(combat_loss_for) != null:
 		# No source: the loss is not damage dealt by a creature (its keywords do not hear about it)
 		_damage_player(game.player(combat_loss_for), FateCombat.CREATURE_LOSS_DAMAGE, null, cause)

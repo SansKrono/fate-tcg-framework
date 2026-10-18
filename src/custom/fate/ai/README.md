@@ -50,3 +50,6 @@ The AI learns about cards from their scripts (`src/custom/fate/cards/Fx*.gd`):
 `tests/unit/test_fate_ai_sim.gd` (simulator, planners), `tests/integration/test_fate_ai_cards.gd` (choices, liveness,
 abilities), `test_fate_ai_selfplay.gd` (whole games, no illegal moves), `test_fate_ai_sim_parity.gd` (engine vs
 simulator), `test_fate_ai_tournament.gd` (opt-in strength measure: `FATE_AI_GAMES=8`).
+
+For many games at once - balance statistics per deck and card, in parallel processes - use the simulation lab
+(`src/custom/fate/sim/README.md`).

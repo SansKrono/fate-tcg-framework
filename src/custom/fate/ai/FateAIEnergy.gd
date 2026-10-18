@@ -21,8 +21,8 @@ const HAND_LIMIT := 10
 const DECK_SAFETY := 4
 
 
-# Decides the choice of the phase. Returns {"kind": "energy" | "draw", "card": Card or null,
-# "why": String}. `state` is a snapshot of the AI's seat.
+# Decides the choice of the phase. Returns {"kind": "energy" | "draw" | "alternative" | "doctrine",
+# "card": Card or null, "host": Card (alternative), "why": String}. `state` is a snapshot of the AI's seat.
 static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 	var me: int = state.me
 	var hand: Array = state.hand_me
@@ -65,6 +65,14 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 			why = "a dead card is free energy and the hand is full"
 	if not want_energy:
 		return {"kind": "draw", "card": null, "why": "enough energy, draw for cards"}
+	# Taking the top card of an opponent's deck (Broadening Influence, Ensue Chaos) is energy for free: no
+	# card of the hand is given up, and the opponent's deck shrinks
+	var alternatives: Array = game.energy_alternatives()
+	if not alternatives.is_empty():
+		return {"kind": "alternative", "host": alternatives[0].host, "card": null,
+				"why": "%s (%s)" % [alternatives[0].label, why]}
+	if game.doctrines != null and game.doctrines.can_take_opponent_card(me):
+		return {"kind": "doctrine", "card": null, "why": "Ensue Chaos: take an opponent's card (%s)" % why}
 	var pick := _least_missed(game, hand, energy_count, profile)
 	return {"kind": "energy", "card": pick, "why": why}
 

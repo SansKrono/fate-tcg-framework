@@ -62,6 +62,10 @@ static func confirm(game: FateGame, seat: int, _profile, request: Dictionary) ->
 # --- intent -----------------------------------------------------------------------------------------
 
 static func intent_of(game: FateGame, seat: int, request: Dictionary) -> String:
+	var kind: String = str(request.get("kind", "")).to_lower()
+	# Paying a cost is giving something up, whatever the rest of the card does
+	if kind.contains("consume") or kind.contains("discard") or kind.contains("sacrifice"):
+		return "give"
 	var script = request.get("script")
 	if script == null and request.get("source") is Card and game.card_effects != null:
 		script = game.card_effects.effect_of(request.source.canonical_name)
@@ -69,7 +73,6 @@ static func intent_of(game: FateGame, seat: int, request: Dictionary) -> String:
 		var declared: String = script.ai_intent(request)
 		if declared != "":
 			return declared
-	var kind: String = str(request.get("kind", "")).to_lower()
 	var text: String = kind
 	var source = request.get("source")
 	if source is Card:
@@ -77,8 +80,6 @@ static func intent_of(game: FateGame, seat: int, request: Dictionary) -> String:
 		# Somebody else's card asking me to pick: I choose what to give
 		if source is FateCardTemplate and source.controller_id != request.player and "choose" in text:
 			return "give"
-	if kind.contains("consume") or kind.contains("discard") or kind.contains("sacrifice"):
-		return "give"
 	var harm := _hits(text, HARM_WORDS)
 	var help := _hits(text, HELP_WORDS)
 	if harm > help:

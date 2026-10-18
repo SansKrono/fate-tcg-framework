@@ -32,8 +32,21 @@ func _profile() -> Profile:
 func test_unblocked_attack_hits_the_player() -> void:
 	var s := _state([_unit(1, 1, 3, 1)])
 	var res := Sim.run(s, [Sim.make_attack(1, "player", 2)], {})
-	assert_eq(res.life[2], 7, "Strike 3 takes 3 life")
+	assert_eq(res.life[2], 9, "Strike 3 still takes only 1 life")
 	assert_eq(res.life[1], 10)
+
+
+func test_creatures_destroyed_in_combat_cost_their_controller_one_life_each() -> void:
+	# Strike 3 into Guard 2: the blocker dies (player 2 loses 1); the attacker lives
+	var s := _state([_unit(1, 1, 3, 1), _unit(2, 2, 1, 2, "guard")])
+	var res := Sim.run(s, [Sim.make_attack(1, "unit", 2)], {})
+	assert_eq(res.life[2], 9, "the lost creature costs 1 life")
+	assert_eq(res.life[1], 10)
+	# Both die: one life each
+	s = _state([_unit(1, 1, 3, 3), _unit(2, 2, 1, 3, "guard")])
+	res = Sim.run(s, [Sim.make_attack(1, "unit", 2)], {})
+	assert_eq(res.life[1], 9)
+	assert_eq(res.life[2], 9)
 
 
 func test_attacker_wins_against_a_smaller_guard() -> void:
@@ -43,7 +56,7 @@ func test_attacker_wins_against_a_smaller_guard() -> void:
 	assert_true(Sim.is_alive(res, s.units[1]))
 	assert_eq(Sim.stat(res, s.units[1], "strike"), 1)
 	assert_false(Sim.is_alive(res, s.units[2]))
-	assert_eq(res.life[2], 10, "A blocked attack does not reach the player")
+	assert_eq(res.life[2], 9, "A blocked attack does not reach the player: only the lost blocker costs 1 life")
 
 
 func test_bigger_guard_destroys_the_attacker() -> void:
@@ -106,7 +119,7 @@ func test_savage_of_an_ai_seat_destroys_a_valuable_creature_instead_of_hitting_t
 	var res := Sim.run(s, [Sim.make_attack(1, "player", 2)], {0: [2]})
 	assert_false(Sim.is_alive(res, s.units[3]), "Guard 2 dies to 3 Savage damage")
 	assert_eq(res.life[2], 10, "the player was not hit")
-	# A seat without an AI keeps the engine default
+	# A seat without an AI keeps the engine default (the blocking player takes the Savage damage)
 	s["ai_seats"] = []
 	assert_eq(Sim.run(s, [Sim.make_attack(1, "player", 2)], {0: [2]}).life[2], 7)
 
@@ -134,16 +147,18 @@ func test_the_defender_blocks_an_attacker_it_beats_for_free() -> void:
 	assert_eq(blocks.get(0, []), [2])
 
 
-func test_the_defender_chump_blocks_to_survive() -> void:
+func test_the_defender_does_not_chump_block_when_the_loss_costs_as_much_as_the_hit() -> void:
+	# An unblocked attack takes 1 life, a creature lost in combat takes 1 life too: a block that only loses the
+	# creature is never better than taking the hit
 	var s := _state([_unit(1, 1, 4, 4), _unit(2, 2, 1, 1, "guard")], 10, 3)
 	var blocks := Sim.best_blocks(s, [Sim.make_attack(1, "player", 2)], 2)
-	assert_eq(blocks.get(0, []), [2], "at 3 life a 4 Strike attack must be blocked")
+	assert_true(blocks.is_empty(), "no chump block: %s" % str(blocks))
 
 
 func test_lethal_attack_is_found() -> void:
-	var s := _state([_unit(1, 1, 2, 2), _unit(2, 1, 2, 2), _unit(3, 2, 1, 1, "strike")], 10, 4)
+	var s := _state([_unit(1, 1, 2, 2), _unit(2, 1, 2, 2), _unit(3, 2, 1, 1, "strike")], 10, 2)
 	var plan := Combat.plan_attack(s, _profile())
-	assert_true(plan.lethal, "2 + 2 = 4 damage against an empty guard line is lethal")
+	assert_true(plan.lethal, "1 + 1 = 2 damage against an empty guard line is lethal")
 	assert_eq(plan.attacks.size(), 2)
 
 

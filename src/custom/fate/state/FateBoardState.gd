@@ -53,7 +53,7 @@ const ENERGY_CHOICES := ["", "energy", "draw", "debug"]
 const STATS := ["Strike", "Guard"]
 const FACES := ["up", "down"]
 const CARD_KEYS := ["card", "id", "face", "tapped", "owner", "controller", "entered_turn", "damage",
-		"modifiers", "grants", "tokens", "attached", "forced_blocker", "equipped_to"]
+		"modifiers", "grants", "tokens", "attached", "forced_blocker", "equipped_to", "achieved"]
 # "counters": the scrap / ingot counters {name: whole number}, left out when all are 0
 const PLAYER_KEYS := ["life", "counters"] + ZONE_ORDER
 const TOP_KEYS := ["format", "version", "name", "description", "turn", "rng", "players", "world",
@@ -289,6 +289,8 @@ static func _normalize_entry(entry, zone_name: String, pid: int) -> Variant:
 		out.erase("entered_turn")
 	if _eq(out.get("id", null), ""):
 		out.erase("id")
+	if _eq(out.get("achieved", null), false):
+		out.erase("achieved")
 	var damage = out.get("damage", null)
 	if damage is Dictionary:
 		for stat in damage.keys():
@@ -595,6 +597,8 @@ func _validate_card(errors: Array[String], path: String, entry, zone_name: Strin
 			ids[entry["id"]] = true
 	if entry.has("face") and not str(entry["face"]) in FACES:
 		errors.append("%s.face: must be \"up\" or \"down\"" % path)
+	if entry.has("achieved") and not entry["achieved"] is bool:
+		errors.append("%s.achieved: must be true or false" % path)
 	if entry.has("tapped") and not entry["tapped"] is bool:
 		errors.append("%s.tapped: must be true or false" % path)
 	for key in ["owner", "controller"]:

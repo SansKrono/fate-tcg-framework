@@ -231,6 +231,29 @@ func eligible_blockers(attack: FateAttack = null) -> Array:
 	for card in game.creatures_in_play(defending_player()):
 		if _blocker_problem(card, attack) == "":
 			found.append(card)
+	# Relics that may guard like a creature (Spiked Barricade, can_block_as_relic)
+	for card in game.player(defending_player()).cards_in_grid("relics"):
+		if _blocker_problem(card, attack) == "":
+			found.append(card)
+	return found
+
+
+# The perpetual spells (field / world zone) of the opponents that this creature may attack (a keyword says
+# so: can_attack_card, Zelith). Empty for creatures that cannot.
+func attackable_spells(attacker: Card) -> Array:
+	var found := []
+	if not is_instance_valid(attacker):
+		return found
+	var candidates: Array = []
+	for pid in game.players:
+		if pid != attacker.controller_id:
+			candidates.append_array(game.player(pid).cards_in_grid("field"))
+	var world: Card = game.equip.world_spell() if game.equip != null else null
+	if world != null:
+		candidates.append(world)
+	for spell in candidates:
+		if attack_problem(attacker, spell) == "":
+			found.append(spell)
 	return found
 
 
@@ -256,17 +279,35 @@ func attack_problem(attacker: Card, target = null) -> String:
 	if target == null:
 		return ""
 	if target is Card:
-		if not FateZones.is_creature_in_play(target):
+		if is_perpetual_spell(target) or is_relic_on_table(target):
+			if target.controller_id == attacker.controller_id:
+				return "That is your own card"
+			if not game.keywords.can_attack_card(attacker, target):
+				return "It cannot attack that"
+		elif not FateZones.is_creature_in_play(target):
 			return "The target is not a creature in play"
-		if target.controller_id == attacker.controller_id:
+		elif target.controller_id == attacker.controller_id:
 			return "That is your own creature"
 		if not game.keywords.can_be_attacked(target, attacker):
-			return "That creature cannot be attacked"
+			return "That creature cannot be attacked" if FateZones.is_creature_in_play(target) \
+					else "That card cannot be attacked"
 	else:
 		var player_id: int = target.id if target is FatePlayer else int(target)
 		if player_id == attacker.controller_id or not game.players.has(player_id):
 			return "That is not an opposing player"
 	return ""
+
+
+# Is this card a perpetual spell (a field or world spell) on the table? A keyword may let a creature attack it.
+# Is this card a relic on the table? A keyword may let a creature attack it (Battering Ram)
+func is_relic_on_table(card: Card) -> bool:
+	return is_instance_valid(card) and card.properties.get("Type") == "Relic" \
+			and FateZones.zone_of(card) == "relics"
+
+
+func is_perpetual_spell(card: Card) -> bool:
+	return is_instance_valid(card) and card.properties.get("Type") == "Spell" \
+			and FateZones.zone_of(card) in ["field", "world"]
 
 
 # Why this creature cannot block this attack: "" if it can
@@ -461,7 +502,7 @@ func _pause() -> void:
 
 # Resolves one attack with the damage algorithm of the spec (Section 3), fills in `attack.result`
 # and emits attack_resolved. The result dictionary has:
-#   kind              "player" | "creature" | "blocked" | "negated" | "removed" | "attacker_gone"
+#   kind              "player" | "creature" | "spell" | "blocked" | "negated" | "removed" | "attacker_gone"
 #                     | "target_gone" | "blockers_gone"
 #   attacker, target (a Card or null), target_player (0 for a creature)
 #   blockers          the blockers that took part, in damage order
@@ -493,6 +534,9 @@ func resolve_attack(attack: FateAttack) -> Dictionary:
 	elif not FateZones.is_creature_in_play(attacker):
 		result.kind = "attacker_gone"
 	else:
+		# Doctrines (Vanquish Thine Foes) act on the attack before the damage
+		if game.doctrines != null:
+			game.doctrines.attack_about_to_resolve(attack)
 		game.keywords.before_combat_damage(attack)
 		if not FateZones.is_creature_in_play(attacker):
 			result.kind = "attacker_gone"
@@ -544,6 +588,10 @@ func _deal_combat_damage(attack: FateAttack, result: Dictionary) -> void:
 		result.life_lost = effects.deal_damage(defender, damage, attacker, cause)
 		# Read now: a lethal hit ends the game, and the players may be gone when the result is logged
 		result.life_left = defender.life
+	elif is_perpetual_spell(attack.target_card) or is_relic_on_table(attack.target_card):
+		# An attacked perpetual spell or relic that was not intercepted is destroyed (Zelith, Battering Ram)
+		result.kind = "spell"
+		effects.destroy(attack.target_card, attacker, cause)
 	elif not FateZones.is_creature_in_play(attack.target_card):
 		result.kind = "target_gone"
 	else:
@@ -603,12 +651,15 @@ func _confirm_blocks() -> void:
 
 # The shared part of block_problem(); `attack` may be null (is this creature able to block at all)
 func _blocker_problem(blocker: Card, attack: FateAttack) -> String:
+	if FateZones.zone_of(blocker) == "relics" and blocker.properties.get("Type") == "Relic":
+		return _relic_blocker_problem(blocker, attack)
 	if not FateZones.is_creature_in_play(blocker):
 		return "Not a creature in play"
 	if blocker.controller_id != defending_player():
 		return "It is not the defending player's creature"
 	var zone := FateZones.zone_of(blocker)
-	var guarding := zone == "creatures" and blocker.card_rotation == 90
+	var guarding: bool = zone == "creatures" and (blocker.card_rotation == 90 \
+			or (game.doctrines != null and game.doctrines.guards_upright(blocker)))
 	if not guarding and zone != "occupied":
 		return "Only guarding or occupied creatures can intercept"
 	if attack != null and blocker in attack.blockers:
@@ -622,6 +673,25 @@ func _blocker_problem(blocker: Card, attack: FateAttack) -> String:
 	if not game.keywords.can_be_blocked_by(attack.attacker, blocker, attack):
 		return "That attacker cannot be blocked by it"
 	if not attack.restrictions_allow(blocker):
+		return "That attack cannot be blocked by it"
+	return ""
+
+
+# A relic that guards like a creature (can_block_as_relic): no stance, no Guard, only the keyword says yes
+func _relic_blocker_problem(relic: Card, attack: FateAttack) -> String:
+	if relic.controller_id != defending_player():
+		return "It is not the defending player's relic"
+	if attack != null and relic in attack.blockers:
+		return "It already blocks that attack"
+	if block_of(relic) != null and block_of(relic) != attack:
+		return "It already blocks another attack"
+	if not game.keywords.can_block_as_relic(relic, attack):
+		return "Only a creature in the guard position can intercept"
+	if attack == null:
+		return ""
+	if not game.keywords.can_be_blocked_by(attack.attacker, relic, attack):
+		return "That attacker cannot be blocked by it"
+	if not attack.restrictions_allow(relic):
 		return "That attack cannot be blocked by it"
 	return ""
 
@@ -666,6 +736,8 @@ func _log_result(attack: FateAttack, result: Dictionary) -> void:
 		"player":
 			_log("%s hits Player %d for %d (life %d)" % [attacker_name, attack.target_player,
 					result.life_lost, result.life_left])
+		"spell":
+			_log("%s destroys %s" % [attacker_name, attack.target_card.canonical_name])
 		"creature":
 			_log("%s fights %s: %d each" % [attacker_name, attack.target_card.canonical_name,
 					result.damage_to_target])

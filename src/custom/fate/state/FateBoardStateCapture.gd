@@ -23,6 +23,8 @@ var _ids := {}
 var _names := {}
 # game.equip while capturing (equipped relics are listed in the relic zone, not under their creature)
 var game_equip = null
+# game.doctrines while capturing (the achieved flag of doctrine cards)
+var game_doctrines = null
 
 
 # The table as a FateBoardState, or null if it is in a step that cannot be stored (then
@@ -35,6 +37,7 @@ static func capture(game: FateGame, opts := {}) -> FateBoardState:
 		return null
 	var capturer := FateBoardStateCapture.new()
 	capturer.game_equip = game.equip
+	capturer.game_doctrines = game.doctrines
 	var data: Dictionary = capturer._capture(game, opts)
 	return FateBoardState.from_dict(data)
 
@@ -152,6 +155,9 @@ func _entry_of(card: Card, zone: String, pid: int) -> Dictionary:
 		if card.controller_id in FateBoardState.PLAYER_IDS:
 			entry["controller"] = card.controller_id
 		entry["entered_turn"] = card.entered_turn
+		# A doctrine whose goal was met keeps its reward (FateDoctrines)
+		if card.properties.get("Type") == "Doctrine" and game_doctrines != null and game_doctrines.achieved(card):
+			entry["achieved"] = true
 	var tokens := {}
 	if card.tokens != null:
 		for token_name in card.tokens.get_all_tokens():

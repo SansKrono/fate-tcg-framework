@@ -70,8 +70,12 @@ static func plan_plays(game: FateGame, state: Dictionary, profile) -> Dictionary
 					var extra := AIChoices.cast_worth(game, me, card) if role == "live" else 0.0
 					if extra < 0.0:
 						continue
+					var base_value := Eval.hand_value(game, card)
+					# Worth nothing (a card that only hurts its caster, see FateAIEval.spell_hint): never cast
+					if base_value <= 0.0:
+						continue
 					items.append({"card": card, "held": false,
-							"value": Eval.hand_value(game, card) + extra + 0.03 * float(card.mana_value())})
+							"value": base_value + extra + 0.03 * float(card.mana_value())})
 	items.sort_custom(func(a, b): return a.value > b.value)
 	if items.size() > MAX_ITEMS:
 		items.resize(MAX_ITEMS)
