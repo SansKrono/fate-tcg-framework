@@ -138,9 +138,17 @@ static func apply_seats(board: FateBoard, bottom_id: int) -> void:
 	snap_cards(board)
 
 
-# Moves every card standing in a slot onto it (after the grids moved)
+# Moves every card standing in a slot onto it (after the grids moved). A card that is still sliding
+# to its slot (it was moved a moment ago, with the slot's old position as the target: the seat swap
+# of a hotseat turn happens behind a short fade, after the maintenance step moved occupied creatures
+# back to the creature zone) must be redirected too, or it keeps sliding to the old place and ends up
+# in the other player's half of the table while its slot, and every click on it, belong to its owner.
 static func snap_cards(board: FateBoard) -> void:
 	for card in board.get_all_cards():
 		var slot = card._placement_slot
 		if slot != null and is_instance_valid(slot) and slot.occupying_card == card:
-			card.position = slot.global_position - board.global_position
+			var target: Vector2 = slot.global_position - board.global_position
+			# Only the slide: the same tween node animates the rotation of a tilted card and the scale
+			card.get_node("Tween").remove(card, "position")
+			card._target_position = target
+			card.position = target

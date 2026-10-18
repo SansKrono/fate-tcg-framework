@@ -21,6 +21,8 @@ var _entries := {}
 var _ids := {}
 # The card names used (for the definitions)
 var _names := {}
+# game.equip while capturing (equipped relics are listed in the relic zone, not under their creature)
+var game_equip = null
 
 
 # The table as a FateBoardState, or null if it is in a step that cannot be stored (then
@@ -31,7 +33,9 @@ static func capture(game: FateGame, opts := {}) -> FateBoardState:
 	if refusal != "":
 		game.board_state_errors = [refusal]
 		return null
-	var data: Dictionary = FateBoardStateCapture.new()._capture(game, opts)
+	var capturer := FateBoardStateCapture.new()
+	capturer.game_equip = game.equip
+	var data: Dictionary = capturer._capture(game, opts)
 	return FateBoardState.from_dict(data)
 
 
@@ -93,6 +97,9 @@ func _capture(game: FateGame, opts: Dictionary) -> Dictionary:
 func _capture_player(game: FateGame, player: FatePlayer) -> Dictionary:
 	var pid: int = player.id
 	var out := {"life": player.life}
+	var counters: Dictionary = game.tokens.counters_of(player.id) if game.tokens != null else {}
+	if not counters.is_empty():
+		out["counters"] = counters
 	out["hand"] = _capture_pile(player.hand(), "hand", pid, false)
 	for zone in ["deck", "discard", "removed"]:
 		out[zone] = _capture_pile(FateZones.container(zone, pid), zone, pid, true)
@@ -157,7 +164,8 @@ func _entry_of(card: Card, zone: String, pid: int) -> Dictionary:
 	_entries[card] = entry
 	var attached := []
 	for other in card.attachments:
-		if is_instance_valid(other):
+		# An equipped relic stays in its slot of the relic zone (its entry says "equipped_to")
+		if is_instance_valid(other) and not (game_equip != null and game_equip.is_equipped(other)):
 			attached.append(_entry_of(other, "attached", pid))
 	if not attached.is_empty():
 		entry["attached"] = attached
@@ -176,6 +184,9 @@ func _finish_cards(game: FateGame) -> void:
 			if record is Dictionary and _entries.has(record.get("target")):
 				entry["forced_blocker"] = {"target": _id_of(record["target"]),
 						"turn": int(record.get("turn", 0))}
+		if game.equip != null and game.equip.has_method("host_of") and game.equip.host_of(card) != null \
+				and _entries.has(game.equip.host_of(card)):
+			entry["equipped_to"] = _id_of(game.equip.host_of(card))
 		if export_stats:
 			var stat_state = game.stats.export_card(card, id_of)
 			if stat_state is Dictionary:

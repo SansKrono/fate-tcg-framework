@@ -78,6 +78,9 @@ func damage_on(card: Card, stat: String) -> int:
 func current(card: Card, stat: String) -> int:
 	var total := base(card, stat) + modifier_total(card, stat) - damage_on(card, stat)
 	total += game.keywords.stat_bonus(card, stat)
+	# Static effects of cards on the table ("creatures you control have +1 Strike")
+	if game.card_effects != null:
+		total += game.card_effects.static_stat_bonus(card, stat)
 	return maxi(0, total)
 
 

@@ -150,7 +150,15 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 	var game := _game()
 	if not game or not game.is_started:
 		return new_host
+	# A card leaving the table: its script hears about it (cards/FateCardEffect.on_leave). Reported from
+	# here, one frame later, because the move into a pile finishes after an animation (the post-move
+	# scripts run only then). Moves inside the table (into or out of the energy zone) are reported
+	# by the code that makes them.
+	if game.card_effects and old_host == cfc.NMAP.get("board") and new_host != old_host \
+			and not is_energy:
+		game.card_effects.card_left.call_deferred(self, _zone_name_of(new_host.name))
 	if "Scripted" in move_tags or not old_host is Hand or new_host == old_host:
+		_make_room(game, new_host, old_host)
 		return new_host
 	if game.debug_mode:
 		# Debug mode: any player can play any card, at any time, for free
@@ -158,6 +166,7 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 			if is_instant_spell():
 				game.card_played.emit(self)
 				return FateZones.container("discard", owner_id)
+			_make_room(game, new_host, old_host)
 			_play_pending = true
 		return new_host
 	# Cards in hand can only be played by their owner, on their turn
@@ -172,24 +181,33 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 		# from here, so it is paid for now
 		if not game.pay(self):
 			return old_host
+		var destination := _spell_destination(game)
 		game.card_played.emit(self)
-		return FateZones.container("discard", owner_id)
+		return destination
 	# The board may still refuse the drop (no free slot, wrong zone), so the payment waits
 	# for the post-move script
+	_make_room(game, new_host, old_host)
 	_play_pending = true
 	return new_host
 
 
-func common_post_move_scripts(new_host: String, _old_host: String, _move_tags: Array) -> void:
-	# A card leaving the energy zone is no longer energy
-	if is_energy and new_host.to_lower() != "board":
+func common_post_move_scripts(new_host: String, old_host: String, _move_tags: Array) -> void:
+	var was_energy := is_energy
+	# A card leaving the energy zone is no longer energy. Judged by where the card is now: a move into a
+	# pile finishes late, and a later move (a spell sent on to the energy zone) may have put it back
+	if is_energy and not _is_board(new_host) and get_parent() != cfc.NMAP.board:
 		is_energy = false
 	# A card that leaves the table forgets damage, modifiers and keyword grants
 	if get_parent() != cfc.NMAP.board:
 		var left_game := _game()
 		if left_game and left_game.stats:
 			left_game.stats.clear_card(self)
+	var entering := _is_board(new_host) and not _is_board(old_host)
 	if not _play_pending:
+		# Entered the table without being played from the hand: returned, created, taken ...
+		var other_game := _game()
+		if entering and not is_energy and other_game and other_game.card_effects:
+			other_game.card_effects.card_entered(self)
 		return
 	_play_pending = false
 	var game := _game()
@@ -199,6 +217,8 @@ func common_post_move_scripts(new_host: String, _old_host: String, _move_tags: A
 	if game.debug_mode or game.pay(self):
 		entered_turn = game.turn_number
 		game.card_played.emit(self)
+		if game.card_effects:
+			game.card_effects.card_entered(self, true)
 	else:
 		# The mana changed while the card was moving: undo the play
 		move_to(FateZones.container("hand", owner_id), -1, null, ["Scripted"])
@@ -240,6 +260,36 @@ func _combat_click(event: InputEvent) -> bool:
 	cfc.card_drag_ongoing = null
 	game.combat_ui.card_clicked(self)
 	return true
+
+
+# A field or world spell landing on the table sends the card in its slot to the discard pile first
+# (FateEquip.make_room): the board has one slot per grid and would refuse the drop
+func _make_room(game: FateGame, new_host: Node, old_host: Node) -> void:
+	if game.equip and new_host == cfc.NMAP.get("board") and old_host != new_host:
+		game.equip.make_room(self)
+
+
+# Is this the node name of the board (the post-move scripts get container names, not nodes)?
+static func _is_board(container_name: String) -> bool:
+	return cfc.NMAP.has("board") and is_instance_valid(cfc.NMAP.board) and container_name == cfc.NMAP.board.name
+
+
+# "Discard_P1" -> "discard", "Hand_P2" -> "hand"
+static func _zone_name_of(container_name: String) -> String:
+	return container_name.to_lower().rsplit("_p", true, 1)[0]
+
+
+# Where a resolving regular spell goes: its owner's discard pile unless a card script says otherwise
+# (FateCardEffects.spell_destination). Zones that are not piles (energy) are reached through the
+# library after the spell resolved.
+func _spell_destination(game: FateGame) -> Node:
+	var zone: String = game.card_effects.spell_destination(self) if game.card_effects else "discard"
+	var container = FateZones.container(zone, owner_id)
+	if container != null:
+		return container
+	if zone == "energy" and game.library:
+		game.library.to_energy.call_deferred(self, owner_id)
+	return FateZones.container("discard", owner_id)
 
 
 func _game() -> FateGame:

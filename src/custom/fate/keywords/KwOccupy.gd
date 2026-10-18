@@ -15,6 +15,8 @@ extends FateKeyword
 
 const NAME := "Occupy"
 const ACTION_ID := "occupy"
+# "Tap" as the cost of an ability (capitalised: the spell text "tap abilities" is lower case)
+static var TAP_PATTERN := RegEx.create_from_string("\\bTap\\b")
 
 
 func _init() -> void:
@@ -24,13 +26,23 @@ func _init() -> void:
 
 # --- helpers other cards can use -----------------------------------------------------------------
 
-# Does this card have an Occupy ability? Its display list names it, or it has the keyword (innate
-# or granted, for example by an equipment that "gains Occupy")
+# Does this card have an Occupy ability? Its display list names it, it has the keyword (innate
+# or granted, for example by an equipment that "gains Occupy"), or its ability says "Tap" (the older name
+# of Occupy, design doc Section 12 item 5: Acquisition Fabricator, Battle Smith, Factory Crafter, Devote
+# Paladin; those cards list "Consume" in their display list, not "Occupy")
 func has_ability(card: Card) -> bool:
 	if not is_instance_valid(card):
 		return false
 	var listed = card.properties.get("_keywords", [])
-	return (listed is Array and NAME in listed) or game.keywords.has(card, NAME)
+	return (listed is Array and NAME in listed) or game.keywords.has(card, NAME) or has_tap_ability(card)
+
+
+# Does the ability text of this creature use "Tap" as its cost? ("Tap, consume a scrap: ...") Also what
+# Invigorated Workforce ("creatures with tap abilities can tap as soon as they enter") asks.
+func has_tap_ability(card: Card) -> bool:
+	if not is_instance_valid(card) or card.properties.get("Type") != "Creature":
+		return false
+	return TAP_PATTERN.search(str(card.properties.get("Abilities", ""))) != null
 
 
 # Why this creature cannot occupy right now: "" if it can. Checks the core rules, not whether the

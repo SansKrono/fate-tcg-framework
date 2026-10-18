@@ -132,6 +132,11 @@ func all_on(card: Card) -> Dictionary:
 	var found := innate(card)
 	for grant in game.stats.grants_of(card):
 		found[grant.keyword] = int(found.get(grant.keyword, 0)) + int(grant.value)
+	# Keywords that cards on the table give to this one ("your creatures have Productive")
+	if game.card_effects != null and card is FateCardTemplate and card.properties.get("Type") == "Creature":
+		var given: Dictionary = game.card_effects.static_keywords(card)
+		for k in given:
+			found[k] = int(found.get(k, 0)) + int(given[k])
 	return found
 
 
@@ -160,6 +165,11 @@ func hooks_for(card: Card) -> Array:
 		if keyword != null and not keyword.universal:
 			list.append(keyword)
 	list.append_array(_universal)
+	# The card's own script is a keyword for this card (cards/FateCardEffect.gd)
+	if game.card_effects != null:
+		var script = game.card_effects.effect_of(card.canonical_name)
+		if script != null:
+			list.append(script)
 	list.sort_custom(_before)
 	return list
 

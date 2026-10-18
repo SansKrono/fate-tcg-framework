@@ -47,12 +47,15 @@ const REFUSED_PHASES := {
 	"combat_resolve": "attacks are mid-resolution: save between steps",
 	"end": "the end phase runs by itself, save in the main phase or earlier",
 }
+# The per-player counters of FateTokens.COUNTERS
+const COUNTERS := ["scrap", "ingot"]
 const ENERGY_CHOICES := ["", "energy", "draw", "debug"]
 const STATS := ["Strike", "Guard"]
 const FACES := ["up", "down"]
 const CARD_KEYS := ["card", "id", "face", "tapped", "owner", "controller", "entered_turn", "damage",
-		"modifiers", "grants", "tokens", "attached", "forced_blocker"]
-const PLAYER_KEYS := ["life"] + ZONE_ORDER
+		"modifiers", "grants", "tokens", "attached", "forced_blocker", "equipped_to"]
+# "counters": the scrap / ingot counters {name: whole number}, left out when all are 0
+const PLAYER_KEYS := ["life", "counters"] + ZONE_ORDER
 const TOP_KEYS := ["format", "version", "name", "description", "turn", "rng", "players", "world",
 		"definitions"]
 const MODIFIER_KEYS := ["stat", "amount", "expiry", "source"]
@@ -234,6 +237,15 @@ static func _normalize_player(raw, pid: int) -> Variant:
 	if not raw is Dictionary:
 		return raw
 	var out := {"life": raw.get("life", FatePlayer.STARTING_LIFE)}
+	if raw.has("counters"):
+		var counters = raw["counters"]
+		if counters is Dictionary:
+			counters = counters.duplicate()
+			for counter_name in counters.keys():
+				if _eq(counters[counter_name], 0):
+					counters.erase(counter_name)
+		if not (counters is Dictionary and counters.is_empty()):
+			out["counters"] = counters
 	for zone_name in ZONE_ORDER:
 		if raw.has(zone_name):
 			var zone_value = _normalize_zone(raw[zone_name], zone_name, pid)
@@ -513,9 +525,22 @@ func _validate_player(errors: Array[String], pid: int, player_data, names: Dicti
 	for key in player_data:
 		if not key in PLAYER_KEYS:
 			warnings.append("%s.%s: unknown key, ignored" % [path, key])
+	if player_data.has("counters"):
+		_validate_counters(errors, "%s.counters" % path, player_data["counters"])
 	for zone_name in ZONE_ORDER:
 		if player_data.has(zone_name):
 			_validate_zone(errors, "%s.%s" % [path, zone_name], player_data[zone_name], zone_name, pid, names, ids)
+
+
+func _validate_counters(errors: Array[String], path: String, value) -> void:
+	if not value is Dictionary:
+		errors.append("%s: must be an object like { \"scrap\": 2, \"ingot\": 1 }" % path)
+		return
+	for counter_name in value:
+		if not counter_name in COUNTERS:
+			warnings.append("%s.%s: unknown counter, ignored (known: %s)" % [path, counter_name, ", ".join(COUNTERS)])
+		elif not (value[counter_name] is int and value[counter_name] >= 0):
+			errors.append("%s.%s: must be a whole number, 0 or more" % [path, counter_name])
 
 
 func _validate_zone(errors: Array[String], path: String, value, zone_name: String, pid: int,
@@ -592,6 +617,8 @@ func _validate_card(errors: Array[String], path: String, entry, zone_name: Strin
 			errors.append("%s.forced_blocker: must be { \"target\": <card id>, \"turn\": N }" % path)
 		elif not (forced.get("turn", 0) is int):
 			errors.append("%s.forced_blocker.turn: must be a whole number" % path)
+	if entry.has("equipped_to") and not entry["equipped_to"] is String:
+		errors.append("%s.equipped_to: must be the id of a creature" % path)
 	var attached = entry.get("attached", [])
 	if not attached is Array:
 		errors.append("%s.attached: must be a list of cards" % path)
@@ -659,6 +686,8 @@ static func _collect_refs(refs: Array, path: String, entry: Dictionary) -> void:
 	var forced = entry.get("forced_blocker", null)
 	if forced is Dictionary and forced.get("target", null) is String:
 		refs.append(["%s.forced_blocker.target" % path, forced["target"]])
+	if entry.get("equipped_to", null) is String:
+		refs.append(["%s.equipped_to" % path, entry["equipped_to"]])
 
 
 # " (did you mean "Battle Smith"?)" for the nearest known name, or ""

@@ -259,7 +259,5 @@ func _draw() -> void:
 	var pid := game.active_id
 	if game.turn_number == 1 and pid == 1 and game.first_player_skips_first_draw:
 		return
-	if game.player(pid).draw_card() == null:
-		# TODO: an empty deck should lose the game (not in scope yet, see FATE_RULES_SPEC).
-		# Listen to this signal to implement it.
-		game.deck_empty.emit(pid)
+	# An empty deck loses the game (FateLibrary.draw)
+	game.library.draw(pid)

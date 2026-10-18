@@ -62,6 +62,9 @@ const FIRST_PLAYER_SKIPS_FIRST_DRAW := false
 # The domains of each player's deck. The deck designs are meant to be played as a single colour:
 # player 1 plays Order, player 2 plays Primal
 const PLAYER_DOMAINS := {1: ["Order"], 2: ["Primal"]}
+# Replaces PLAYER_DOMAINS for the games started after it is set (player id -> domains). Tests and the AI
+# tournament use it for mirror matches; leave it empty otherwise.
+static var domain_override := {}
 const DOMAIN_BY_INITIAL := {"I": "Innovation", "C": "Chaos", "O": "Order", "P": "Primal"}
 # What the ENERGY phase choice was this turn (`energy_choice`)
 const CHOICE_ENERGY := "energy"
@@ -98,6 +101,30 @@ var board_state_errors: Array[String] = []
 var debug_mode := false
 var winner_id := 0
 
+# The card-logic layer (docs: src/custom/fate/cards/README.md). Path-loaded helpers, no class_name:
+#   card_effects  FateCardEffects  the Fx*.gd card scripts and the events that reach them
+#   choices       FateChoices      targets and "you may" questions (an AI or UI answers through it)
+#   costs         FateCosts        costs of activated abilities
+#   tokens        FateTokens       scrap / ingot counters and token cards
+#   control       FateControl      taking control of cards
+#   casting       FateCasting      flip cast, cast from the discard pile, temporary creatures
+#   library       FateLibrary      draw, search, shuffle, move cards between zones
+#   equip         FateEquip        relics on creatures, field and world slots
+#   limiter       FateLimiter      once-per-turn abilities
+var card_effects
+var choices
+var costs
+var tokens
+var control
+var casting
+var library
+var equip
+var limiter
+
+# The AI players, seat -> FateAIController (src/custom/fate/ai/). A seat without an entry is played by a
+# person. See set_ai().
+var ai_controllers := {}
+
 # The current phase (FateGame.Phase), the turn machine owns it
 var phase: int:
 	get:
@@ -129,12 +156,22 @@ func _init() -> void:
 	combat = FateCombat.new(self)
 	# Reactions: listens to combat's reaction windows (loaded by path to keep it out of the class cache)
 	reactions = load("res://src/custom/fate/FateReactions.gd").new(self)
+	# The card-logic layer. The systems first, the script registry last: it listens to combat
+	choices = load("res://src/custom/fate/FateChoices.gd").new(self)
+	costs = load("res://src/custom/fate/FateCosts.gd").new(self)
+	tokens = load("res://src/custom/fate/FateTokens.gd").new(self)
+	control = load("res://src/custom/fate/FateControl.gd").new(self)
+	casting = load("res://src/custom/fate/FateCasting.gd").new(self)
+	library = load("res://src/custom/fate/FateLibrary.gd").new(self)
+	equip = load("res://src/custom/fate/FateEquip.gd").new(self)
+	limiter = load("res://src/custom/fate/FateLimiter.gd").new(self)
+	card_effects = load("res://src/custom/fate/FateCardEffects.gd").new(self)
 
 
 func _ready() -> void:
 	add_to_group("fate_game")
 	for pid in range(1, FateZones.PLAYER_COUNT + 1):
-		players[pid] = FatePlayer.new(pid, "Player %d" % pid, PLAYER_DOMAINS[pid])
+		players[pid] = FatePlayer.new(pid, "Player %d" % pid, domain_override.get(pid, PLAYER_DOMAINS[pid]))
 
 
 func player(player_id: int) -> FatePlayer:
@@ -301,6 +338,8 @@ func reset_table() -> void:
 		energy.size = Vector2.ZERO
 	if stats != null and stats.has_method("clear_all"):
 		stats.clear_all()
+	if tokens != null:
+		tokens.reset()
 	is_over = false
 	winner_id = 0
 	energy_choice = ""
@@ -408,7 +447,7 @@ func request_next_phase() -> bool:
 
 # Can the "Next phase" control be used now?
 func can_request_next_phase() -> bool:
-	if is_over:
+	if is_over or ai_has_the_turn():
 		return false
 	if phase in FateTurn.COMBAT_HOOKS:
 		return combat != null
@@ -417,7 +456,7 @@ func can_request_next_phase() -> bool:
 
 # Can the "End turn" control be used now? Not before the ENERGY choice (D3).
 func can_end_turn() -> bool:
-	if not is_started or is_over:
+	if not is_started or is_over or ai_has_the_turn():
 		return false
 	match phase:
 		Phase.NONE, Phase.MAINTENANCE, Phase.DRAW:
@@ -425,6 +464,18 @@ func can_end_turn() -> bool:
 		Phase.ENERGY:
 			return energy_choice != ""
 	return true
+
+
+# Is an AI player in the middle of its own turn, so that the controls of a person must stay out of
+# the way? Not while a person defends: they need "Next phase" to pass a reaction window, and in the
+# intercept and resolve steps.
+func ai_has_the_turn() -> bool:
+	if not ai_controllers.has(active_id):
+		return false
+	var window = combat.current_window if combat != null and is_instance_valid(combat) else null
+	if window != null and window.is_open and not ai_controllers.has(window.player_id):
+		return false
+	return phase in [Phase.ENERGY, Phase.MAIN, Phase.COMBAT_DECLARE]
 
 
 # --- energy phase -------------------------------------------------------------------
@@ -466,9 +517,8 @@ func can_draw_extra_card() -> bool:
 func draw_extra_card() -> bool:
 	if not can_draw_extra_card():
 		return false
-	if players[active_id].draw_card() == null:
-		# TODO: an empty deck should lose the game, see FateTurn._draw()
-		deck_empty.emit(active_id)
+	# An empty deck loses the game (FateLibrary.draw)
+	library.draw(active_id)
 	_make_energy_choice(CHOICE_DRAW)
 	return true
 
@@ -491,6 +541,9 @@ func can_play_from_hand(card: Card) -> bool:
 		return false
 	if not card.get_parent() is Hand or card.is_reaction_spell():
 		return false
+	# The card's own script may forbid it: no legal target, an additional cost that cannot be paid
+	if card_effects != null and card_effects.play_problem(card) != "":
+		return false
 	return can_pay(card)
 
 
@@ -505,6 +558,59 @@ func can_tilt(card: Card) -> bool:
 		return FateZones.zone_of(card) != ""
 	return phase == Phase.MAIN and card.controller_id == active_id \
 			and FateZones.zone_of(card) == "creatures"
+
+
+# Plays a card from the hand the way dropping it on the table does: the owner, in their main phase,
+# paying its cost. Creatures, relics and field / world spells go to a free slot of their zone, regular
+# spells resolve into the discard pile. Reaction spells cannot be played here (D8, see FateReactions).
+# Returns whether the card was played. For the AI and tests; the UI uses the drag and drop of the
+# framework, which ends in the same hooks (FateCardTemplate.common_pre_move_scripts).
+func play_from_hand(card: Card) -> bool:
+	if not can_play_from_hand(card):
+		return false
+	var fate_card: FateCardTemplate = card
+	if fate_card.is_instant_spell():
+		fate_card.move_to(cfc.NMAP.board)
+		return not fate_card.get_parent() is Hand
+	var grid: BoardPlacementGrid = FateZones.grid(fate_card.board_zone(), fate_card.owner_id)
+	if grid == null:
+		return false
+	# A field or world spell replaces the card in its slot (the old one goes to the discard pile)
+	if equip != null:
+		equip.make_room(fate_card)
+	var slot := grid.find_available_slot()
+	if slot == null:
+		return false
+	# With the slot given the move needs no waiting: the rules hooks have run when it returns
+	fate_card.move_to(cfc.NMAP.board, -1, slot)
+	return fate_card.get_parent() == cfc.NMAP.board
+
+
+# Gives a seat an AI player (src/custom/fate/ai/FateAIController.gd) or takes it away. `level` is
+# FateAIProfile.Level: 0 easy, 1 normal, 2 hard. Returns the controller, or null when switched off.
+# An AI already on that seat is kept (use its `profile` to change it).
+func set_ai(seat: int, on := true, level := 1):
+	if not players.has(seat):
+		return null
+	if not on:
+		var old = ai_controllers.get(seat)
+		if old != null and is_instance_valid(old):
+			old.set_enabled(false)
+			old.queue_free()
+		ai_controllers.erase(seat)
+		return null
+	var existing = ai_controllers.get(seat)
+	if existing != null and is_instance_valid(existing):
+		existing.set_enabled(true)
+		return existing
+	var controller = load("res://src/custom/fate/ai/FateAIController.gd").new()
+	controller.name = "AI_P%d" % seat
+	add_child(controller)
+	controller.setup(self, seat, level)
+	ai_controllers[seat] = controller
+	# Switched on in the middle of a game: take over wherever it is
+	controller.resume()
+	return controller
 
 
 # The mana available to a player, as a dictionary domain -> amount.
