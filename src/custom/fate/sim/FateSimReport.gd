@@ -27,6 +27,8 @@ const ENERGY_FLAG := 0.5
 const UNUSED_FLAG := 0.4
 const TURN_BUCKETS := [[1, 8, "1-8"], [9, 12, "9-12"], [13, 16, "13-16"], [17, 20, "17-20"], [21, 999, "21+"]]
 const LIFE_CURVE_TURNS := 12
+# The matchup list of the text report stops here (a discovery run has one matchup per random deck)
+const MAX_MATCHUP_LINES := 12
 
 var games := 0
 var reasons := {}
@@ -411,9 +413,11 @@ func format_text(top_cards := 8) -> String:
 	if m_rows.size() > 1:
 		out.append("")
 		out.append("MATCHUPS  (win rate of the first deck)")
-		for r in m_rows:
+		for r in m_rows.slice(0, MAX_MATCHUP_LINES):
 			out.append("  %-12s vs %-12s %4d games   %s   draws %d   %.1f turns" % [
 					r.a, r.b, r.games, rate_text(r.a_wins, r.a_wins + r.b_wins), r.draws, r.avg_turns])
+		if m_rows.size() > MAX_MATCHUP_LINES:
+			out.append("  (%d more matchups: see report.json)" % (m_rows.size() - MAX_MATCHUP_LINES))
 	elif m_rows.size() == 1:
 		var r: Dictionary = m_rows[0]
 		out.append("")

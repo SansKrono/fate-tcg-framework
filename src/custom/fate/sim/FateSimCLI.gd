@@ -3,8 +3,12 @@
 #   godot --headless --path . res://src/custom/fate/sim/FateSimCLI.tscn -- --decks=Order,Primal --games=40
 #
 # Arguments (after `--`):
-#   --decks=A,B            two decks (domains, or the path of a deck file, see FateSimConfig.deck_from_file)
-#   --decks=all            every domain against every other domain (round robin)
+#   --decks=A,B            two decks: a domain, a deck of the catalogue (order_optimised, primal_starter ...) or the
+#                          path of a deck file (see FateSimConfig.deck_from_file)
+#   --decks=A,B,C,..       three or more decks: every deck against every other (round robin)
+#   --decks=all            the four domains' default decks, round robin
+#   --decks=optimised      the four optimised decks of the catalogue, round robin (also: starters)
+#   --against=X,Y,..       a gauntlet: every deck of --decks plays every deck of this list (and no other pairs)
 #   --games=<n>            games per matchup (default 20)
 #   --workers=<n>          processes playing at the same time (default: cores - 1)
 #   --levels=normal,hard   AI strength of the first and the second deck (easy, normal, hard)
@@ -12,6 +16,10 @@
 #   --turn-cap=<n>         a game still going on this turn is a draw (default 60)
 #   --no-swap              the first deck always goes first (default: the seats alternate)
 #   --no-doctrines         start without the doctrine cards
+#   --discover=<domain>    deck discovery: every matchup is a new random legal deck of this domain against
+#                          the next of --versus (see README); --games is then the games per random deck
+#   --versus=A,B,..        the decks to play against in a discovery run (default: all four domains)
+#   --samples=<n>          random decks in a discovery run (default 100)
 #   --quiet                print the final report only, not the progress
 #
 # Exits with 0 when all games were played, 1 otherwise (a worker died, bad arguments).
@@ -86,20 +94,48 @@ func _args() -> Dictionary:
 func _config(args: Dictionary) -> Dictionary:
 	var decks_text: String = args.get("decks", "Order,Primal")
 	var matchups: Array = []
-	if decks_text == "all":
+	if args.has("against"):
+		var challengers: Array = _decks_of(decks_text)
+		var field: Array = _decks_of(str(args.against))
+		if challengers.is_empty() or field.is_empty():
+			return {"error": "--decks and --against need decks (a domain, a catalogue id or a .json file)"}
+		for challenger in challengers:
+			for opponent in field:
+				matchups.append(Config.matchup(challenger, opponent))
+	elif args.has("discover"):
+		var opponents: Array = []
+		for part in str(args.get("versus", ",".join(Config.DOMAINS))).split(","):
+			var found := _deck(part.strip_edges())
+			if found.has("error"):
+				return found
+			opponents.append(found)
+		var domain := ""
+		for d in Config.DOMAINS:
+			if d.to_lower() == str(args.discover).to_lower():
+				domain = d
+		if domain == "":
+			return {"error": "--discover wants a domain: %s" % ", ".join(Config.DOMAINS)}
+		matchups = Config.discovery_matchups(domain, opponents, int(args.get("samples", "100")),
+				str(args.get("seed", "fate sim")))
+	elif decks_text == "all":
 		matchups = Config.round_robin(Config.DOMAINS.map(func(d): return Config.domain_deck(d)))
+	elif decks_text == "optimised":
+		matchups = Config.round_robin(Config.tier_decks(FateDecks.TIER_OPTIMISED))
+	elif decks_text == "starters":
+		matchups = Config.round_robin(Config.tier_decks(FateDecks.TIER_STARTER))
 	else:
 		var parts := decks_text.split(",")
-		if parts.size() != 2:
-			return {"error": "--decks wants two decks (A,B) or 'all'"}
+		if parts.size() < 2:
+			return {"error": "--decks wants two or more decks (A,B) or all / optimised / starters"}
 		var decks: Array = []
 		for part in parts:
 			var found := _deck(part.strip_edges())
 			if found.has("error"):
 				return found
 			decks.append(found)
-		matchups = [Config.matchup(decks[0], decks[1])]
-	var config := Config.new_config(matchups, int(args.get("games", "20")), int(args.get("workers", "0")))
+		matchups = [Config.matchup(decks[0], decks[1])] if decks.size() == 2 else Config.round_robin(decks)
+	var default_games := "2" if args.has("discover") else "20"
+	var config := Config.new_config(matchups, int(args.get("games", default_games)), int(args.get("workers", "0")))
 	config.seed = args.get("seed", config.seed)
 	config.turn_cap = int(args.get("turn-cap", "60"))
 	config.swap_seats = not args.has("no-swap")
@@ -109,7 +145,21 @@ func _config(args: Dictionary) -> Dictionary:
 	return config
 
 
+# The decks of a comma separated list; [] if one of them cannot be used (the error is printed)
+func _decks_of(text: String) -> Array:
+	var found: Array = []
+	for part in text.split(","):
+		var one := _deck(part.strip_edges())
+		if one.has("error"):
+			printerr("fate sim: %s" % one.error)
+			return []
+		found.append(one)
+	return found
+
+
 func _deck(text: String) -> Dictionary:
+	if not FateDecks.preset(text.to_lower()).is_empty():
+		return Config.preset_deck(text.to_lower())
 	if text.ends_with(".json"):
 		return Config.deck_from_file(text)
 	for domain in Config.DOMAINS:

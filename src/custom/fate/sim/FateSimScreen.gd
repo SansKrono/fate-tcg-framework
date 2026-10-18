@@ -146,6 +146,9 @@ func _build_setup() -> Control:
 		choice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		for domain in Config.DOMAINS:
 			choice.add_item(domain)
+		for preset in FateDecks.presets():
+			choice.add_item("%s (%s)" % [preset.name, preset.tier.to_lower()])
+			choice.set_item_metadata(choice.item_count - 1, preset.id)
 		choice.add_item(CUSTOM_DECK)
 		choice.select(side)
 		_deck_choice[side] = choice
@@ -335,6 +338,9 @@ func _chosen_deck(side: int) -> Dictionary:
 	var text := choice.get_item_text(choice.selected)
 	if text == CUSTOM_DECK:
 		return Config.deck_from_file(_deck_file[side].text.strip_edges())
+	var preset_id = choice.get_item_metadata(choice.selected)
+	if preset_id is String:
+		return Config.preset_deck(preset_id)
 	return Config.domain_deck(text)
 
 

@@ -72,6 +72,64 @@ static func domains_of_list(list: Dictionary) -> Array:
 	return found.slice(0, 1) if not found.is_empty() else ["Order"]
 
 
+# The cards a mono-domain deck may hold: [card name, copy limit], sorted by name
+static func domain_pool(domain: String) -> Array:
+	var pool: Array = []
+	for card_name in cfc.card_definitions:
+		var props: Dictionary = cfc.card_definitions[card_name]
+		if props.get("_token", false) or props.get("Type") == "Doctrine":
+			continue
+		if props.get("_domains", []) == [domain]:
+			pool.append([card_name, FateDecks.copy_limit(card_name)])
+	pool.sort_custom(func(x, y): return x[0] < y[0])
+	return pool
+
+
+# A random legal deck list of one domain: every copy the rules allow goes into a shuffled stack and the
+# top DECK_SIZE are taken, so each card ends up with a random 0 to its limit copies. Used to find out
+# which cards win games (the "discovery" runs of the lab, see README).
+static func random_list(domain: String, rng: RandomNumberGenerator) -> Dictionary:
+	var stack: Array = []
+	for entry in domain_pool(domain):
+		for _i in entry[1]:
+			stack.append(entry[0])
+	for i in range(stack.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = stack[i]
+		stack[i] = stack[j]
+		stack[j] = tmp
+	var list := {}
+	for card_name in stack.slice(0, FateDecks.DECK_SIZE):
+		list[card_name] = list.get(card_name, 0) + 1
+	return list
+
+
+# `samples` matchups, each a new random deck of `domain` (labelled "<domain> (random)", so the report adds
+# the cards up over all the samples) against the next of `opponents` in turn
+static func discovery_matchups(domain: String, opponents: Array, samples: int, run_seed: String) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("discovery %s %s" % [domain, run_seed])
+	var found: Array = []
+	for i in samples:
+		var list := random_list(domain, rng)
+		found.append(matchup(deck([domain], domain + " (random)", list), opponents[i % opponents.size()]))
+	return found
+
+
+# A deck of the catalogue (FateDecks.presets(), by id like "order_optimised"), labelled with its name;
+# {} for an unknown id
+static func preset_deck(preset_id: String) -> Dictionary:
+	var found := FateDecks.preset(preset_id)
+	if found.is_empty():
+		return {}
+	return deck([found.domain], found.name, found.list)
+
+
+# The decks of a tier of the catalogue (FateDecks.TIER_OPTIMISED / TIER_STARTER), one per domain
+static func tier_decks(tier: String) -> Array:
+	return FateDecks.DOMAIN_ORDER.map(func(d): return preset_deck(FateDecks.preset_id_of(d, tier)))
+
+
 static func matchup(a: Dictionary, b: Dictionary) -> Dictionary:
 	return {"a": a, "b": b}
 

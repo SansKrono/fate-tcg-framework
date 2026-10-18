@@ -6,7 +6,7 @@ and AI as a real game (`docs/FATE_RULES_SPEC.md`, `src/custom/fate/ai/`), played
 
 ## Using it
 
-**In the game:** main menu -> *Fate AI Simulation Lab*. Pick deck A and deck B (a domain, or the path of a deck
+**In the game:** main menu -> *Fate AI Simulation Lab*. Pick deck A and deck B (a domain, a deck of the catalogue, or the path of a deck
 `.json` file), or tick *Round robin* to play every domain against every other. Set the games per matchup, the
 number of processes, the AI level of each deck, press *Start*. The tables fill up while the games are played;
 *Stop* keeps what was played. *Earlier runs* reloads a finished run.
@@ -20,7 +20,9 @@ godot --headless --path . res://src/custom/fate/sim/FateSimCLI.tscn -- --decks=a
 
 | Argument | |
 |----------|---|
-| `--decks=A,B` | two decks: a domain (`Order`, `Primal`, `Chaos`, `Innovation`) or a deck `.json` file; `--decks=all` is the round robin |
+| `--decks=A,B` | two decks: a domain (`Order`, `Primal`, `Chaos`, `Innovation`), a deck of the catalogue (`order_optimised`, `primal_starter` ...) or a deck `.json` file. Three or more decks play a round robin; `--decks=all` (the four domains), `optimised` and `starters` are shortcuts |
+| `--against=X,Y` | a gauntlet: every deck of `--decks` plays every deck of this list, and no other pairs. The way to compare variants of a deck |
+| `--discover=Domain` | deck discovery: every matchup is a new random legal deck of the domain (labelled `Domain (random)`) against the next of `--versus` (default: the four domain decks), `--samples` decks (100), `--games` per deck (2). The report adds the cards up over all samples |
 | `--games=n` | games per matchup (20) |
 | `--workers=n` | processes at the same time (cores - 1) |
 | `--levels=normal,hard` | AI strength of deck A and deck B (easy / normal / hard) |
@@ -89,3 +91,15 @@ button of the screen shows it.
 `tests/unit/test_fate_sim_report.gd` (numbering, statistics, flags, text/CSV), `tests/integration/test_fate_sim_runner.gd`
 (real games, records, seeds, custom decks, error counting), `tests/integration/test_fate_sim_coordinator.gd`
 (real worker processes, stop, earlier runs, the screen).
+
+## Finding good cards and decks
+
+* **Which cards win games?** Run a discovery (`--discover=Primal --samples=200`). Every sample is a different random
+  legal deck, so the effect of a card can be separated from the rest: regress the result on the copies of each card
+  in the deck (the raw records are in `worker_<k>.jsonl`; each seat has `cards.<name>.copies`). The `seen` columns of
+  the report are weak in long games, when nearly every card of a 40-card deck is drawn.
+* **Is this deck better than that one?** Put both in a gauntlet (`--decks=a.json,b.json --against=primal_optimised,...`)
+  and compare their win rates against the same opponents. Differences below about 10 points need 100+ games per
+  deck to be believed.
+* The decks of the game's catalogue (`FateDecks.presets()`, picked on the deck selection screen) were built this
+  way: see `docs/FATE_DECKS.md`.

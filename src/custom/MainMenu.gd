@@ -39,9 +39,9 @@ func on_button_pressed(_button_name : String) -> void:
 			# warning-ignore:return_value_discarded
 			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'CGFMain.tscn')
 		"Multiplayer":
-			# The Fate proof of concept: a hotseat two-player table
+			# The Fate proof of concept: a hotseat two-player table, after both players chose a deck
 			# warning-ignore:return_value_discarded
-			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'fate/FateMain.tscn')
+			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'fate/FateDeckSelect.tscn')
 		"FateSimLab":
 			# warning-ignore:return_value_discarded
 			get_tree().change_scene_to_file(CFConst.PATH_CUSTOM + 'fate/sim/FateSimScreen.tscn')

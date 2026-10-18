@@ -75,7 +75,8 @@ func _card(seat: int, card_name: String) -> Dictionary:
 
 # The seat whose deck a card belongs to, 0 if it is not a card of a deck
 func _seat_of(card) -> int:
-	if card is Card and is_instance_valid(card) and card is FateCardTemplate and _seats.has(card.owner_id):
+	# is_instance_valid() first: `is` on a freed instance is an error
+	if is_instance_valid(card) and card is FateCardTemplate and _seats.has(card.owner_id):
 		return card.owner_id
 	return 0
 

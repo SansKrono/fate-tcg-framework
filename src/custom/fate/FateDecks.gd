@@ -189,3 +189,197 @@ static func doctrines_for(domains: Array) -> Array:
 			found.append(card_name)
 	found.sort_custom(func(a, b): return cfc.card_definitions[a]["Cost"] < cfc.card_definitions[b]["Cost"])
 	return found
+
+
+# --- the deck catalogue ---------------------------------------------------------------------------------------
+#
+# What a player can pick on the deck selection screen (FateDeckSelect): per domain an OPTIMISED deck, tuned with
+# the data of the AI simulation lab (src/custom/fate/sim/), and a STARTER deck (the default list of the domain,
+# or the generated deck for a domain without a list). A preset is
+#   {"id": "order_optimised", "name": ..., "domain": "Order", "tier": "Optimised" | "Starter", "blurb": ..., "list": {card: copies}}
+
+const DOMAIN_ORDER := ["Order", "Primal", "Chaos", "Innovation"]
+const TIER_OPTIMISED := "Optimised"
+const TIER_STARTER := "Starter"
+
+# The optimised decks, by domain: {"name", "blurb", "list"}. Built with the AI simulation lab (docs/FATE_DECKS.md).
+const OPTIMISED := {
+	"Order": {
+		"name": "Iron Vanguard",
+		"blurb": "A fast human army. Cheap soldiers and Reinforcements go wide, Moral Captain and Battle Ready send the whole line in with extra Strike, Devote Paladin adds Savage, Smite removes the blocker that matters and Lucran closes the game.",
+		"list": {
+			# 2
+			"Faithful Worshiper": 3,
+			"Hold the Line": 3,
+			"Holy Healer": 3,
+			"Sigil Mage": 3,
+			"Smite": 3,
+			"Streetside Recruiter": 3,
+			# 3
+			"Battle Ready": 3,
+			"Moral Captain": 3,
+			"Recovering Resources": 3,
+			"Reinforcements": 3,
+			"Tactical Combatant": 3,
+			"War of Attrition": 2,
+			# 4
+			"Devote Paladin": 3,
+			"Zelith, Mage Justiciar": 1,
+			# 7
+			"Lucran, Divine Saviour": 1,
+		},
+	},
+	"Primal": {
+		"name": "Wild Stampede",
+		"blurb": "Big, efficient beasts on a smooth curve. Battering Ram, Beetle Brawler, Feracious Beast and Ironside Beetle hit hard with Savage, Elder Spirit and Cycle of Life ramp your energy, and Wraithful Treespirits and Teshra finish the game.",
+		"list": {
+			# 1
+			"Meek Minion": 3,
+			"Return to Nature": 2,
+			# 2
+			"Beetle Brawler": 3,
+			"Dragon's Tooth": 3,
+			"Goblin Scout Leader": 3,
+			# 3
+			"Ancient Tree": 1,
+			"Battering Ram": 3,
+			"Cycle of Life": 3,
+			"Elder Spirit": 3,
+			"Spirit Wielder": 2,
+			# 4
+			"Feracious Beast": 3,
+			"Guardian Spirits": 2,
+			"Ironside Beetle": 3,
+			"Teshra's War Gauntlets": 1,
+			# 5
+			"Wraithful Treespirits": 2,
+			# 6
+			"No Where to Hide": 1,
+			"Toll of War": 1,
+			# 7
+			"Teshra, Primal Mother": 1,
+		},
+	},
+	"Chaos": {
+		"name": "Abyssal Usurpers",
+		"blurb": "Steals the other player's army. Unseen Manipulator and Harbinger of Krelgar take their creatures, Claimed by the Abyss and Double Agent turn their attackers against them, and unblockable Specters keep the pressure on until Krelga ends it.",
+		"list": {
+			# 1
+			"Enthralled Civilian": 3,
+			# 2
+			"Double Agent": 3,
+			"Murkmist Gemstone": 3,
+			"Repurpose": 2,
+			"Specter of Hate": 3,
+			"Unending Echo": 3,
+			"Unseen Reach": 3,
+			# 3
+			"Cultist Fanatic": 3,
+			"Dockside Alter": 3,
+			"Harbinger of Krelgar": 3,
+			# 4
+			"Claimed by the Abyss": 3,
+			"Dockside Ambusher": 3,
+			"Ikthar, The Great Summoner": 1,
+			"Unseen Manipulator": 3,
+			# 7
+			"Krelga, Abyssal Nightmare": 1,
+		},
+	},
+	"Innovation": {
+		"name": "Goblin Foundry",
+		"blurb": "A scrap and ingot engine. Cheap goblins make scrap, Acquisition Fabricator and Factory Crafter turn it into ingots and 3/3 automatons, Battle Smith arms the army with hammers and Thrang is the 6/6 finisher. Slow to start, hard to break.",
+		"list": {
+			# 1
+			"Goblin Ledgerkeeper": 3,
+			# 2
+			"Factory Shutdown": 3,
+			"Garbage Heap": 3,
+			"Safety Measure": 3,
+			"Scrap Recycler": 3,
+			"Skulking Goblin": 3,
+			# 3
+			"Acquisition Fabricator": 3,
+			"Battle Smith": 3,
+			"Factory Crafter": 3,
+			"Rarink, Crafty Opportunist": 1,
+			"Rustmarket Tinkerer": 3,
+			"Scrap Cannon": 3,
+			# 4
+			"Brogir, Master Artificer": 1,
+			"Steelwork Salvager": 3,
+			# 5
+			"Thrang's Crafting Table": 1,
+			# 7
+			"Thrang, Perpetual Innovation": 1,
+		},
+	},
+}
+
+
+# The catalogue: the optimised deck of every domain, then the starter decks
+static func presets() -> Array:
+	var found: Array = []
+	for tier in [TIER_OPTIMISED, TIER_STARTER]:
+		for domain in DOMAIN_ORDER:
+			found.append(_preset(domain, tier))
+	return found
+
+
+# One preset by id ("order_optimised"), {} if there is none
+static func preset(preset_id: String) -> Dictionary:
+	for domain in DOMAIN_ORDER:
+		for tier in [TIER_OPTIMISED, TIER_STARTER]:
+			if preset_id == preset_id_of(domain, tier):
+				return _preset(domain, tier)
+	return {}
+
+
+static func preset_id_of(domain: String, tier: String) -> String:
+	return "%s_%s" % [domain.to_lower(), tier.to_lower()]
+
+
+static func _preset(domain: String, tier: String) -> Dictionary:
+	if tier == TIER_OPTIMISED:
+		var data: Dictionary = OPTIMISED[domain]
+		return {"id": preset_id_of(domain, tier), "name": data.name, "domain": domain, "tier": tier,
+				"blurb": data.blurb, "list": data.list.duplicate()}
+	var list := decklist([domain])
+	if list.is_empty():
+		list = counts_of(_generated([domain]))
+	return {"id": preset_id_of(domain, tier), "name": "%s Starter" % domain, "domain": domain, "tier": tier,
+			"blurb": "The basic %s deck: a plain selection of the domain's cards." % domain, "list": list.duplicate()}
+
+
+# {card: copies} of a list of card names
+static func counts_of(names: Array) -> Dictionary:
+	var counts := {}
+	for card_name in names:
+		counts[card_name] = counts.get(card_name, 0) + 1
+	return counts
+
+
+# How many cards of each type a deck list has: {"Creature": 25, "Spell": 15, ...}
+static func type_counts(list: Dictionary) -> Dictionary:
+	var counts := {}
+	for card_name in list:
+		var card_type: String = str(cfc.card_definitions[card_name].get("Type", "?"))
+		counts[card_type] = counts.get(card_type, 0) + int(list[card_name])
+	return counts
+
+
+# Makes `preset_id` the deck of a player for the table that opens next (FateGame.domain_override and
+# decklist_override, which every new table reads). Returns false for an unknown id.
+static func select(player_id: int, preset_id: String) -> bool:
+	var chosen := preset(preset_id)
+	if chosen.is_empty():
+		return false
+	FateGame.domain_override[player_id] = [chosen.domain]
+	FateGame.decklist_override[player_id] = chosen.list.duplicate()
+	return true
+
+
+# Forgets the choices: the next table plays the default decks again
+static func clear_selection() -> void:
+	FateGame.domain_override = {}
+	FateGame.decklist_override = {}
