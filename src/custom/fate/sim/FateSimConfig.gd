@@ -6,7 +6,8 @@
 #     "matchups":    [{"a": deck, "b": deck}, ...]   every matchup plays `games` games
 #     "games":       games per matchup
 #     "workers":     how many Godot processes play in parallel
-#     "levels":      [level of deck a, level of deck b]  (FateAIProfile.Level: 0 easy, 1 normal, 2 hard)
+#     "levels":      [profile of deck a, profile of deck b]: a FateAIProfile.Level (0 easy, 1 normal, 2 hard, 3 expert,
+#                    4 novice) or a profile spec text such as "hard+aggro;caution=0.3" (see FateAIProfile)
 #     "seed":        text; the same seed and config give the same games
 #     "swap_seats":  deck a is seat 1 (goes first) in even games and seat 2 in odd games
 #     "turn_cap":    a game still going on this turn is a draw (reason "turn_cap")
@@ -24,7 +25,7 @@ extends RefCounted
 
 const DOMAINS := ["Order", "Primal", "Chaos", "Innovation"]
 const ROOT_DIR := "user://fate_sim"
-const LEVEL_NAMES := ["easy", "normal", "hard"]
+const LEVEL_NAMES := ["easy", "normal", "hard", "expert", "novice"]
 
 
 static func deck(domains: Array, label := "", list := {}) -> Dictionary:
@@ -209,5 +210,7 @@ static func problems(config: Dictionary) -> Array:
 	return found
 
 
-static func level_name(level: int) -> String:
-	return LEVEL_NAMES[clampi(level, 0, LEVEL_NAMES.size() - 1)]
+static func level_name(level) -> String:
+	if level is String:
+		return level
+	return LEVEL_NAMES[clampi(int(level), 0, LEVEL_NAMES.size() - 1)]

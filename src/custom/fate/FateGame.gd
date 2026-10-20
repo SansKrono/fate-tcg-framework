@@ -611,10 +611,11 @@ func play_from_hand(card: Card) -> bool:
 	return fate_card.get_parent() == cfc.NMAP.board
 
 
-# Gives a seat an AI player (src/custom/fate/ai/FateAIController.gd) or takes it away. `level` is
-# FateAIProfile.Level: 0 easy, 1 normal, 2 hard. Returns the controller, or null when switched off.
+# Gives a seat an AI player (src/custom/fate/ai/FateAIController.gd) or takes it away. `level` is a profile
+# spec (FateAIProfile): a Level (0 easy, 1 normal, 2 hard, 3 expert, 4 novice), a text such as "hard+aggro",
+# a profile file name or a Dictionary. Returns the controller, or null when switched off.
 # An AI already on that seat is kept (use its `profile` to change it).
-func set_ai(seat: int, on := true, level := 1):
+func set_ai(seat: int, on := true, level = 1):
 	if not players.has(seat):
 		return null
 	if not on:

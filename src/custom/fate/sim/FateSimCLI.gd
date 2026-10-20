@@ -11,7 +11,9 @@
 #   --against=X,Y,..       a gauntlet: every deck of --decks plays every deck of this list (and no other pairs)
 #   --games=<n>            games per matchup (default 20)
 #   --workers=<n>          processes playing at the same time (default: cores - 1)
-#   --levels=normal,hard   AI strength of the first and the second deck (easy, normal, hard)
+#   --levels=normal,hard   AI profile of the first and the second deck: a grade (novice, easy, normal, hard, expert),
+#                          a skill 0..1, a style ("hard+aggro") and parameters ("hard;aggression=1.4;caution=0.3"),
+#                          or a profile file (res://ai_profiles/<name>.json). --list-params prints every parameter
 #   --seed=<text>          same seed, same games (default "fate sim")
 #   --turn-cap=<n>         a game still going on this turn is a draw (default 60)
 #   --no-swap              the first deck always goes first (default: the seats alternate)
@@ -38,6 +40,10 @@ var _last_printed := -1
 func _ready() -> void:
 	FateGame.register_cards()
 	var args := _args()
+	if args.has("list-params"):
+		print(load("res://src/custom/fate/ai/FateAIProfile.gd").describe())
+		get_tree().quit(0)
+		return
 	var config := _config(args)
 	if config.has("error"):
 		printerr("fate sim: %s" % config.error)
@@ -168,6 +174,8 @@ func _deck(text: String) -> Dictionary:
 	return {"error": "unknown deck '%s' (a domain: %s, or a .json deck file)" % [text, ", ".join(Config.DOMAINS)]}
 
 
-func _level(text: String) -> int:
+# A grade name becomes its Level number; anything else (a style, parameters, a profile file) stays text for
+# FateAIProfile.resolve
+func _level(text: String):
 	var at: int = Config.LEVEL_NAMES.find(text.strip_edges().to_lower())
-	return at if at >= 0 else 1
+	return at if at >= 0 else text.strip_edges()

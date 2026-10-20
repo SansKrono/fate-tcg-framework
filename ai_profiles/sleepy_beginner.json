@@ -1,0 +1,6 @@
+{
+  "label": "sleepy beginner",
+  "skill": 0.15,
+  "style": "balanced",
+  "params": {"mistake_rate": 0.2, "noise": 3.0, "pace": 0.8}
+}

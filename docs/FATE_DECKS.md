@@ -7,6 +7,9 @@ of the domain's cards). The optimised decks were built from the data of the AI s
 (`src/custom/fate/sim/README.md`). The choice reaches the table through `FateGame.domain_override` and
 `decklist_override`; a table opened without the screen plays Order against Primal.
 
+> The numbers in this document were measured with the AI as it was then. The AI has since gained a weighted profile
+> system and knowledge of many cards (`docs/FATE_AI.md`); expect the win rates to have moved, mostly for Primal and Order.
+
 ## How they were made
 
 1. **Discovery.** For each domain, 160 to 200 random legal decks (every copy the rules allow shuffled, 40 taken) played

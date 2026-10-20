@@ -19,6 +19,10 @@ extends RefCounted
 
 const Eval := preload("res://src/custom/fate/ai/FateAIEval.gd")
 const Snapshot := preload("res://src/custom/fate/ai/FateAISnapshot.gd")
+const Combat := preload("res://src/custom/fate/ai/FateAICombat.gd")
+
+# Choices that are about one card in particular and are answered by that card's own logic (see _special)
+const FLIP_KINDS := ["energy card to flip cast", "mana card to cast"]
 
 const HARM_WORDS := ["destroy", "damage", "deal ", "negate", "remove", "take control", "convert",
 		"consume target", "opponent's", "enemy", "steal", "claimed", "to the bottom", "in strike position"]
@@ -34,10 +38,16 @@ static func choose(game: FateGame, seat: int, profile, request: Dictionary):
 		return null
 	var count: int = request.count
 	var source = request.get("source")
+	var special := _special(game, seat, profile, request)
+	if not special.is_empty():
+		return special.answer
 	var intent := intent_of(game, seat, request)
 	var scored: Array = []
 	for o in options:
-		var s := score_option(game, seat, o, intent)
+		var s := score_option(game, seat, o, intent, profile.eval_weights())
+		# The planner decided which creatures the effect is for
+		if not profile.focus.is_empty() and o is Object and o.get_instance_id() in profile.focus:
+			s += 100.0
 		if profile.noise > 0.0:
 			s += profile.rng.randf_range(-profile.noise, profile.noise)
 		scored.append([s, o])
@@ -52,11 +62,106 @@ static func choose(game: FateGame, seat: int, profile, request: Dictionary):
 
 # The "you may ..." answer: the default of the request (the card's own preference) unless the prompt says
 # something is lost and the AI would lose its last cards
-static func confirm(game: FateGame, seat: int, _profile, request: Dictionary) -> bool:
+static func confirm(game: FateGame, seat: int, profile, request: Dictionary) -> bool:
 	var prompt: String = str(request.get("prompt", "")).to_lower()
 	if prompt.contains("discard") and game.player(seat).hand().get_all_cards().size() <= 1:
 		return false
+	# A draw that would empty the deck: no (the deck_safety of the energy phase, for effects)
+	if prompt.contains("draw") and game.player(seat).deck().get_all_cards().size() < profile.deck_safety:
+		return false
+	# Cultist Fanatic: "sacrifice it to flip cast a card for free": only for a card worth more than the creature
+	if prompt.contains("sacrifice") and prompt.contains("flip cast"):
+		var src = request.get("source")
+		var best := 0.0
+		for c in game.casting.flip_castable(seat, Callable(), false):
+			best = maxf(best, flip_value(game, c, profile))
+		var mine := 0.0
+		if src is FateCardTemplate and FateZones.is_creature_in_play(src):
+			mine = Eval.unit_value(Snapshot.unit_of(game, src), -1, -1, profile.eval_weights())
+		return best >= mine * (1.2 - 0.6 * profile.sacrifice_willingness) and best > 0.0
 	return bool(request.get("default", true))
+
+
+# What flip casting this energy-zone card is worth: the card it would be in hand, times flip_cast_bias
+static func flip_value(game: FateGame, card: Card, profile) -> float:
+	return Eval.hand_value(game, card, profile.eval_weights()) * profile.flip_cast_bias
+
+
+# The answers of cards that need more than "intent and worth":
+#   flip casting picks the dearest card of the energy zone (the cheapest is the worst use of a free cast)
+#   Unseen Manipulator: Convert (a creature changes sides) against Intel (two cards)
+#   Unseen Reach: the creature of the attack plan that the blockers would hurt most
+# Returns {"answer": ...} or {} when the request is nothing special.
+static func _special(game: FateGame, seat: int, profile, request: Dictionary) -> Dictionary:
+	var kind: String = str(request.get("kind", ""))
+	var options: Array = request.options
+	var source = request.get("source")
+	if kind in FLIP_KINDS:
+		var best = null
+		var best_v := -INF
+		for o in options:
+			var v: float = flip_value(game, o, profile) + (profile.rng.randf_range(-profile.noise, profile.noise) if profile.noise > 0.0 else 0.0)
+			if v > best_v:
+				best_v = v
+				best = o
+		return {"answer": best}
+	if kind == "creature to equip" and not options.is_empty() and options[0] is Card:
+		# An equipment (Strike, Savage ...) goes to the creature that will attack with it, not the best body
+		var best_c = null
+		var best_e := -INF
+		var w2: Dictionary = profile.eval_weights()
+		for o in options:
+			if o.controller_id != seat:
+				continue
+			var u := Snapshot.unit_of(game, o)
+			var e: float = Eval.unit_value(u, -1, -1, w2) + (4.0 if u.can_attack and u.strike > 0 and u.pos != "occupied" else 0.0) \
+					- (2.0 if u.sick and not u.kw.has("Charge") else 0.0)
+			if e > best_e:
+				best_e = e
+				best_c = o
+		if best_c != null:
+			return {"answer": best_c}
+	if kind == "mode" and source is Card and source.canonical_name == "Unseen Manipulator" and "Intel" in options:
+		if not "Convert" in options:
+			return {"answer": "Intel"}
+		var w: Dictionary = profile.eval_weights()
+		var convert := 0.0
+		var effect = game.card_effects.effect_of(source.canonical_name) if game.card_effects != null else null
+		if effect != null:
+			for t in effect._targets(source):
+				convert = maxf(convert, Eval.unit_value(Snapshot.unit_of(game, t), -1, -1, w))
+		# The creature leaves one side and joins the other: twice its worth
+		convert *= 2.0 * profile.steal_value
+		var intel := 0.0
+		if game.player(seat).deck().get_all_cards().size() >= profile.deck_safety + 2:
+			intel = 2.0 * 3.2 * (1.0 if game.player(seat).hand().get_all_cards().size() <= 6 else 0.5)
+		return {"answer": "Convert" if convert >= intel else "Intel"}
+	if kind == "creature that cannot be blocked" and game.ai_controllers.has(seat):
+		var plan: Array = game.ai_controllers[seat].attack_plan
+		if plan.is_empty():
+			return {}
+		var state := Snapshot.for_profile(game, seat, profile)
+		var best_card = null
+		var best_score := -INF
+		for o in options:
+			var uid: int = o.get_instance_id()
+			var trial: Array = []
+			var hit := false
+			for a in plan:
+				var b: Dictionary = a.duplicate()
+				if b.uid == uid:
+					b["none"] = true
+					hit = true
+				trial.append(b)
+			if not hit:
+				continue
+			var s: float = Combat.score_plan(state, trial, profile)
+			if s > best_score:
+				best_score = s
+				best_card = o
+		if best_card != null:
+			return {"answer": best_card}
+	return {}
 
 
 # --- intent -----------------------------------------------------------------------------------------
@@ -120,9 +225,9 @@ static func _owner_of(option) -> int:
 # --- scoring ------------------------------------------------------------------------------------------
 
 # How much the AI wants this option picked, given the intent. Higher is better.
-static func score_option(game: FateGame, seat: int, option, intent: String) -> float:
+static func score_option(game: FateGame, seat: int, option, intent: String, w: Dictionary = Eval.DEFAULT_W) -> float:
 	var mine := _owner_of(option) == seat
-	var worth := _worth(game, option)
+	var worth := _worth(game, option, w)
 	match intent:
 		"harm":
 			# Hit the opponent's best thing; never one's own
@@ -136,23 +241,23 @@ static func score_option(game: FateGame, seat: int, option, intent: String) -> f
 
 
 # What a card or a player is worth
-static func _worth(game: FateGame, option) -> float:
+static func _worth(game: FateGame, option, w: Dictionary = Eval.DEFAULT_W) -> float:
 	if option is FatePlayer:
 		return 4.0
 	if not option is FateCardTemplate:
 		return 0.0
 	var zone := FateZones.zone_of(option)
 	if zone in FateZones.CREATURE_ZONES:
-		return Eval.unit_value(Snapshot.unit_of(game, option))
+		return Eval.unit_value(Snapshot.unit_of(game, option), -1, -1, w)
 	if zone != "":
 		# A relic, field or world spell on the table
 		return 1.5 + 0.5 * float(option.mana_value())
-	return maxf(Eval.hand_value(game, option), 0.5)
+	return maxf(Eval.hand_value(game, option, w), 0.5)
 
 
 # What casting a spell with a choice is worth on top of its base value, or -1 when it is not worth casting:
 # a harmful spell with only the AI's own creatures to hit, a buff with only the opponent's to help.
-static func cast_worth(game: FateGame, seat: int, card: Card) -> float:
+static func cast_worth(game: FateGame, seat: int, card: Card, w: Dictionary = Eval.DEFAULT_W, profile = null) -> float:
 	if game.card_effects == null:
 		return 0.0
 	var effect = game.card_effects.effect_of(card.canonical_name)
@@ -166,7 +271,7 @@ static func cast_worth(game: FateGame, seat: int, card: Card) -> float:
 	var intent := intent_of(game, seat, request)
 	var best := -INF
 	for o in options:
-		best = maxf(best, score_option(game, seat, o, intent))
+		best = maxf(best, score_option(game, seat, o, intent, w))
 	return 0.5 * best if best > 0.0 else -1.0
 
 
@@ -191,7 +296,7 @@ static func savage_target(attacker: Card, _attack, candidates: Array, amount: in
 			continue
 		var stat: String = game.effects.used_stat(c)
 		if game.stats.current(c, stat) <= amount:
-			var v := Eval.unit_value(Snapshot.unit_of(game, c))
+			var v := Eval.unit_value(Snapshot.unit_of(game, c), -1, -1, game.ai_controllers[attacker.controller_id].profile.eval_weights())
 			if v > best_value:
 				best_value = v
 				best = c

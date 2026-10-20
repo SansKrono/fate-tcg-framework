@@ -43,6 +43,8 @@ const LOG_SIZE := 400
 var game: FateGame
 var seat := 0
 var profile
+# The spec the profile was built from (see FateAIProfile)
+var spec = null
 var enabled := true
 # The attacks planned in the main phase: Array of sim attacks, see FateAISim. Read by _declare_attacks()
 var attack_plan: Array = []
@@ -55,7 +57,9 @@ var _blocked_turn := -1
 var _scripted_turn := -1
 
 
-func setup(owner_game: FateGame, player_id: int, level: int = Profile.Level.NORMAL) -> void:
+# `level` is a profile spec: a FateAIProfile.Level, a text such as "hard+aggro;caution=0.3", a profile file name
+# or a Dictionary (FateAIProfile.resolve)
+func setup(owner_game: FateGame, player_id: int, level = Profile.Level.NORMAL) -> void:
 	game = owner_game
 	seat = player_id
 	profile = Profile.new()
@@ -96,12 +100,14 @@ func _exit_tree() -> void:
 	_remove_choosers()
 
 
-# Changes the strength (FateAIProfile.Level) and the personality that goes with the deck
-func set_level(level: int) -> void:
+# Changes the strength and the personality: a spec (FateAIProfile.resolve) for the deck of the seat
+func set_level(level) -> void:
+	spec = level
 	# Seeded from the game's seed: the same game plays out the same way
-	profile.configure(game.player(seat).domains, level, hash(str(cfc.game_rng_seed) + str(seat)))
+	profile.resolve(level, game.player(seat).domains, hash(str(cfc.game_rng_seed) + str(seat)))
 	if cfc.is_testing:
 		profile.pace = 0.0
+	note("profile: %s (grade %s, skill %.2f, style %s)" % [profile.label, profile.grade, profile.skill, profile.style])
 
 
 # Switches the AI off or on for this seat
@@ -156,6 +162,9 @@ func pause(seconds := -1.0) -> void:
 		await get_tree().process_frame
 	else:
 		await get_tree().create_timer(t).timeout
+	# A card is asking somebody a question (FateTurn.hold): nothing goes on until it is answered
+	while enabled and is_instance_valid(game) and game.turn.is_held():
+		await get_tree().process_frame
 
 
 # Is the turn script with this token still the one that should run?
@@ -165,7 +174,7 @@ func alive(token: int) -> bool:
 
 
 func snapshot() -> Dictionary:
-	return Snapshot.build(game, seat, profile.aggression, profile.cheat)
+	return Snapshot.for_profile(game, seat, profile)
 
 
 # --- my turn -------------------------------------------------------------------------------------------

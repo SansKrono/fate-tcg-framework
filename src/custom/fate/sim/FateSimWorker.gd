@@ -78,7 +78,7 @@ static func _fix_numbers(config: Dictionary) -> Dictionary:
 	for key in ["games", "workers", "turn_cap", "game_seconds"]:
 		if config.has(key):
 			config[key] = int(config[key])
-	config["levels"] = config.get("levels", [1, 1]).map(func(v): return int(v))
+	config["levels"] = config.get("levels", [1, 1]).map(func(v): return v if v is String or v is Dictionary else int(v))
 	for mu in config.matchups:
 		for side in ["a", "b"]:
 			var list: Dictionary = mu[side].get("list", {})

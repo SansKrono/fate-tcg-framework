@@ -1,0 +1,6 @@
+{
+  "label": "patient wall",
+  "grade": "hard",
+  "style": "control",
+  "params": {"guard_reserve": 2, "attack_margin": 1.0, "reaction_weight": 1.6, "caution": 1.2, "chump_block": 0.7}
+}

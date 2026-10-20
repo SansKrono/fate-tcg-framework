@@ -18,6 +18,10 @@ const Sim := preload("res://src/custom/fate/ai/FateAISim.gd")
 const Snapshot := preload("res://src/custom/fate/ai/FateAISnapshot.gd")
 const Combat := preload("res://src/custom/fate/ai/FateAICombat.gd")
 
+# The reaction spells this file can score. Mana is only held for these: a reaction the AI cannot cast would
+# reserve mana for nothing.
+const MODELLED := ["Safety Measure", "Factory Shutdown", "Wave of Fear", "Hold the Line", "Forests Protection",
+		"Double Agent"]
 const DECLARE_END := "declare_end"
 const INTERCEPT_END := "intercept_end"
 # At most this many reaction spells in one window
@@ -29,13 +33,13 @@ const MAX_CASTS := 3
 # What keeping mana open for this reaction spell is worth during the main phase: its value times the
 # chance the opponent attacks (more creatures on their side, more likely)
 static func hold_value(state: Dictionary, profile, card: Card) -> float:
-	if not profile.hold_reactions:
+	if not profile.hold_reactions or not card.canonical_name in MODELLED:
 		return 0.0
 	var attackers := 0
 	for u in Snapshot.units_of(state, state.opp):
 		if u.strike > 0:
 			attackers += 1
-	var p := clampf(0.3 * float(attackers), 0.0, 0.85)
+	var p := clampf(profile.opp_attack_prior * float(attackers), 0.0, 0.85)
 	var v: float = Eval.REACTION_VALUE.get(card.canonical_name, Eval.REACTION_DEFAULT_VALUE)
 	return v * p * profile.reaction_weight
 
@@ -46,13 +50,16 @@ static func hold_value(state: Dictionary, profile, card: Card) -> float:
 # names of the spells cast (for the log).
 static func respond(game: FateGame, seat: int, window, profile) -> Array:
 	var cast_names: Array = []
+	# A slip of the player: the window passes without a cast
+	if profile.slips():
+		return cast_names
 	for _n in range(MAX_CASTS):
 		if not window.is_open:
 			break
 		var castable: Array = game.reactions.castable_in_hand(seat)
 		if castable.is_empty():
 			break
-		var state := Snapshot.build(game, seat, profile.aggression, profile.cheat)
+		var state := Snapshot.for_profile(game, seat, profile)
 		var info := Combat.sim_attacks(game)
 		var attacks: Array = info.attacks
 		var base := _score_after(state, attacks, window.step, game, seat, profile)
@@ -65,7 +72,7 @@ static func respond(game: FateGame, seat: int, window, profile) -> Array:
 				continue
 			var worth: float = Eval.REACTION_VALUE.get(card.canonical_name, Eval.REACTION_DEFAULT_VALUE)
 			# Losing the game is the case where the card is worth nothing in hand
-			var price: float = 0.0 if base <= -Eval.LOSS * 0.5 else 0.4 * worth + 0.5
+			var price: float = 0.0 if base <= -Eval.LOSS * 0.5 else (0.4 * worth + 0.5) * profile.reaction_price
 			var net: float = o.gain - price
 			if net > best_gain:
 				best_gain = net
@@ -166,6 +173,33 @@ static func _gain(game: FateGame, state: Dictionary, attacks: Array, step: Strin
 					u.pos = "guard"
 					u.guard += 1
 			return {"gain": _score_after(s3, attacks, step, game, seat, profile) - base, "choice": null}
+		"Double Agent":
+			if step != DECLARE_END:
+				return {}
+			var effect = game.reactions.effect_of(card.canonical_name)
+			if effect == null:
+				return {}
+			var best_t := -INF
+			var pick_t: Card = null
+			for target in effect.candidates(seat):
+				var tid: int = target.get_instance_id()
+				if not state.units.has(tid):
+					continue
+				var s5 := Snapshot.copy_of(state)
+				var stolen: Dictionary = s5.units[tid]
+				stolen.ctrl = seat
+				stolen.pos = "guard"
+				var removed5 := _copy_attacks(attacks)
+				for a5 in removed5:
+					if a5.uid == tid:
+						a5.removed = true
+				var g5 := _score_after(s5, removed5, step, game, seat, profile) - base
+				if g5 > best_t:
+					best_t = g5
+					pick_t = target
+			if pick_t == null:
+				return {}
+			return {"gain": best_t, "choice": pick_t}
 		"Forests Protection":
 			var s4 := Snapshot.copy_of(state)
 			for uid in s4.units:

@@ -1,0 +1,6 @@
+{
+  "label": "reckless rush",
+  "grade": "normal",
+  "style": "aggro",
+  "params": {"aggression": 2.0, "caution": 0.0, "attack_margin": 0.0, "preserve_value": 0.6, "kill_value": 1.3, "hold_reactions": false}
+}

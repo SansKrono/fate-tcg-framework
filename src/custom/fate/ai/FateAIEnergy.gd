@@ -17,8 +17,6 @@ extends RefCounted
 const Eval := preload("res://src/custom/fate/ai/FateAIEval.gd")
 
 const HAND_LIMIT := 10
-# Draw an extra card only with at least this many cards left in the deck
-const DECK_SAFETY := 4
 
 
 # Decides the choice of the phase. Returns {"kind": "energy" | "draw" | "alternative" | "doctrine",
@@ -40,10 +38,12 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 	# An empty deck loses the game (FateLibrary): never draw the deck away. The turn's own draw still needs a card
 	# next turn, so an extra draw needs a few cards to spare.
 	var deck_left: int = state.deck_count[me]
-	if deck_left < DECK_SAFETY:
+	if deck_left < profile.deck_safety:
 		return {"kind": "energy", "card": _least_missed(game, hand, energy_count, profile),
 				"why": "only %d cards left in the deck: no extra draw" % deck_left}
-	var target: int = profile.energy_target
+	var target := _target(game, cards, energy_count, profile)
+	# The deck race: whoever draws the last card first loses, and every extra draw is a turn closer
+	var racing: bool = profile.deck_race and deck_left < 16 and deck_left <= state.deck_count[state.opp] + 1
 	var want_energy := energy_count < target
 	var why := "below the energy target (%d < %d)" % [energy_count, target]
 	if energy_count >= profile.max_energy:
@@ -52,9 +52,12 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 	if energy_count < 2:
 		want_energy = true
 		why = "too little energy to play anything"
+	if racing and not want_energy:
+		want_energy = true
+		why = "the deck race (%d cards left, the opponent has %d)" % [deck_left, state.deck_count[state.opp]]
 	if not want_energy:
 		# Past the target: only when a good card needs exactly one more, or the hand overflows
-		if _enables_play(game, cards, energy_count):
+		if _enables_play(game, cards, energy_count, profile):
 			want_energy = true
 			why = "one more energy lets a card be played now"
 		elif hand_size >= HAND_LIMIT - 1 and energy_count < profile.max_energy + 2:
@@ -63,6 +66,10 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 		elif not dead.is_empty() and hand_size >= HAND_LIMIT - 2:
 			want_energy = true
 			why = "a dead card is free energy and the hand is full"
+	# A slip of the player: the other choice
+	if profile.slips():
+		want_energy = not want_energy
+		why = "a slip"
 	if not want_energy:
 		return {"kind": "draw", "card": null, "why": "enough energy, draw for cards"}
 	# Taking the top card of an opponent's deck (Broadening Influence, Ensue Chaos) is energy for free: no
@@ -77,10 +84,28 @@ static func decide(game: FateGame, state: Dictionary, profile) -> Dictionary:
 	return {"kind": "energy", "card": pick, "why": why}
 
 
-# Does one more energy let a live card of the hand be played this turn when it could not be before?
-static func _enables_play(game: FateGame, cards: Array, energy_count: int) -> bool:
+# The energy count the deck wants now: the profile's target, moved by draw_bias and by ramp_bias per card of the
+# hand that costs more than the energy in play (a hand full of bombs wants more energy)
+static func _target(game: FateGame, cards: Array, energy_count: int, profile) -> int:
+	var target: float = float(profile.energy_target) - profile.draw_bias
+	if profile.ramp_bias > 0.0:
+		var out_of_reach := 0
+		for c in cards:
+			if c.mana_value() > energy_count:
+				out_of_reach += 1
+		target += profile.ramp_bias * float(mini(out_of_reach, 3))
+	return clampi(int(round(target)), 2, profile.max_energy)
+
+
+# Does one more energy let a live card of the hand be played this turn (or, with energy_lookahead above 1, in the
+# next turns) when it could not be before?
+static func _enables_play(game: FateGame, cards: Array, energy_count: int, profile) -> bool:
 	for c in cards:
-		if Eval.role(game, c) == "creature" and c.mana_value() == energy_count + 1:
+		var mv: int = c.mana_value()
+		var role := Eval.role(game, c)
+		if role != "creature" and not (profile.energy_lookahead > 1 and role == "live"):
+			continue
+		if mv > energy_count and mv <= energy_count + profile.energy_lookahead:
 			return true
 	return false
 
@@ -91,7 +116,7 @@ static func _least_missed(game: FateGame, hand: Array, energy_count: int, profil
 	var best: Card = null
 	var best_value := INF
 	for c in hand:
-		var v := Eval.keep_value(game, c, energy_count)
+		var v := Eval.keep_value(game, c, energy_count, profile.eval_weights())
 		if profile.noise > 0.0:
 			v += profile.rng.randf_range(0.0, profile.noise * 0.5)
 		# A dead card that costs a lot is the best of the dead ones: nobody will ever cast it

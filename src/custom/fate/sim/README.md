@@ -25,7 +25,7 @@ godot --headless --path . res://src/custom/fate/sim/FateSimCLI.tscn -- --decks=a
 | `--discover=Domain` | deck discovery: every matchup is a new random legal deck of the domain (labelled `Domain (random)`) against the next of `--versus` (default: the four domain decks), `--samples` decks (100), `--games` per deck (2). The report adds the cards up over all samples |
 | `--games=n` | games per matchup (20) |
 | `--workers=n` | processes at the same time (cores - 1) |
-| `--levels=normal,hard` | AI strength of deck A and deck B (easy / normal / hard) |
+| `--levels=normal,hard` | AI profile of deck A and deck B: a grade (novice / easy / normal / hard / expert), a skill `0..1`, a style and parameters (`"hard+aggro;caution=0.3"`), or a profile file (`res://ai_profiles/<name>.json`). The same deck against itself with two profiles measures what a profile is worth. `--list-params` prints every parameter. See `src/custom/fate/ai/README.md` and `docs/FATE_AI.md` |
 | `--seed=text` | the same seed and options give the same games |
 | `--turn-cap=n` | a game still going on this turn is a draw (60) |
 | `--no-swap` | deck A always goes first (default: alternate, which cancels the first-player advantage) |
@@ -103,3 +103,12 @@ button of the screen shows it.
   deck to be believed.
 * The decks of the game's catalogue (`FateDecks.presets()`, picked on the deck selection screen) were built this
   way: see `docs/FATE_DECKS.md`.
+
+## Comparing AI profiles
+
+`--decks=primal_optimised,primal_optimised --levels="hard,normal" --games=100` plays one deck against itself with
+two profiles (the seats alternate, so the first-player advantage cancels). The `MATCHUP` line is *profile A wins -
+profile B wins*; each game is replayed with the same seed whatever the profiles are, so give two runs of the same
+comparison the same `--seed` and compare them with a run of `normal,normal` on that seed: identical profiles do not
+give 50-50 on a given seed, the difference to that run is what the profile changed. Behaviour (attacks per turn, mana
+spent, creatures lost ...) per profile is in the records (`worker_<k>.jsonl`: each seat has `deck` 0/1 = profile A/B).

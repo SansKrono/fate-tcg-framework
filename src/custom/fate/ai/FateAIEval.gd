@@ -10,6 +10,12 @@
 extends RefCounted
 
 const Snapshot := preload("res://src/custom/fate/ai/FateAISnapshot.gd")
+const Profile := preload("res://src/custom/fate/ai/FateAIProfile.gd")
+
+# The weights every evaluation reads when it is not given a profile's: the defaults of FateAIProfile. A state
+# carries the weights of the seat that searches (state.w, set by FateAISnapshot), so two AI seats with
+# different profiles do not share numbers.
+static var DEFAULT_W: Dictionary = Profile.new().eval_weights()
 
 # The score of a position in which the player lost (and minus that when the opponent lost)
 const LOSS := 1000.0
@@ -22,8 +28,11 @@ const REACTION_VALUE := {
 	"Wave of Fear": 4.0,
 	"Hold the Line": 3.0,
 	"Forests Protection": 3.0,
+	"Double Agent": 5.0,
 }
 const REACTION_DEFAULT_VALUE := 2.0
+# Cards that take control of a creature: scaled by the steal_value weight
+const STEAL_CARDS := ["Unseen Manipulator", "Claimed by the Abyss", "Double Agent", "Harbinger of Krelgar", "Repurpose"]
 
 # Cards that are not creatures or reaction spells but whose effect the engine really runs.
 # name -> value of having the card (as a hand card). Empty today: as of docs/FATE_TCG_DESIGN.md
@@ -36,12 +45,13 @@ const LIVE_EFFECTS := {}
 # --- life ---------------------------------------------------------------------------------------
 
 # What a life total is worth. Convex: the last points of life matter most. 0 or less is a loss.
-static func life_value(life: int) -> float:
+static func life_value(life: int, w: Dictionary = DEFAULT_W) -> float:
 	if life <= 0:
 		return -LOSS
-	var v := 1.4 * float(life)
-	if life < 7:
-		v -= 0.12 * float((7 - life) * (7 - life))
+	var v: float = w.life_slope * float(life)
+	var danger: int = int(w.life_danger_at)
+	if life < danger:
+		v -= w.life_danger_curve * float((danger - life) * (danger - life))
 	return v
 
 
@@ -50,29 +60,33 @@ static func life_value(life: int) -> float:
 # What a creature (a unit of the snapshot) is worth. `cur_strike` / `cur_guard` are the stats it has
 # in the position being scored (after damage); damage heals at its owner's maintenance, so the value
 # leans on the undamaged stats.
-static func unit_value(u: Dictionary, cur_strike := -1, cur_guard := -1) -> float:
+static func unit_value(u: Dictionary, cur_strike := -1, cur_guard := -1, w: Dictionary = DEFAULT_W) -> float:
 	var cs: int = u.strike if cur_strike < 0 else cur_strike
 	var cg: int = u.guard if cur_guard < 0 else cur_guard
 	var s: float = 0.7 * float(u.get("full_strike", u.strike)) + 0.3 * float(cs)
 	var g: float = 0.7 * float(u.get("full_guard", u.guard)) + 0.3 * float(cg)
 	var kw: Dictionary = u.kw
-	var v: float = s + 0.85 * g + 0.45 * float(u.mv)
+	var v: float = w.w_strike * s + w.w_guard * g + w.w_mv * float(u.mv)
 	if kw.has("Savage"):
-		v += 1.1 * float(kw["Savage"])
+		v += w.w_savage * float(kw["Savage"])
 	if kw.has("Indomitable"):
-		v += 1.5 + 0.2 * (s + g)
+		v += w.w_indomitable + 0.2 * (s + g)
 	if kw.has("Untethered"):
-		v += 0.4
+		v += w.w_untethered
 	if kw.has("Unblockable"):
-		v += 0.9 * s
+		v += w.w_unblockable * minf(s, w.evasion_cap)
 	if kw.has("Cannot block"):
-		v -= 0.25 * g
+		v -= w.w_cannot_block * g
 	if kw.has("Charge"):
-		v += 0.4
+		v += w.w_charge
 	if kw.has("Productive"):
-		v += 0.2
+		v += w.w_productive
 	if u.get("unique", false):
-		v += 0.8
+		v += w.w_unique
+	if u.get("ability", false):
+		v += w.w_ability
+	if u.get("token", false):
+		v *= w.w_token
 	return maxf(v, 0.2)
 
 
@@ -84,19 +98,23 @@ static func unit_value(u: Dictionary, cur_strike := -1, cur_guard := -1) -> floa
 # pass null to score the snapshot as it is.
 static func score(state: Dictionary, result, me: int) -> float:
 	var s := 0.0
+	var w: Dictionary = state.get("w", DEFAULT_W)
 	var overlay: Dictionary = {} if result == null else result.units
 	for uid in state.units:
 		var u: Dictionary = state.units[uid]
 		var o = overlay.get(uid)
 		if o != null and o.dead:
 			continue
-		var v: float = unit_value(u, u.strike if o == null else o.strike, u.guard if o == null else o.guard)
-		s += v if u.ctrl == me else -v
+		var v: float = unit_value(u, u.strike if o == null else o.strike, u.guard if o == null else o.guard, w)
+		if u.ctrl == me:
+			s += v * w.preserve_value
+		else:
+			s -= v * w.kill_value
 	var life: Dictionary = state.life if result == null else result.life
 	var opp := 3 - me
 	var face: float = state.get("face_weight", 1.0)
-	s += life_value(life[me])
-	var opp_term: float = life_value(life[opp])
+	s += life_value(life[me], w) * (w.life_weight if life[me] > 0 else 1.0)
+	var opp_term: float = life_value(life[opp], w)
 	# The opponent's loss counts in full: it ends the game
 	s -= opp_term * (face if opp_term > -LOSS else 1.0)
 	return s
@@ -128,17 +146,13 @@ const EFFECT_HOOKS := ["resolve", "on_enter", "on_play", "on_leave", "on_phase",
 		"static_keywords", "static_stat_bonus", "actions", "stat_bonus", "on_maintenance", "on_turn_end",
 		"on_attack_declared", "on_blocked", "on_blocking", "on_destroyed", "can_block", "can_attack",
 		"can_be_attacked", "can_be_blocked_by", "modify_damage_taken", "would_be_destroyed",
-		"death_destination", "spell_destination", "spell_destination_for", "on_damage_dealt"]
+		"death_destination", "spell_destination", "spell_destination_for", "on_damage_dealt", "on_card_to_pile",
+		"on_card_left", "on_card_dying", "can_attack_card", "energy_alternative", "use_energy_alternative",
+		"can_be_targeted_by", "creatures_in_energy", "can_block_as_relic", "token_amount"]
 
 
-# The methods the card's own script file defines (not the inherited ones)
 static func script_methods(effect) -> Array:
-	var names: Array = []
-	var script = effect.get_script()
-	if script != null:
-		for m in script.get_script_method_list():
-			names.append(m.name)
-	return names
+	return Snapshot.script_methods(effect)
 
 
 # Does the card have a script (game.card_effects) whose hooks do something? A regular spell needs
@@ -171,29 +185,40 @@ static func pseudo_unit(game: FateGame, card: Card) -> Dictionary:
 
 # What having this card in hand is worth (0 for dead cards). A card script may say (ai_value); creatures
 # with an enters / activated effect are worth a bit more; other live cards are worth about what they cost.
-static func hand_value(game: FateGame, card: Card) -> float:
+# `w` is the weights of the profile (creature_value, spell_value, reaction_value, engine_value).
+static func hand_value(game: FateGame, card: Card, w: Dictionary = DEFAULT_W) -> float:
 	var effect = game.card_effects.effect_of(card.canonical_name) if game.card_effects != null else null
+	var steal: float = w.steal_value if card.canonical_name in STEAL_CARDS else 1.0
 	match role(game, card):
 		"creature":
-			var v := unit_value(pseudo_unit(game, card)) + 0.3
+			var v := unit_value(pseudo_unit(game, card), -1, -1, w) + 0.3
 			if _has_hooks(effect):
 				v += 0.6
-			return v
+			return (v * w.creature_value + (w.engine_value if has_engine(effect) else 0.0)) * steal
 		"reaction":
-			return float(REACTION_VALUE.get(card.canonical_name, REACTION_DEFAULT_VALUE))
+			return float(REACTION_VALUE.get(card.canonical_name, REACTION_DEFAULT_VALUE)) * w.reaction_value * steal
 		"live":
-			if LIVE_EFFECTS.has(card.canonical_name):
-				return float(LIVE_EFFECTS[card.canonical_name])
-			var hint := spell_hint(game, card)
-			if hint >= 0.0:
-				return hint
-			if effect != null:
-				var stated: float = effect.ai_value(card, card.owner_id)
-				if stated >= 0.0:
-					return stated
-			var kind := str(card.properties.get("_spell_kind", ""))
-			return 1.5 + (0.8 if kind == "Regular" else 0.5) * float(card.mana_value())
+			var base := _live_value(game, card, effect)
+			return (base * w.spell_value + (w.engine_value if has_engine(effect) else 0.0)) * steal
 	return 0.0
+
+
+static func _live_value(game: FateGame, card: Card, effect) -> float:
+	if LIVE_EFFECTS.has(card.canonical_name):
+		return float(LIVE_EFFECTS[card.canonical_name])
+	var hint := spell_hint(game, card)
+	if hint >= 0.0:
+		return hint
+	if effect != null:
+		var stated: float = effect.ai_value(card, card.owner_id)
+		if stated >= 0.0:
+			return stated
+	var kind := str(card.properties.get("_spell_kind", ""))
+	return 1.5 + (0.8 if kind == "Regular" else 0.5) * float(card.mana_value())
+
+
+static func has_engine(effect) -> bool:
+	return Snapshot.has_engine(effect)
 
 
 # What a card whose effect hurts its caster as well is worth right now, or -1 when the AI has no special
@@ -223,7 +248,9 @@ static func _has_hooks(effect) -> bool:
 	if effect == null:
 		return false
 	var methods := script_methods(effect)
-	for hook in ["on_enter", "on_play", "actions", "on_attack_declared", "on_destroyed", "on_phase"]:
+	for hook in ["on_enter", "on_play", "actions", "on_attack_declared", "on_destroyed", "on_phase",
+			"on_attack_resolved", "on_card_destroyed", "on_card_played", "on_flip_cast", "on_leave",
+			"on_damage_dealt", "on_blocking", "can_attack_card"]:
 		if hook in methods:
 			return true
 	return false
@@ -231,8 +258,8 @@ static func _has_hooks(effect) -> bool:
 
 # How much the player would miss this card if it became an energy card: the lowest is energized
 # first. Dead cards are free; expensive cards that are far out of reach lose some of their value.
-static func keep_value(game: FateGame, card: Card, energy_count: int) -> float:
-	var v := hand_value(game, card)
+static func keep_value(game: FateGame, card: Card, energy_count: int, w: Dictionary = DEFAULT_W) -> float:
+	var v := hand_value(game, card, w)
 	if v <= 0.0:
 		return -1.0
 	if card.mana_value() > energy_count + 3:

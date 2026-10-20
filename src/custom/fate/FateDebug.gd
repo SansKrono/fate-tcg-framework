@@ -462,7 +462,7 @@ func _build_ai_section(parent: Control) -> void:
 	var level := OptionButton.new()
 	level.add_theme_font_size_override("font_size", 11)
 	level.focus_mode = Control.FOCUS_NONE
-	for entry in ["Easy", "Normal", "Hard"]:
+	for entry in ["Easy", "Normal", "Hard", "Expert", "Novice"]:
 		level.add_item(entry)
 	level.select(_ai_level)
 	level.item_selected.connect(func(i):

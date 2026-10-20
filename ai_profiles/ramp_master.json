@@ -1,0 +1,6 @@
+{
+  "label": "ramp master",
+  "grade": "expert",
+  "style": "ramp",
+  "params": {"energy_target": 7, "max_energy": 10, "ramp_bias": 1.0, "energy_lookahead": 3, "mana_use_weight": 0.15}
+}

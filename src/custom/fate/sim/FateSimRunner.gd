@@ -53,7 +53,8 @@ func play_game(config: Dictionary, g: int) -> Dictionary:
 	var recorder := Recorder.new(game, labels, deck_of_seat)
 	var levels: Array = config.get("levels", [1, 1])
 	for seat in deck_of_seat:
-		game.set_ai(seat, true, int(levels[deck_of_seat[seat]]))
+		var spec = levels[deck_of_seat[seat]]
+		game.set_ai(seat, true, spec if spec is String or spec is Dictionary else int(spec))
 	game.doctrines.enabled = config.get("doctrines", true)
 	var turn_cap: int = int(config.get("turn_cap", 60))
 	var deadline := Time.get_ticks_msec() + int(config.get("game_seconds", 120)) * 1000

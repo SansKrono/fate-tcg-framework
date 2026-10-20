@@ -46,6 +46,8 @@ var _dirty := false
 var _deck_choice := [null, null]
 var _deck_file := [null, null]
 var _level_choice := [null, null]
+# Optional profile specs (FateAIProfile): "hard+aggro;caution=0.3" or a profile file; replaces the grade when filled in
+var _profile_text := [null, null]
 var _round_robin: CheckBox
 var _games: SpinBox
 var _workers: SpinBox
@@ -178,6 +180,12 @@ func _build_setup() -> Control:
 		level.select(1)
 		_level_choice[side] = level
 		row.add_child(level)
+		var spec := LineEdit.new()
+		spec.placeholder_text = "or profile: hard+aggro;caution=0.3"
+		spec.tooltip_text = "A profile spec (grade, style, parameters or a profile file, see src/custom/fate/ai/README.md). Replaces the grade when filled in."
+		spec.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_profile_text[side] = spec
+		row.add_child(spec)
 		box.add_child(row)
 	var seed_row := HBoxContainer.new()
 	seed_row.add_child(_small("Seed", 110))
@@ -320,7 +328,10 @@ func _on_start() -> void:
 	config.turn_cap = int(_turn_cap.value)
 	config.swap_seats = _swap.button_pressed
 	config.doctrines = _doctrines.button_pressed
-	config.levels = [_level_choice[0].selected, _level_choice[1].selected]
+	config.levels = []
+	for side in 2:
+		var text: String = _profile_text[side].text.strip_edges()
+		config.levels.append(text if text != "" else _level_choice[side].selected)
 	var problem: String = _run.start(config)
 	if problem != "":
 		_message.text = problem

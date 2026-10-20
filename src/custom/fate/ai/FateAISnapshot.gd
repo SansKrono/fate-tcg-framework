@@ -12,6 +12,7 @@
 #   "discard"        {pid: Array of card names}  public information
 #   "hand_opp"       only when `cheat` is set: the opponent's cards, see FateAIProfile.cheat
 #   "face_weight"    how much damage to the opponent's life is worth (profile aggression)
+#   "w"              the valuation weights of the seat's profile (FateAIProfile.eval_weights); absent = defaults
 #   "ai_seats"       the seats played by an AI (their Savage creatures pick targets, FateAISim._savage)
 # }
 #
@@ -22,13 +23,20 @@
 extends RefCounted
 
 
-static func build(game: FateGame, me: int, face_weight := 1.0, cheat := false) -> Dictionary:
+# The snapshot for a seat with its profile: the aggression, the cheat flag and the valuation weights
+static func for_profile(game: FateGame, me: int, profile) -> Dictionary:
+	return build(game, me, profile.aggression, profile.cheat, profile.eval_weights())
+
+
+static func build(game: FateGame, me: int, face_weight := 1.0, cheat := false, weights := {}) -> Dictionary:
 	var state := {
 		"me": me, "opp": FateZones.opponent_of(me),
 		"turn": game.turn_number, "active": game.active_id, "phase": game.phase,
 		"life": {}, "units": {}, "mana": {}, "hand_count": {}, "deck_count": {}, "discard": {},
 		"hand_me": [], "face_weight": face_weight, "ai_seats": game.ai_controllers.keys(),
 	}
+	if not weights.is_empty():
+		state["w"] = weights
 	for pid in game.players:
 		var p: FatePlayer = game.players[pid]
 		state.life[pid] = p.life
@@ -92,6 +100,8 @@ static func unit_of(game: FateGame, card: Card) -> Dictionary:
 		"full_guard": g + stats.damage_on(card, "Guard"),
 		"pos": pos, "kw": game.keywords.all_on(card), "mv": card.mana_value(),
 		"unique": bool(card.properties.get("_unique", false)),
+		"token": bool(card.properties.get("_token", false)),
+		"ability": has_engine(game.card_effects.effect_of(card.canonical_name)) if game.card_effects != null else false,
 		"sick": entered > 0 and entered == game.turn_number,
 		"can_attack": game.keywords.can_attack(card),
 	}
@@ -109,3 +119,36 @@ static func units_of(state: Dictionary, pid: int) -> Array:
 # A copy of a snapshot that can be changed without touching the original (cards are shared)
 static func copy_of(state: Dictionary) -> Dictionary:
 	return state.duplicate(true)
+
+
+# The methods the card's own script file defines (not the inherited ones)
+static func script_methods(effect) -> Array:
+	var names: Array = []
+	var script = effect.get_script()
+	if script != null:
+		for m in script.get_script_method_list():
+			names.append(m.name)
+	return names
+
+
+# Is the card a piece of an engine: its script has an activated ability (actions) or a trigger that fires over
+# the turns? (The engine_value and w_ability weights.) Cached per script.
+static var _engine_cache := {}
+
+static func has_engine(effect) -> bool:
+	if effect == null:
+		return false
+	var script = effect.get_script()
+	if script == null:
+		return false
+	var key: String = script.resource_path
+	if _engine_cache.has(key):
+		return _engine_cache[key]
+	var methods := script_methods(effect)
+	var found := false
+	for hook in ["actions", "on_phase", "on_maintenance", "on_turn_end", "on_attack_declared",
+			"on_attack_resolved", "on_card_played", "on_energy_played", "on_card_destroyed"]:
+		if hook in methods:
+			found = true
+	_engine_cache[key] = found
+	return found

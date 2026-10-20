@@ -128,7 +128,7 @@ func _apply_ai_args() -> void:
 	if cfc.is_testing:
 		return
 	var args := OS.get_cmdline_user_args()
-	var level := ai_level_from_args(args)
+	var level = ai_level_from_args(args)
 	for seat in ai_seats_from_args(args):
 		game.set_ai(seat, true, level)
 
@@ -149,15 +149,16 @@ static func ai_seats_from_args(args: Array) -> Array:
 	return seats
 
 
-# The strength after `--ai-level=`: FateAIProfile.Level (0 easy, 1 normal, 2 hard); normal if missing
-static func ai_level_from_args(args: Array) -> int:
+# The profile spec after `--ai-level=` (or `--ai-profile=`): a grade (novice, easy, normal, hard, expert), a skill
+# 0..1, a style (`hard+aggro`), parameters (`hard;aggression=1.4`) or a profile file; normal if missing. See
+# FateAIProfile. Returns an int Level for the plain grades.
+static func ai_level_from_args(args: Array):
 	for arg in args:
-		if str(arg).begins_with("--ai-level="):
-			match str(arg).substr("--ai-level=".length()).to_lower():
-				"easy":
-					return 0
-				"hard":
-					return 2
+		for prefix in ["--ai-level=", "--ai-profile="]:
+			if str(arg).begins_with(prefix):
+				var text := str(arg).substr(prefix.length()).strip_edges()
+				var levels := {"novice": 4, "easy": 0, "normal": 1, "hard": 2, "expert": 3}
+				return levels[text.to_lower()] if levels.has(text.to_lower()) else text
 	return 1
 
 

@@ -132,7 +132,7 @@ static func _savage(state: Dictionary, res: Dictionary, attacker: Dictionary, bl
 		for uid in state.units:
 			var u: Dictionary = state.units[uid]
 			if u.ctrl == pid and is_alive(res, u) and stat(res, u, used_key(u)) <= x:
-				var v := Eval.unit_value(u)
+				var v := Eval.unit_value(u, -1, -1, state.get("w", Eval.DEFAULT_W))
 				if v > best_value:
 					best_value = v
 					best = u
@@ -228,7 +228,7 @@ static func blockers_for(state: Dictionary, pid: int, attack: Dictionary) -> Arr
 # free blocker and (when one blocker cannot stop the attacker) every pair, keep what raises the
 # score; two sweeps. Returns blocks.
 static func best_blocks(state: Dictionary, attacks: Array, def: int, allowed = null, noise := 0.0,
-		rng: RandomNumberGenerator = null) -> Dictionary:
+		rng: RandomNumberGenerator = null, sweeps := 2) -> Dictionary:
 	var blocks := {}
 	var options: Array = []
 	for i in attacks.size():
@@ -243,7 +243,7 @@ static func best_blocks(state: Dictionary, attacks: Array, def: int, allowed = n
 	# Biggest attackers first
 	var order: Array = range(attacks.size())
 	order.sort_custom(func(x, y): return _strike_of(state, attacks[x]) > _strike_of(state, attacks[y]))
-	for _sweep in range(2):
+	for _sweep in range(sweeps):
 		var improved := false
 		for i in order:
 			if options[i].is_empty():
