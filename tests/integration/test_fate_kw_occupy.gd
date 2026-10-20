@@ -25,9 +25,10 @@ func _occupy_ids(card: Card) -> Array:
 			func(id): return id in ["occupy", "embody", "force_block", "evolve"])
 
 
-# A creature on the table with the Occupy ability and the game in the main phase
+# A creature on the table with the Occupy ability and the game in the main phase. It has the keyword and no card script:
+# a card with an Occupy ability of its own (REAL_CARD) has that ability as its button instead of the plain one
 func _occupier(pid := 1) -> Card:
-	var card := await put_creature(pid, REAL_CARD)
+	var card := await put_creature(pid, 1, 3, {"Occupy": 1})
 	if pid == game.active_id:
 		go_to_main()
 	return card
@@ -191,7 +192,7 @@ func test_maintenance_returns_the_occupied_creature_untapped():
 # --- restrictions ---------------------------------------------------------------------------------
 
 func test_only_in_the_main_phase():
-	var card := await put_creature(1, REAL_CARD)
+	var card := await put_creature(1, 1, 3, {"Occupy": 1})
 	assert_eq(game.phase, Phase.ENERGY)
 	assert_eq(occupy_kw.occupy_problem(card), "You can only occupy in your main phase")
 	assert_false(occupy_kw.occupy(card))
@@ -213,7 +214,7 @@ func start_combat_from_main() -> void:
 
 
 func test_only_the_controller_in_their_own_turn():
-	var theirs := await put_creature(2, REAL_CARD)
+	var theirs := await put_creature(2, 1, 3, {"Occupy": 1})
 	go_to_main()
 	assert_eq(occupy_kw.occupy_problem(theirs), "It is not your creature")
 	assert_false(occupy_kw.occupy(theirs))
@@ -287,7 +288,7 @@ func test_a_can_occupy_veto_of_another_keyword_blocks_it():
 
 func test_productive_rule_applies_through_the_registry():
 	# Without Productive a creature cannot occupy the turn it was played (KwProductive)
-	var card := await put_creature(1, REAL_CARD)
+	var card := await put_creature(1, 1, 3, {"Occupy": 1})
 	go_to_main()
 	card.entered_turn = game.turn_number
 	assert_false(occupy_kw.can_occupy_now(card))
@@ -299,7 +300,7 @@ func test_productive_rule_applies_through_the_registry():
 # --- the action ---------------------------------------------------------------------------------------
 
 func test_the_action_is_offered_only_to_creatures_with_the_ability():
-	var with_ability := await put_creature(1, REAL_CARD)
+	var with_ability := await put_creature(1, 1, 3, {"Occupy": 1})
 	var without := await put_creature(1, 2, 2)
 	go_to_main()
 	assert_eq(_occupy_ids(with_ability), ["occupy"])
@@ -309,6 +310,35 @@ func test_the_action_is_offered_only_to_creatures_with_the_ability():
 	assert_eq(action.label, "Occupy")
 	game.stats.grant_keyword(without, "Occupy", 1, "permanent")
 	assert_eq(_occupy_ids(without), ["occupy"], "A granted Occupy gives the button")
+
+
+func test_a_card_with_its_own_occupy_ability_has_no_plain_button():
+	# Goblin Ledgerkeeper's "Occupy: create a scrap token" is the button "Scrap"; a plain "Occupy" beside it would
+	# tilt the creature and make nothing
+	for card_name in [REAL_CARD, "Goblin Ledgerkeeper", "Streetside Recruiter", "Acquisition Fabricator"]:
+		var card := await put_creature(1, card_name)
+		go_to_main()
+		card.entered_turn = game.turn_number - 1
+		assert_true(occupy_kw.has_ability(card), card_name)
+		assert_true(occupy_kw.script_occupies(card), card_name)
+		assert_eq(_occupy_ids(card), [], "%s offers no plain Occupy" % card_name)
+		assert_false(await game.actions.run(card, "occupy"), card_name)
+		assert_true(game.actions.list(card).any(func(a): return a.get("costs", []).any(func(c): return c.id == "occupy")),
+				"%s still offers its own ability" % card_name)
+	var granted := await put_creature(1, 2, 2)
+	game.stats.grant_keyword(granted, "Occupy", 1, "permanent")
+	assert_false(occupy_kw.script_occupies(granted))
+	assert_eq(_occupy_ids(granted), ["occupy"], "an equipment that grants Occupy still gets the plain button")
+
+
+func test_the_ledgerkeeper_button_makes_the_scrap():
+	var card := await put_creature(1, "Goblin Ledgerkeeper")
+	go_to_main()
+	card.entered_turn = game.turn_number - 1
+	assert_eq(game.tokens.counter(1, "scrap"), 0)
+	assert_true(await game.actions.run(card, "scrap"))
+	assert_eq(game.tokens.counter(1, "scrap"), 1)
+	assert_eq(_zone(card), "occupied")
 
 
 func test_running_the_action_occupies_and_reports_it():
@@ -323,7 +353,7 @@ func test_running_the_action_occupies_and_reports_it():
 
 
 func test_a_refused_action_does_not_report():
-	var card := await put_creature(1, REAL_CARD)
+	var card := await put_creature(1, 1, 3, {"Occupy": 1})
 	var performed := []
 	game.actions.action_performed.connect(func(c, id): performed.append([c, id]))
 	assert_false(await game.actions.run(card, "occupy"), "Energy phase")

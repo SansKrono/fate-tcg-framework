@@ -108,9 +108,11 @@ func _occupied_grid(card: Card) -> BoardPlacementGrid:
 
 # --- the hover button ----------------------------------------------------------------------------
 
-# Offered only when it is legal now (the buttons are rebuilt whenever they appear)
+# Offered only when it is legal now (the buttons are rebuilt whenever they appear), and only to a creature whose
+# Occupy ability is not a card script of its own: Goblin Ledgerkeeper's "Occupy: create a scrap token" is the button
+# "Scrap", and a second plain "Occupy" next to it would tilt the creature and do nothing
 func actions(card: Card) -> Array:
-	if not has_ability(card) or not can_occupy_now(card):
+	if not has_ability(card) or not can_occupy_now(card) or script_occupies(card):
 		return []
 	return [{
 		"id": ACTION_ID,
@@ -119,6 +121,27 @@ func actions(card: Card) -> Array:
 		"enabled": true,
 		"run": _run_occupy,
 	}]
+
+
+# card name -> does its script offer an action that costs Occupy? (the answer depends on the card, not on the game)
+static var _scripted := {}
+
+
+# Does the script of this card offer an ability that costs Occupy (or Tap)? Then that ability is the card's Occupy
+# button, and the plain one stays away. A creature that was only granted the keyword (an equipment) has no script
+# ability and keeps the plain button.
+func script_occupies(card: Card) -> bool:
+	var card_name: String = card.canonical_name
+	if _scripted.has(card_name):
+		return _scripted[card_name]
+	var found := false
+	var effect = game.card_effects.effect_of(card_name) if game.card_effects != null else null
+	if effect != null:
+		for action in effect.actions(card):
+			if action is Dictionary and action.get("costs", []).any(func(c): return c.get("id") == "occupy"):
+				found = true
+	_scripted[card_name] = found
+	return found
 
 
 func _run_occupy(card: Card) -> bool:

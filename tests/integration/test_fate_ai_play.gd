@@ -126,3 +126,39 @@ func test_mana_is_only_held_for_reactions_the_ai_can_cast() -> void:
 	var hold_the_line := await put_in_hand(1, "Hold the Line")
 	assert_gt(Reactions.hold_value(state, profile, hold_the_line), 0.0)
 	assert_true("Double Agent" in Reactions.MODELLED)
+
+
+func test_scrap_cannon_burns_the_scrap_for_lethal() -> void:
+	await _fresh(["Innovation"], ["Order"])
+	await put_on_table(1, "Scrap Cannon", "relics")
+	game.player(2).life = 4
+	game.tokens.set_counter(1, "scrap", 6)
+	await fill_mana(1)
+	var ai = game.set_ai(1, true, "normal")
+	await _wait_for_turn_end(game.turn_number)
+	assert_eq(ai.problems, [], "nothing illegal")
+	assert_true(game.is_over and game.winner_id == 1, "four shots at four life: %s" % str(ai.log_lines))
+	assert_eq(game.tokens.counter(1, "scrap"), 2, "only the scrap the shots needed was spent")
+
+
+func test_scrap_cannon_keeps_a_reserve_when_not_lethal() -> void:
+	await _fresh(["Innovation"], ["Order"])
+	await put_on_table(1, "Scrap Cannon", "relics")
+	game.tokens.set_counter(1, "scrap", 6)
+	await fill_mana(1)
+	var ai = game.set_ai(1, true, "normal;burn_reserve=3")
+	await _wait_for_turn_end(game.turn_number)
+	assert_eq(ai.problems, [], "nothing illegal")
+	assert_lte(game.tokens.counter(1, "scrap"), 3 + 1, "the rest went at the opponent: %s" % str(ai.log_lines))
+	assert_lt(game.player(2).life, FatePlayer.STARTING_LIFE, "and it hurt")
+
+
+func test_novice_does_not_burn_scrap() -> void:
+	await _fresh(["Innovation"], ["Order"])
+	await put_on_table(1, "Scrap Cannon", "relics")
+	game.player(2).life = 4
+	game.tokens.set_counter(1, "scrap", 6)
+	await fill_mana(1)
+	var ai = game.set_ai(1, true, "novice")
+	await _wait_for_turn_end(game.turn_number)
+	assert_false(game.is_over, "the burst belongs to the grades that know the card")

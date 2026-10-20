@@ -39,7 +39,9 @@ const STEAL_CARDS := ["Unseen Manipulator", "Claimed by the Abyss", "Double Agen
 # Section 17 regular spells, relics, field and world spells only cost mana and do nothing, so the AI
 # treats them as "dead" and uses them as energy. Add an entry the day a card's effect is
 # implemented (and teach FateAIMain how to use it if it needs a target).
-const LIVE_EFFECTS := {}
+# A card the AI cannot read from its script but knows is worth its mana: Scrap Cannon turns every scrap into a point of
+# damage to the opponent's life (FateAIAbilities.plan_burn)
+const LIVE_EFFECTS := {"Scrap Cannon": 5.0}
 
 
 # --- life ---------------------------------------------------------------------------------------

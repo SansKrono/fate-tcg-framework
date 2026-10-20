@@ -96,6 +96,8 @@ func test_grades_get_better() -> void:
 	assert_eq(normal.mistake_rate, 0.0)
 	assert_lt(normal.lookahead, expert.lookahead)
 	assert_lt(normal.reaction_fear, expert.reaction_fear)
+	assert_false(novice.scrap_burn or easy.scrap_burn, "the Scrap Cannon burst is knowledge of the card")
+	assert_true(normal.scrap_burn and expert.scrap_burn)
 
 
 func test_levels_map_to_grades() -> void:

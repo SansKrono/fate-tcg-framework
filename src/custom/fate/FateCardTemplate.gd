@@ -39,6 +39,29 @@ func _ready() -> void:
 	set_playable(false)
 
 
+# Hotkeys for the card under the mouse (the hover buttons are small and hard to hit):
+# T tilts it (strike / guard), A runs its action or ability, F flips it face up / down
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not event is InputEventKey or not event.pressed or event.echo \
+			or event.ctrl_pressed or event.alt_pressed or event.meta_pressed:
+		return
+	var board = cfc.NMAP.get("board")
+	if board == null or get_parent() != board or concealed or cfc.card_drag_ongoing != null:
+		return
+	if board.mouse_pointer.current_focused_card != self:
+		return
+	match event.keycode:
+		KEY_T:
+			buttons.tilt()
+		KEY_A:
+			buttons.run_first_action()
+		KEY_F:
+			buttons.flip()
+		_:
+			return
+	get_viewport().set_input_as_handled()
+
+
 # A concealed card never takes the mouse, whatever its state asks for
 func set_control_mouse_filters(value = true) -> void:
 	super.set_control_mouse_filters(value and not concealed)

@@ -30,7 +30,7 @@ a dictionary, or the name of a JSON file in `res://ai_profiles/` or `user://ai_p
 |----------|---------|----------------|
 | Energy or draw, which card to give up | `FateAIEnergy` | `energy_target`, `max_energy`, `draw_bias`, `ramp_bias`, `energy_lookahead`, `deck_safety`, `deck_race`; card worth (`creature_value`, `spell_value`, `engine_value` ...) |
 | What to cast, what mana to hold | `FateAIMain.plan_plays` | worth of every card, `mana_use_weight`, `search_items`, `doctrine_pursuit`, `effect_gain_weight`, `removal_min_target`, `pump_min_attackers`, `hold_reactions`, `opp_attack_prior`, `max_held_per_name` |
-| Abilities | `FateAIAbilities`, `FateAIMain.run` | `ability_use`, `ability_risk`, `ability_margin`, `ability_rounds`, `produce_mana_first`, `use_evolve`, `flip_before_attack`, `use_embody` and friends, `energy_card_value`, `spare_energy_floor` |
+| Abilities | `FateAIAbilities`, `FateAIMain.run` | `ability_use`, `ability_risk`, `ability_margin`, `ability_rounds`, `produce_mana_first`, `use_evolve`, `flip_before_attack`, `use_embody` and friends, `energy_card_value`, `spare_energy_floor`, `scrap_burn`, `burn_reserve` |
 | Who attacks, and what | `FateAICombat.plan_attack` | `aggression`, `caution`, `lookahead`, `think_width`, `search_sweeps`, `attack_margin`, `guard_reserve`, `reaction_fear`, valuation weights (`w_*`, `preserve_value`, `kill_value`, `life_*`) |
 | Who blocks | `FateAICombat.plan_blocks` | the same valuation, `chump_block` (what own life is worth when defending), `search_sweeps`, `mistake_rate` |
 | Reactions | `FateAIReactions` | `reaction_weight`, `reaction_price`, `reaction_value`, modelled spells only |
@@ -58,7 +58,7 @@ blind spots; the status says what the weighted AI does about each.
 | Devote Paladin, Faithful Worshiper never used (consume-energy costs) | **Fixed**: what-if abilities, priced by `energy_card_value`, `spare_energy_floor` |
 | Moral Captain's +1 Strike unknown to the attack plan | **Fixed** (two best attackers) |
 | Lucran (7) stuck in hand at 5 energy | **Fixed**: `energy_lookahead` |
-| Doctrines never pursued (O1/O2/O3) | **Partly**: `doctrine_pursuit` bonus for plays toward the goal; O3 is not in the combat simulator |
+| Doctrines never pursued (O1/O2/O3) | **Partly**: `doctrine_pursuit` bonus for plays toward the goal (1.0 from the normal grade: Order 48.8% to 54.6%, the other domains unchanged); O3 is not in the combat simulator |
 | Tokens cost a slot; Recruiter attacks instead of recruiting | **Fixed**: slots counted for creatures and relics, engine hold |
 | Sigil Mage after spells, Tactical Combatant's auto-guard, Zelith's spell attacks | Open |
 
@@ -91,6 +91,7 @@ blind spots; the status says what the weighted AI does about each.
 | Engine creatures attack instead of engineering | **Fixed**: engine hold (`occupy_value`) |
 | Garbage Heap, Scrap Recycler (consume costs) never used | **Heap fixed**, Recycler open |
 | Scrap Cannon shot at creatures | **Fixed**: face only, worth by life |
+| Scrap piled up (20 to 37) while a Cannon fired three shots a turn; the Cannon pitched as energy | **Fixed**: `plan_burn` fires every scrap above `burn_reserve`, all of it for lethal (`scrap_burn`, normal grade and above); the Cannon is a live card |
 | Relic slots not counted when choosing plays | **Fixed** |
 | Games decided by decking | **Mitigated**: `deck_race` (no extra draws when the deck runs out first) |
 | Ledgerkeeper pitched as energy | `engine_value`, `w_ability` exist (the engine style) |
@@ -118,6 +119,8 @@ All with the simulation lab, the optimised decks of `docs/FATE_DECKS.md`, one de
 | Innovation without `deck_race` against with | 4-55 (its games last about 50 turns and end by deck-out) |
 | Innovation with 8 / 10 energy against 5 / 8 | 37-23 |
 | every style (balanced, control, ramp, aggro, thief) against the domain default | 46-56 out of 100: styles are personalities, not strength |
+| Goblin Foundry against the other three optimised decks, with and without the Cannon burst (108 games) | 31.5% to 40.7% |
+| Order against Primal, Chaos, Foundry with `doctrine_pursuit` 1 against 0 (240 games) | 54.6% against 48.8% |
 
 So: **grades set strength** (novice < easy < normal clearly, hard and expert by smaller steps: the extra search width
 and look-ahead add little because most of the strength is in knowing the cards), **styles and the strategy
@@ -130,4 +133,7 @@ Two cautions for anybody tuning:
 
 * The same seed gives the same shuffles whatever the profiles are, so two *identical* profiles do not score 50-50 on
   a seed (Primal, seed `sw1`: 30-50). Compare a variant with a run of `normal` against `normal` on the same seed.
-* Going first wins most games (60 to 87% depending on the deck), more than any profile parameter does.
+* Going first wins most games (60 to 87% depending on the deck, 72% over the four optimised decks), more than any
+  profile parameter or deck list does (`docs/FATE_DECKS.md`, "The field", has what rule changes do to it).
+* A single-card difference between two decks or two profiles cannot be seen at 100 games (+-9 points); only the
+  big levers (a win condition the AI did not use, a doctrine, a style at its extreme) show.

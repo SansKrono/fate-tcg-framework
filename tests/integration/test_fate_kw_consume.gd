@@ -298,14 +298,16 @@ func test_either_pays_the_first_payable_alternative():
 
 # --- Occupy and Tap agree ---------------------------------------------------------------------------------------
 
-func test_tap_abilities_offer_the_occupy_action_and_the_cost_agrees():
+func test_tap_abilities_cost_occupy_and_the_cost_agrees():
 	go_to_main()
 	var kw = game.keywords.get_keyword("Occupy")
 	for tap_card in ["Acquisition Fabricator", "Battle Smith", "Factory Crafter", "Devote Paladin"]:
 		var card := await put_creature(1, tap_card)
 		assert_true(kw.has_tap_ability(card), tap_card)
 		assert_true(kw.has_ability(card), tap_card)
-		assert_true(game.actions.list(card).any(func(a): return a.id == "occupy"), tap_card)
+		assert_true(kw.script_occupies(card), tap_card)
+		assert_true(game.actions.list(card).any(func(a): return a.get("costs", []).any(func(c): return c.id == "occupy")),
+				"%s offers its own ability, which costs Occupy" % tap_card)
 		var cost: Dictionary = costs.occupy()
 		assert_eq(costs.problem(card, [cost]), "", tap_card)
 		assert_eq(kw.occupy_problem(card), "")

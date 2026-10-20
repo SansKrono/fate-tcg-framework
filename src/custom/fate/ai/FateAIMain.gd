@@ -322,6 +322,20 @@ static func run(ctrl, token: int) -> void:
 			attacking = {}
 			for a in attacks:
 				attacking[a.uid] = true
+	# 8b. Scrap Cannon: every scrap the engine does not need at the opponent's life, all of it for lethal
+	var burn := Abilities.plan_burn(game, state, profile)
+	if not burn.is_empty():
+		var fired := 0
+		for _shot in burn.shots:
+			if not ctrl.alive(token) or not is_instance_valid(burn.card):
+				return
+			if not await game.actions.run(burn.card, "fire"):
+				break
+			fired += 1
+			await ctrl.pause()
+		if fired > 0:
+			ctrl.note("fires the Scrap Cannon %d times%s" % [fired, " (lethal)" if burn.lethal else ""])
+		state = Snapshot.for_profile(game, seat, profile)
 	# 9. Who guards
 	for uid in state.units:
 		var u: Dictionary = state.units[uid]

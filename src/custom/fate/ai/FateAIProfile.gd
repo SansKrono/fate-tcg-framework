@@ -145,6 +145,10 @@ const PARAMS := {
 			"doc": "Energy cards kept back before any is consumed for an ability"},
 	"ability_rounds": {"def": 3, "min": 1, "max": 6, "group": "ability",
 			"doc": "Passes over the abilities of the table per turn (each pass sees the counters the last one made: scrap, then ingot, then payoff)"},
+	"scrap_burn": {"def": true, "group": "ability",
+			"doc": "Fire a Scrap Cannon with every scrap that is not needed (all of it for lethal) instead of one shot per cannon and round"},
+	"burn_reserve": {"def": 2, "min": 0, "max": 12, "group": "ability",
+			"doc": "Scrap kept back for the engine (ingots) when burning the rest at the opponent's life; lethal ignores it"},
 	"use_evolve": {"def": true, "group": "ability", "doc": "Use Evolve (Beetle Brawler into Ironside Beetle) when it gains"},
 	"flip_before_attack": {"def": true, "group": "ability",
 			"doc": "Flips energy-zone creatures (Teshra, Guardian Spirits) before the attack plan so they can attack"},
@@ -168,16 +172,16 @@ const GRADE_SKILL := {"novice": 0.0, "easy": 0.25, "normal": 0.5, "hard": 0.75, 
 const GRADES := {
 	"novice": {"noise": 4.0, "think_width": 1, "lookahead": 0, "mistake_rate": 0.30, "search_items": 6,
 			"search_sweeps": 1, "reaction_fear": 0.0, "hold_reactions": false, "caution_scale": 0.2,
-			"effect_gain_weight": 0.0, "ability_rounds": 1, "doctrine_pursuit": 0.0, "produce_mana_first": false, "use_evolve": false, "flip_before_attack": false, "ability_risk": false, "energy_lookahead": 1, "deck_race": false},
+			"effect_gain_weight": 0.0, "ability_rounds": 1, "doctrine_pursuit": 0.0, "produce_mana_first": false, "use_evolve": false, "flip_before_attack": false, "ability_risk": false, "energy_lookahead": 1, "deck_race": false, "scrap_burn": false},
 	"easy": {"noise": 2.5, "think_width": 1, "lookahead": 0, "mistake_rate": 0.12, "search_items": 8,
 			"search_sweeps": 1, "reaction_fear": 0.0, "hold_reactions": false, "caution_scale": 0.4,
-			"effect_gain_weight": 0.0, "ability_rounds": 1, "doctrine_pursuit": 0.0, "produce_mana_first": false, "use_evolve": false, "flip_before_attack": false, "ability_risk": false, "energy_lookahead": 1, "deck_race": false},
+			"effect_gain_weight": 0.0, "ability_rounds": 1, "doctrine_pursuit": 0.0, "produce_mana_first": false, "use_evolve": false, "flip_before_attack": false, "ability_risk": false, "energy_lookahead": 1, "deck_race": false, "scrap_burn": false},
 	"normal": {"noise": 0.0, "think_width": 3, "lookahead": 1, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 2, "reaction_fear": 0.0, "hold_reactions": true, "caution_scale": 1.0,
-			"effect_gain_weight": 1.0, "ability_rounds": 3, "doctrine_pursuit": 0.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 1, "deck_race": true},
+			"effect_gain_weight": 1.0, "ability_rounds": 3, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 1, "deck_race": true},
 	"hard": {"noise": 0.0, "think_width": 4, "lookahead": 1, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 2, "reaction_fear": 0.25, "hold_reactions": true, "caution_scale": 1.0,
-			"effect_gain_weight": 1.0, "ability_rounds": 4, "doctrine_pursuit": 0.5, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true},
+			"effect_gain_weight": 1.0, "ability_rounds": 4, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true},
 	"expert": {"noise": 0.0, "think_width": 5, "lookahead": 2, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 3, "reaction_fear": 0.5, "hold_reactions": true, "caution_scale": 1.0,
 			"effect_gain_weight": 1.0, "ability_rounds": 5, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true},
@@ -199,7 +203,7 @@ const STYLES := {
 	"legacy": {"effect_gain_weight": 0.0, "produce_mana_first": false, "ability_rounds": 1, "use_evolve": false,
 			"flip_before_attack": false, "ability_risk": false, "doctrine_pursuit": 0.0, "energy_lookahead": 1,
 			"ramp_bias": 0.0, "engine_value": 0.0, "w_ability": 0.0, "opp_attack_prior": 0.3, "mana_use_weight": 0.03,
-			"deck_race": false, "max_held_per_name": 3},
+			"deck_race": false, "scrap_burn": false, "max_held_per_name": 3},
 }
 # The style each domain plays when none is named
 const DOMAIN_STYLE := {"Order": "aggro", "Primal": "ramp", "Chaos": "thief", "Innovation": "engine"}
@@ -282,6 +286,8 @@ var ability_margin: float
 var energy_card_value: float
 var spare_energy_floor: int
 var ability_rounds: int
+var scrap_burn: bool
+var burn_reserve: int
 var use_evolve: bool
 var flip_before_attack: bool
 

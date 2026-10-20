@@ -288,26 +288,26 @@ const OPTIMISED := {
 	},
 	"Innovation": {
 		"name": "Goblin Foundry",
-		"blurb": "A scrap and ingot engine. Cheap goblins make scrap, Acquisition Fabricator and Factory Crafter turn it into ingots and 3/3 automatons, Battle Smith arms the army with hammers and Thrang is the 6/6 finisher. Slow to start, hard to break.",
+		"blurb": "A scrap engine that ends in fire. Goblins and Garbage Heaps make scrap, Scrap Cannons turn every spare scrap into a point of damage to the opponent's life, Factory Crafter and Battle Smith turn ingots into automatons and hammers, and Safety Measure and Factory Shutdown buy the time. Slow to start, and the stock of scrap is a clock the opponent cannot see.",
 		"list": {
 			# 1
 			"Goblin Ledgerkeeper": 3,
 			# 2
 			"Factory Shutdown": 3,
 			"Garbage Heap": 3,
+			"Rapid Scavenging": 3,
 			"Safety Measure": 3,
-			"Scrap Recycler": 3,
 			"Skulking Goblin": 3,
 			# 3
 			"Acquisition Fabricator": 3,
 			"Battle Smith": 3,
 			"Factory Crafter": 3,
+			"Factory Refinery": 3,
 			"Rarink, Crafty Opportunist": 1,
 			"Rustmarket Tinkerer": 3,
 			"Scrap Cannon": 3,
 			# 4
 			"Brogir, Master Artificer": 1,
-			"Steelwork Salvager": 3,
 			# 5
 			"Thrang's Crafting Table": 1,
 			# 7

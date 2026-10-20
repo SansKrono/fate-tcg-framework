@@ -172,6 +172,35 @@ static func plan_generic(game: FateGame, state: Dictionary, profile, spare: int,
 	return out
 
 
+# Scrap Cannon: how many shots at the opponent's life this turn, and the cannon that fires them. Every scrap the engine
+# does not need goes (profile.burn_reserve stays back for ingots), all of it when the scrap is lethal. Returns
+# {"card": Card, "shots": int, "lethal": bool}, or {} when there is nothing to fire.
+static func plan_burn(game: FateGame, state: Dictionary, profile) -> Dictionary:
+	if not profile.scrap_burn or profile.effect_gain_weight <= 0.0 or game.card_effects == null or game.tokens == null:
+		return {}
+	var me: int = state.me
+	var scrap: int = game.tokens.counter(me, "scrap")
+	if scrap < 1:
+		return {}
+	var cannon: Card = null
+	for card in game.card_effects.table_cards():
+		if not card is FateCardTemplate or card.controller_id != me or card.canonical_name != "Scrap Cannon":
+			continue
+		for action in game.actions.list(card):
+			if action.id == "fire" and action.get("enabled", true):
+				cannon = card
+		if cannon != null:
+			break
+	if cannon == null:
+		return {}
+	var life: int = int(state.life[state.opp])
+	var lethal := scrap >= life
+	var shots := life if lethal else maxi(0, scrap - profile.burn_reserve)
+	if shots < 1:
+		return {}
+	return {"card": cannon, "shots": shots, "lethal": lethal}
+
+
 # The best value of an ability of this card that costs it its turn (an occupy or a tilt); 0 when it has none
 static func occupy_value(game: FateGame, state: Dictionary, profile, card: Card) -> float:
 	var best := 0.0

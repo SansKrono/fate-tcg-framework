@@ -99,7 +99,8 @@ so two AI seats with different profiles never share numbers. To add a knob: add 
   plan gains with them. The chooser takes the creatures the model assumed (`profile.focus`).
 * **Mana makers first** (Elder Spirit, Ancient Tree), **Evolve** (Beetle Brawler arrives with Charge), **Teshra's
   flip before the attack**, **ramp toward bombs** (`energy_lookahead`, `ramp_bias`), **deck race** (no extra draws when
-  the deck runs out first), **doctrine pursuit** (`doctrine_pursuit`).
+  the deck runs out first), **doctrine pursuit** (`doctrine_pursuit`), **Scrap Cannon burst** (`FateAIAbilities.plan_burn`,
+  `Main.run` step 8b: every scrap the engine does not need goes at the opponent's life, all of it for lethal).
 * **Choices**: flip casts take the dearest card, Unseen Manipulator weighs Convert against Intel, Unseen Reach picks
   the attacker the blockers would hurt most, Cultist Fanatic sacrifices only for a worthwhile card.
 * **Reactions**: mana is only held for reactions the AI can score (`FateAIReactions.MODELLED`, now with Double Agent).

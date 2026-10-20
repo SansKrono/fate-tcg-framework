@@ -102,6 +102,6 @@ func test_a_pump_ability_pays_for_its_energy_card() -> void:
 
 
 func test_doctrine_bonus_is_off_without_pursuit() -> void:
-	var p := _profile()
+	var p := _profile("easy")
 	assert_eq(p.doctrine_pursuit, 0.0)
 	assert_eq(Doctrine.bonus(null, 1, null, p), 0.0, "no game needed when the profile does not pursue doctrines")

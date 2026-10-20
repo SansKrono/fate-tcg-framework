@@ -96,6 +96,11 @@ static func _special(game: FateGame, seat: int, profile, request: Dictionary) ->
 	var kind: String = str(request.get("kind", ""))
 	var options: Array = request.options
 	var source = request.get("source")
+	if kind == "target for 1 damage" and profile.scrap_burn and profile.effect_gain_weight > 0.0:
+		# Scrap Cannon: effect damage to a creature heals at its owner's maintenance, so it is the opponent's life
+		for o in options:
+			if o is FatePlayer and o.id != seat:
+				return {"answer": o}
 	if kind in FLIP_KINDS:
 		var best = null
 		var best_v := -INF
