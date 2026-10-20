@@ -280,10 +280,16 @@ static func sim_attacks(game: FateGame) -> Dictionary:
 	var engine: Array = game.combat.attacks
 	for i in engine.size():
 		var a: FateAttack = engine[i]
+		# An attacker or a target already freed (it died earlier in the combat): the attack is over
+		var gone: bool = not is_instance_valid(a.attacker) or (not a.targets_player() and not is_instance_valid(a.target_card))
 		var kind := "player" if a.targets_player() else "unit"
-		var target: int = a.target_player if a.targets_player() else a.target_card.get_instance_id()
-		var d := Sim.make_attack(a.attacker.get_instance_id(), kind, target)
-		d.removed = a.removed or a.resolved or not is_instance_valid(a.attacker)
+		var target: int = 0
+		if a.targets_player():
+			target = a.target_player
+		elif not gone:
+			target = a.target_card.get_instance_id()
+		var d := Sim.make_attack(a.attacker.get_instance_id() if is_instance_valid(a.attacker) else 0, kind, target)
+		d.removed = a.removed or a.resolved or gone
 		d.negated = a.negated
 		d.savage_done = a.metadata.has("savage")
 		for r in a.restrictions:
@@ -342,7 +348,7 @@ static func order_my_blockers(game: FateGame, state: Dictionary) -> void:
 	var engine: Array = game.combat.attacks
 	for i in engine.size():
 		var a: FateAttack = engine[i]
-		if a.attacker.controller_id != state.me or a.blockers.size() < 2:
+		if not is_instance_valid(a.attacker) or a.attacker.controller_id != state.me or a.blockers.size() < 2:
 			continue
 		var ids: Array = []
 		for b in a.blockers:
