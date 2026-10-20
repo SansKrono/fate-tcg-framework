@@ -2,14 +2,22 @@
 #
 # Maps the Fate card properties to their labels. Creatures show Strike and
 # Guard; relics, spells and doctrines hide them (has_combat_stats = false).
+#
+# Layout: the name along the top, the mana cost running down the top left (one pip per domain
+# pip, then a grey pip with the colourless amount), artwork, the type (sideways) and effect
+# text under it, Guard on the right edge and Strike at the bottom. The card background takes the
+# colour of the card's domain.
 extends CardFront
+
+const BG_DARKEN := 0.55
+const PIP_COLORLESS := Color(0.6, 0.62, 0.68)
+const PIP_SIZE := 18
 
 # Set on the per-type front scenes (CreatureFront, RelicFront etc.)
 @export var has_combat_stats := true
 
 
 func _ready() -> void:
-	_card_text = find_child("CardText")
 	card_labels["Name"] = find_child("Name")
 	card_labels["Type"] = find_child("Type")
 	card_labels["Tags"] = find_child("Tags")
@@ -20,15 +28,15 @@ func _ready() -> void:
 	card_labels["Strike"] = find_child("Strike")
 	card_labels["Guard"] = find_child("Guard")
 
-	card_label_min_sizes["Name"] = Vector2(CFConst.CARD_SIZE.x - 4, 19)
-	card_label_min_sizes["Type"] = Vector2(CFConst.CARD_SIZE.x - 4, 13)
-	card_label_min_sizes["Tags"] = Vector2(CFConst.CARD_SIZE.x - 4, 17)
-	card_label_min_sizes["Domain"] = Vector2(CFConst.CARD_SIZE.x - 4, 11)
-	card_label_min_sizes["Abilities"] = Vector2(CFConst.CARD_SIZE.x - 4, 120)
+	card_label_min_sizes["Name"] = Vector2(102, 16)
+	card_label_min_sizes["Type"] = Vector2(90, 12)
+	card_label_min_sizes["Tags"] = Vector2(109, 10)
+	card_label_min_sizes["Domain"] = Vector2(100, 11)
+	card_label_min_sizes["Abilities"] = Vector2(109, 77)
 	card_label_min_sizes["Cost"] = Vector2(16, 16)
 	card_label_min_sizes["Pips"] = Vector2(16, 16)
 	card_label_min_sizes["Strike"] = Vector2(16, 16)
-	card_label_min_sizes["Guard"] = Vector2(16, 16)
+	card_label_min_sizes["Guard"] = Vector2(16, 20)
 
 	for l in card_label_min_sizes:
 		card_labels[l].custom_minimum_size = card_label_min_sizes[l]
@@ -36,17 +44,73 @@ func _ready() -> void:
 	for label in card_labels:
 		match label:
 			"Cost", "Pips", "Strike", "Guard":
-				original_font_sizes[label] = 15
+				original_font_sizes[label] = 13
 			"Domain":
 				original_font_sizes[label] = 11
 			"Abilities":
 				original_font_sizes[label] = 25
+			"Tags", "Type":
+				original_font_sizes[label] = 9
 			_:
 				original_font_sizes[label] = 16
 
+	_style_layout()
 	if not has_combat_stats:
-		for node_name in ["StrikeIcon", "Strike", "GuardIcon", "Guard"]:
+		for node_name in ["StrikePlate", "GuardPlate"]:
 			find_child(node_name).visible = false
+
+
+# The parts of the layout that depend on the domain colour or need code to set up
+func _style_layout() -> void:
+	find_child("NameBar").add_theme_stylebox_override("panel",
+			FateTheme.box(Color(0.27, 0.27, 0.27), Color.TRANSPARENT, 2, 0, 0.0))
+	_set_pip_style(find_child("CostPip"), PIP_COLORLESS)
+	# The type reads bottom to top along the left strip
+	var type_label: Label = card_labels["Type"]
+	type_label.pivot_offset = Vector2.ZERO
+	type_label.rotation = -PI / 2.0
+	type_label.position = Vector2(8, 222)
+	_set_background(FateTheme.NEUTRAL_DOMAIN)
+	_rebuild_pips("")
+
+
+func _set_background(domain_color: Color) -> void:
+	var style := FateTheme.box(domain_color.darkened(BG_DARKEN), Color.TRANSPARENT, 10, 0, 0.0)
+	add_theme_stylebox_override("panel", style)
+
+
+func _set_pip_style(pip: Panel, color: Color) -> void:
+	pip.add_theme_stylebox_override("panel",
+			FateTheme.box(color, Color(0, 0, 0, 0.8), PIP_SIZE / 2, 1, 0.0))
+
+
+# One domain pip per letter of the Pips text, above the colourless pip
+func _rebuild_pips(pips: String) -> void:
+	var column: VBoxContainer = find_child("PipColumn")
+	for pip in column.get_children():
+		if pip.name != "CostPip":
+			column.remove_child(pip)
+			pip.queue_free()
+	var index := 0
+	for letter in pips:
+		var pip := Panel.new()
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pip.custom_minimum_size = Vector2(PIP_SIZE, PIP_SIZE)
+		_set_pip_style(pip, FateTheme.domain_color(FateGame.DOMAIN_BY_INITIAL.get(letter, "")))
+		column.add_child(pip)
+		column.move_child(pip, index)
+		index += 1
+
+
+# Domain pips, the colourless pip and the background follow the text the card sets on the labels
+func set_label_text(node: Label, value, scale: float = 1):
+	if node == card_labels["Pips"]:
+		_rebuild_pips(str(value))
+	elif node == card_labels["Cost"]:
+		find_child("CostPip").visible = str(value) not in ["", "0"]
+	elif node == card_labels["Domain"]:
+		_set_background(FateTheme.domain_color(str(value)))
+	super.set_label_text(node, value, scale)
 
 
 # --- table mode -----------------------------------------------------------------------------

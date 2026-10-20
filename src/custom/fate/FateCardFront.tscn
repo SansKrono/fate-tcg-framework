@@ -1,23 +1,24 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://fonts/Xolonium-Regular.ttf" type="FontFile" id=1]
 [ext_resource path="res://src/custom/fate/FateCardFront.gd" type="Script" id=2]
 [ext_resource path="res://themes/darktheme/darktheme.tres" type="Theme" id=3]
-[ext_resource path="res://assets/icons/fist.png" type="Texture2D" id=4]
-[ext_resource path="res://assets/icons/rupee.png" type="Texture2D" id=5]
-[ext_resource path="res://assets/icons/broadsword.png" type="Texture2D" id=6]
+[ext_resource path="res://assets/icons/broadsword.png" type="Texture2D" id=4]
+[ext_resource path="res://assets/icons/shield.svg" type="Texture2D" id=5]
 
 [sub_resource type="StyleBoxFlat" id=1]
-bg_color = Color( 0.145098, 0.145098, 0.145098, 1 )
+bg_color = Color( 0.48, 0.13, 0.14, 1 )
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id=2]
-border_color = Color( 0, 0, 0, 1 )
-corner_radius_top_left = 10
-corner_radius_top_right = 10
+bg_color = Color( 0.82, 0.82, 0.62, 1 )
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="Front" type="Panel"]
 anchor_right = 1.0
@@ -30,166 +31,202 @@ theme = ExtResource( 3 )
 theme_override_styles/panel = SubResource( 1 )
 script = ExtResource( 2 )
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="Control" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_minimum_size = Vector2( 150, 240 )
 mouse_filter = 2
-theme_override_constants/margin_right = 2
-theme_override_constants/margin_left = 2
 
-[node name="CardText" type="VBoxContainer" parent="Margin"]
-offset_left = 2.0
-offset_right = 148.0
-offset_bottom = 240.0
-custom_minimum_size = Vector2( 0, 139 )
+[node name="NameBar" type="Panel" parent="Margin"]
+custom_minimum_size = Vector2( 108, 16 )
+offset_left = 34.0
+offset_top = 3.0
+offset_right = 142.0
+offset_bottom = 19.0
 mouse_filter = 2
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="Name" type="Label" parent="Margin/CardText"]
-offset_right = 146.0
-offset_bottom = 23.0
-custom_minimum_size = Vector2( 146, 19 )
+[node name="Name" type="Label" parent="Margin"]
+offset_left = 37.0
+offset_top = 3.0
+offset_right = 139.0
+offset_bottom = 19.0
+custom_minimum_size = Vector2( 102, 16 )
 size_flags_vertical = 1
-theme_override_colors/font_color = Color( 1, 0.4, 0, 1 )
-theme_override_styles/normal = SubResource( 2 )
+theme_override_colors/font_color = Color( 1, 1, 1, 1 )
 text = "Card Name"
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 0
+clip_text = true
 
-[node name="Type" type="Label" parent="Margin/CardText"]
-offset_top = 26.0
-offset_right = 146.0
-offset_bottom = 49.0
-custom_minimum_size = Vector2( 146, 13 )
+[node name="Art" type="ColorRect" parent="Margin"]
+custom_minimum_size = Vector2( 134, 105 )
+offset_left = 8.0
+offset_top = 20.0
+offset_right = 142.0
+offset_bottom = 125.0
+mouse_filter = 2
+color = Color( 1, 1, 1, 1 )
+
+[node name="PipColumn" type="VBoxContainer" parent="Margin"]
+custom_minimum_size = Vector2( 18, 58 )
+offset_left = 3.0
+offset_top = 8.0
+offset_right = 21.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="CostPip" type="Panel" parent="Margin/PipColumn"]
+custom_minimum_size = Vector2( 18, 18 )
+mouse_filter = 2
+
+[node name="Cost" type="Label" parent="Margin/PipColumn/CostPip"]
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 17.0
+offset_bottom = 17.0
+custom_minimum_size = Vector2( 16, 16 )
+theme_override_colors/font_color = Color( 1, 1, 1, 1 )
+theme_override_fonts/font = ExtResource( 1 )
+theme_override_font_sizes/font_size = 12
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Pips" type="Label" parent="Margin"]
+visible = false
+text = ""
+
+[node name="Domain" type="Label" parent="Margin"]
+visible = false
+text = "Domain"
+
+[node name="TypeStrip" type="Panel" parent="Margin"]
+custom_minimum_size = Vector2( 8, 90 )
+offset_left = 8.0
+offset_top = 132.0
+offset_right = 16.0
+offset_bottom = 222.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource( 2 )
+
+[node name="Type" type="Label" parent="Margin"]
+offset_left = 6.0
+offset_top = 222.0
+offset_right = 96.0
+offset_bottom = 234.0
+custom_minimum_size = Vector2( 90, 12 )
 size_flags_vertical = 1
+theme_override_colors/font_color = Color( 0.12, 0.1, 0.05, 1 )
+theme_override_font_sizes/font_size = 9
+theme_override_constants/outline_size = 0
 text = "Type"
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 3
+clip_text = true
 uppercase = true
 
-[node name="Tags" type="Label" parent="Margin/CardText"]
-offset_top = 52.0
-offset_right = 146.0
-offset_bottom = 75.0
-custom_minimum_size = Vector2( 146, 17 )
+[node name="TextBox" type="Panel" parent="Margin"]
+custom_minimum_size = Vector2( 113, 90 )
+offset_left = 19.0
+offset_top = 132.0
+offset_right = 132.0
+offset_bottom = 222.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource( 2 )
+
+[node name="Tags" type="Label" parent="Margin"]
+offset_left = 21.0
+offset_top = 133.0
+offset_right = 130.0
+offset_bottom = 143.0
+custom_minimum_size = Vector2( 109, 10 )
 size_flags_vertical = 1
+theme_override_colors/font_color = Color( 0.3, 0.25, 0.1, 1 )
+theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
 text = "Tag1 - Tag2"
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 3
+clip_text = true
 uppercase = true
 
-[node name="Domain" type="Label" parent="Margin/CardText"]
-offset_top = 78.0
-offset_right = 146.0
-offset_bottom = 101.0
-custom_minimum_size = Vector2( 146, 14 )
-theme_override_colors/font_color = Color( 0.290196, 0.752941, 0, 1 )
-text = "Domain"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="Abilities" type="RichTextLabel" parent="Margin/CardText"]
-offset_top = 161.0
-offset_right = 146.0
-offset_bottom = 161.0
+[node name="Abilities" type="RichTextLabel" parent="Margin"]
+offset_left = 21.0
+offset_top = 144.0
+offset_right = 130.0
+offset_bottom = 221.0
+custom_minimum_size = Vector2( 109, 77 )
 mouse_filter = 2
-size_flags_vertical = 6
+theme_override_colors/default_color = Color( 0.1, 0.08, 0.03, 1 )
+theme_override_constants/outline_size = 0
 text = "This is the card ability text.
 "
 scroll_active = false
 
-[node name="HB" type="HBoxContainer" parent="Margin/CardText"]
-offset_top = 221.0
-offset_right = 146.0
-offset_bottom = 240.0
-custom_minimum_size = Vector2( 146, 13 )
+[node name="GuardPlate" type="Panel" parent="Margin"]
+custom_minimum_size = Vector2( 16, 40 )
+offset_left = 132.0
+offset_top = 150.0
+offset_right = 148.0
+offset_bottom = 190.0
 mouse_filter = 2
-theme_override_constants/separation = -3
+theme_override_styles/panel = SubResource( 2 )
 
-[node name="CostIcon" type="TextureRect" parent="Margin/CardText/HB"]
+[node name="GuardIcon" type="TextureRect" parent="Margin/GuardPlate"]
+custom_minimum_size = Vector2( 14, 14 )
+offset_left = 1.0
+offset_top = 3.0
 offset_right = 15.0
-offset_bottom = 19.0
-custom_minimum_size = Vector2( 15, 15 )
+offset_bottom = 17.0
 mouse_filter = 2
 texture = ExtResource( 5 )
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cost" type="Label" parent="Margin/CardText/HB"]
-offset_left = 12.0
-offset_right = 29.0
-offset_bottom = 19.0
-custom_minimum_size = Vector2( 15, 15 )
-theme_override_colors/font_color = Color( 0.658824, 0.541176, 0, 1 )
+[node name="Guard" type="Label" parent="Margin/GuardPlate"]
+offset_top = 18.0
+offset_right = 16.0
+offset_bottom = 38.0
+custom_minimum_size = Vector2( 16, 20 )
+theme_override_colors/font_color = Color( 0.1, 0.08, 0.03, 1 )
 theme_override_fonts/font = ExtResource( 1 )
-theme_override_font_sizes/font_size = 15
-theme_override_constants/outline_size = 8
-theme_override_colors/font_outline_color = Color( 0, 0, 0, 1 )
+theme_override_font_sizes/font_size = 13
+theme_override_constants/outline_size = 0
 text = "0"
+horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Pips" type="Label" parent="Margin/CardText/HB"]
-custom_minimum_size = Vector2( 15, 15 )
-theme_override_colors/font_color = Color( 0.4, 0.8, 1, 1 )
-theme_override_fonts/font = ExtResource( 1 )
-theme_override_font_sizes/font_size = 15
-theme_override_constants/outline_size = 8
-theme_override_colors/font_outline_color = Color( 0, 0, 0, 1 )
-text = ""
-vertical_alignment = 1
-
-[node name="Push" type="Control" parent="Margin/CardText/HB"]
-offset_left = 26.0
-offset_right = 120.0
-offset_bottom = 19.0
+[node name="StrikePlate" type="Panel" parent="Margin"]
+custom_minimum_size = Vector2( 38, 18 )
+offset_left = 56.0
+offset_top = 222.0
+offset_right = 94.0
+offset_bottom = 240.0
 mouse_filter = 2
-size_flags_horizontal = 3
+theme_override_styles/panel = SubResource( 2 )
 
-[node name="StrikeIcon" type="TextureRect" parent="Margin/CardText/HB"]
-offset_left = 117.0
-offset_right = 132.0
-offset_bottom = 19.0
-custom_minimum_size = Vector2( 15, 15 )
+[node name="StrikeIcon" type="TextureRect" parent="Margin/StrikePlate"]
+custom_minimum_size = Vector2( 14, 12 )
+offset_left = 4.0
+offset_top = 3.0
+offset_right = 18.0
+offset_bottom = 15.0
 mouse_filter = 2
 texture = ExtResource( 4 )
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Strike" type="Label" parent="Margin/CardText/HB"]
-offset_left = 129.0
-offset_right = 146.0
-offset_bottom = 19.0
-custom_minimum_size = Vector2( 15, 15 )
-theme_override_colors/font_color = Color( 0.658824, 0.541176, 0, 1 )
+[node name="Strike" type="Label" parent="Margin/StrikePlate"]
+offset_left = 19.0
+offset_right = 35.0
+offset_bottom = 18.0
+custom_minimum_size = Vector2( 16, 16 )
+theme_override_colors/font_color = Color( 0.1, 0.08, 0.03, 1 )
 theme_override_fonts/font = ExtResource( 1 )
-theme_override_font_sizes/font_size = 15
-theme_override_constants/outline_size = 8
-theme_override_colors/font_outline_color = Color( 0, 0, 0, 1 )
+theme_override_font_sizes/font_size = 13
+theme_override_constants/outline_size = 0
 text = "0"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="GuardIcon" type="TextureRect" parent="Margin/CardText/HB"]
-custom_minimum_size = Vector2( 15, 15 )
-mouse_filter = 2
-texture = ExtResource( 6 )
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Guard" type="Label" parent="Margin/CardText/HB"]
-custom_minimum_size = Vector2( 15, 15 )
-theme_override_colors/font_color = Color( 0.658824, 0.541176, 0, 1 )
-theme_override_fonts/font = ExtResource( 1 )
-theme_override_font_sizes/font_size = 15
-theme_override_constants/outline_size = 8
-theme_override_colors/font_outline_color = Color( 0, 0, 0, 1 )
-text = "0"
-horizontal_alignment = 2
+horizontal_alignment = 1
 vertical_alignment = 1

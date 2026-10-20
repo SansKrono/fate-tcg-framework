@@ -331,11 +331,15 @@ func _on_card_destroyed(card: Card, cause: String) -> void:
 			watcher.on_card_destroyed(table_card, card, cause, game.effects.last_source)
 
 
+# on_phase hooks may ask a player something ("you may draw a card"): the turn is held until each one has
+# been answered, so nothing else (the next turn, the AI) goes on behind the question.
 func _on_phase_begins(active_id: int, phase: int) -> void:
+	game.turn.hold()
 	for table_card in table_cards():
 		var watcher = _effects.get(table_card.canonical_name)
-		if watcher != null:
-			watcher.on_phase(table_card, active_id, phase)
+		if watcher != null and is_instance_valid(table_card):
+			await watcher.on_phase(table_card, active_id, phase)
+	game.turn.release()
 
 
 func _on_damage_dealt(source, target, amount: int, cause: String) -> void:

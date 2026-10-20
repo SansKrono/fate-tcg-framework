@@ -105,6 +105,14 @@ var end_phase_waits_for_player := false
 var game: FateGame
 var phase: int = Phase.NONE
 
+# Card scripts answering a phase_begins question ("you may draw a card", a coroutine waiting for a person)
+# hold the turn: it stays in the phase, and does not move on, until every hold is released.
+var _holds := 0
+# The phase whose automatic part (and the move on) waits for the holds, Phase.NONE when nothing waits
+var _deferred_phase: int = Phase.NONE
+# end_turn() was asked for while held: finish the turn as soon as the holds are released
+var _finish_when_released := false
+
 
 func _init(owner_game: FateGame) -> void:
 	game = owner_game
@@ -129,9 +137,32 @@ func start_turn() -> void:
 	_enter(Phase.MAINTENANCE)
 
 
+# A coroutine that must be answered before the turn goes on takes a hold (hold() ... release()).
+func hold() -> void:
+	_holds += 1
+
+
+func release() -> void:
+	_holds = maxi(_holds - 1, 0)
+	if _holds > 0:
+		return
+	var p := _deferred_phase
+	_deferred_phase = Phase.NONE
+	if p != Phase.NONE and phase == p and game.is_started and not game.is_over:
+		_continue(p)
+	if _finish_when_released:
+		_finish_when_released = false
+		if phase == Phase.END and game.is_started and not game.is_over:
+			_finish_turn()
+
+
+func is_held() -> bool:
+	return _holds > 0
+
+
 # Can the turn move on to the next phase right now?
 func can_advance() -> bool:
-	if not game.is_started or game.is_over:
+	if not game.is_started or game.is_over or _holds > 0:
 		return false
 	match phase:
 		Phase.ENERGY:
@@ -166,7 +197,10 @@ func end_turn() -> void:
 		_go_to(Phase.END)
 	# With END waiting for the player, _go_to() left us in END
 	if phase == Phase.END and game.is_started:
-		_finish_turn()
+		if _holds > 0:
+			_finish_when_released = true
+		else:
+			_finish_turn()
 
 
 static func phase_name(p: int) -> String:
@@ -193,6 +227,14 @@ func _enter(p: int) -> void:
 	# A listener may have moved the turn on already
 	if phase != p:
 		return
+	if _holds > 0:
+		_deferred_phase = p
+		return
+	_continue(p)
+
+
+# The rest of a phase: its automatic part and, for the automatic phases, the move on
+func _continue(p: int) -> void:
 	match p:
 		Phase.MAINTENANCE:
 			_maintenance()

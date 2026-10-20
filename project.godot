@@ -50,5 +50,5 @@ screenshot_card={
 
 [rendering]
 
-environment/defaults/default_environment="res://default_env.tres"
 environment/defaults/default_clear_color=Color(0.1, 0.115, 0.18, 1)
+environment/defaults/default_environment="res://default_env.tres"

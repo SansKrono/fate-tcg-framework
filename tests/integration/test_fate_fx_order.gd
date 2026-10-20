@@ -410,6 +410,32 @@ func test_recovering_resources_draws_after_a_creature_died() -> void:
 	assert_eq(_hand(1), hand_before + 1)
 
 
+func test_recovering_resources_holds_the_turn_until_the_player_answers() -> void:
+	await _to_main()
+	await put_on_table(1, "Recovering Resources", "field")
+	var doomed := await put_creature(1, 2, 2)
+	game.effects.destroy(doomed, null, FateEffects.CAUSE_EFFECT)
+	await wait_seconds(0.2)
+	var hand_before := _hand(1)
+	var answer := {"done": false, "yes": true}
+	game.choices.confirmers[1] = func(_request):
+		while not answer.done:
+			await get_tree().process_frame
+		return answer.yes
+	game.turn.end_phase_waits_for_player = false
+	game.end_turn()
+	await wait_seconds(0.2)
+	assert_eq(game.active_id, 1, "the turn waits for the question")
+	assert_eq(game.phase, FateGame.Phase.END)
+	assert_true(game.turn.is_held())
+	assert_false(game.turn.can_advance())
+	answer.done = true
+	await wait_seconds(0.3)
+	assert_false(game.turn.is_held())
+	assert_eq(_hand(1), hand_before + 1, "drew after saying yes")
+	assert_eq(game.active_id, 2, "then the turn moved on")
+
+
 func test_recovering_resources_needs_one_of_your_creatures_to_die() -> void:
 	await _to_main()
 	await put_on_table(1, "Recovering Resources", "field")
