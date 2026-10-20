@@ -178,13 +178,13 @@ const GRADES := {
 			"effect_gain_weight": 0.0, "ability_rounds": 1, "doctrine_pursuit": 0.0, "produce_mana_first": false, "use_evolve": false, "flip_before_attack": false, "ability_risk": false, "energy_lookahead": 1, "deck_race": false, "scrap_burn": false},
 	"normal": {"noise": 0.0, "think_width": 3, "lookahead": 1, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 2, "reaction_fear": 0.0, "hold_reactions": true, "caution_scale": 1.0,
-			"effect_gain_weight": 1.0, "ability_rounds": 3, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 1, "deck_race": true},
+			"effect_gain_weight": 1.0, "ability_rounds": 3, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 1, "deck_race": true, "scrap_burn": true},
 	"hard": {"noise": 0.0, "think_width": 4, "lookahead": 1, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 2, "reaction_fear": 0.25, "hold_reactions": true, "caution_scale": 1.0,
-			"effect_gain_weight": 1.0, "ability_rounds": 4, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true},
+			"effect_gain_weight": 1.0, "ability_rounds": 4, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true, "scrap_burn": true},
 	"expert": {"noise": 0.0, "think_width": 5, "lookahead": 2, "mistake_rate": 0.0, "search_items": 12,
 			"search_sweeps": 3, "reaction_fear": 0.5, "hold_reactions": true, "caution_scale": 1.0,
-			"effect_gain_weight": 1.0, "ability_rounds": 5, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true},
+			"effect_gain_weight": 1.0, "ability_rounds": 5, "doctrine_pursuit": 1.0, "produce_mana_first": true, "use_evolve": true, "flip_before_attack": true, "ability_risk": true, "energy_lookahead": 2, "deck_race": true, "scrap_burn": true},
 }
 
 # --- styles ------------------------------------------------------------------------------------------
