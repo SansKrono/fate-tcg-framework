@@ -101,7 +101,7 @@ for line in catalog.splitlines():
         if "/" in sg:
             strike, guard = [int(x) for x in sg.split("/")]
         else:
-            strike, guard = 0, 1  # Goblin Ledgerkeeper: stats missing in the draft (placeholder)
+            strike, guard = 0, 1  # stats missing in the draft (placeholder)
     effect = effect.replace("`", "")
     kws = [k for k in KEYWORDS if re.search(r"\b" + re.escape(k) + r"\b", effect, re.I)]
     props = {
@@ -127,15 +127,23 @@ for line in catalog.splitlines():
         props["_innate_keywords"] = inn
     if section == "14.5":
         props["_domain_assumed"] = True
-    if strike is not None and name == "Goblin Ledgerkeeper":
+    if card_type == "Creature" and "/" not in sg:
         props["_stats_placeholder"] = True
     cards[name] = props
     order.append(name)
+
+# Debug card (not in the design doc): its Occupy ability creates a Debug Token (FxDebugCard.gd)
+cards["Debug Card"] = {"Type": "Creature", "Domain": "Debug", "Tags": ["Debug"], "Cost": 0, "Pips": "I",
+                       "Strike": 1, "Guard": 1, "Abilities": "Occupy: create a Debug Token",
+                       "_domains": ["Debug"], "_unique": False, "_max_allowed": 3, "_keywords": ["Occupy"]}
+order.insert(0, "Debug Card")
 
 tokens = {
     "Soldier Token": ("Creature", "Order", ["Human", "Soldier", "Token"], 1, 1, "A 1/1 soldier."),
     "Goblin Token": ("Creature", "Primal", ["Goblin", "Token"], 1, 1, "A 1/1 goblin."),
     "Iron Automaton Token": ("Creature", "Innovation", ["Construct", "Token"], 3, 3, "A 3/3 iron automaton."),
+    "Automaton Token": ("Creature", "Innovation", ["Construct", "Token"], 1, 1, "A 1/1 automaton."),
+    "Debug Token": ("Creature", "Debug", ["Debug", "Token"], 1, 1, "A 1/1 debug token."),
 }
 relic_tokens = {
     "Battle Hammer Token": ("Innovation", "Attached creature gains +2 Strike."),
