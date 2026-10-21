@@ -472,7 +472,7 @@ func test_negate_attack_and_remove_from_combat():
 
 func test_a_creature_with_strike_zero_destroys_itself_attacking():
 	# Used stat 0 means destroyed, taken literally (documented in FateCombat)
-	var weak := await put_creature(1, "Goblin Ledgerkeeper")
+	var weak := await put_creature(1, 0, 1)
 	var target := await put_creature(2, 2, 2, {}, true)
 	start_combat()
 	_fight([[weak, target]])

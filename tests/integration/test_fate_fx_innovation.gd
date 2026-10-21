@@ -276,9 +276,37 @@ func test_rapid_scavenging_creates_two_scrap() -> void:
 	await _main()
 	await fill_mana(1, 3)
 	var spell := await put_in_hand(1, "Rapid Scavenging")
+	var hand_before: int = FateZones.container("hand", 1).get_all_cards().size()
 	assert_true(game.play_from_hand(spell))
 	await wait_seconds(0.1)
 	assert_eq(_scrap(), 2)
+	assert_eq(FateZones.container("hand", 1).get_all_cards().size(), hand_before, "the spell left, a card was drawn")
+
+
+func test_disassemble_destroys_a_small_creature_and_makes_two_scrap() -> void:
+	await _main()
+	await fill_mana(1, 2)
+	var big := await put_creature(2, 4, 4)
+	var small := await put_creature(2, 3, 1)
+	var unique := await put_creature(2, THRANG)
+	var spell := await put_in_hand(1, "Disassemble")
+	var fx = game.card_effects.effect_of("Disassemble")
+	assert_eq(fx.candidates(spell, 1), [small], "upright: Strike counts; 4 Strike and a unique creature are out")
+	game.choices.chooser = func(request): return small
+	assert_true(game.play_from_hand(spell))
+	await wait_seconds(0.2)
+	assert_eq(small.get_parent(), FateZones.container("discard", 2))
+	assert_true(FateZones.is_creature_in_play(big))
+	assert_true(FateZones.is_creature_in_play(unique))
+	assert_eq(_scrap(), 2)
+
+
+func test_disassemble_cannot_be_cast_without_a_target() -> void:
+	await _main()
+	await fill_mana(1, 3)
+	await put_creature(2, 5, 5)
+	var spell := await put_in_hand(1, "Disassemble")
+	assert_false(game.play_from_hand(spell))
 
 
 func test_fabrication_line_copies_a_token_card_or_a_counter() -> void:
@@ -327,3 +355,39 @@ func test_without_the_field_spell_a_new_creature_cannot_occupy() -> void:
 	var c := await put_creature(1, "Goblin Ledgerkeeper")
 	c.entered_turn = game.turn_number
 	assert_false(await game.actions.run(c, "scrap"))
+
+
+# --- rebalance cards (docs/FATE_INNOVATION_CARDS.md) -------------------------------------------------------
+
+func test_clockwork_sentinel_leaves_two_scrap_when_destroyed() -> void:
+	await _main()
+	var c := await put_creature(1, "Clockwork Sentinel")
+	assert_eq([game.stats.current(c, "Strike"), game.stats.current(c, "Guard")], [2, 3])
+	game.effects.destroy(c)
+	await get_tree().process_frame
+	assert_eq(_scrap(), 2)
+
+
+func test_scrapheap_colossus_grows_with_each_relic() -> void:
+	await _main()
+	var c := await put_creature(1, "Scrapheap Colossus")
+	assert_eq(game.stats.current(c, "Strike"), 2)
+	await put_on_table(1, "Scrap Cannon", "relics")
+	await put_on_table(1, "Garbage Heap", "relics")
+	await put_on_table(2, "Garbage Heap", "relics")
+	assert_eq([game.stats.current(c, "Strike"), game.stats.current(c, "Guard")], [4, 4], "only its controller's relics")
+
+
+func test_a_fourth_relic_can_be_played_and_hammered() -> void:
+	await _main()
+	for i in 2:
+		await put_energy(1, "Garbage Heap")
+	for i in 3:
+		await put_on_table(1, "Scrap Cannon", "relics")
+	var heap := await put_in_hand(1, "Garbage Heap")
+	assert_true(game.play_from_hand(heap), "no limit on relics")
+	await wait_seconds(0.2)
+	assert_eq(game.player(1).cards_in_grid("relics").size(), 4)
+	var smith := await put_creature(1, "Battle Smith")
+	game.tokens.set_counter(1, "ingot", 1)
+	assert_true(await game.actions.run(smith, "hammer"), "room for a hammer as well")

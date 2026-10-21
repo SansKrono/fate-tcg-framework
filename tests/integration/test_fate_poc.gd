@@ -49,6 +49,7 @@ func test_zones_exist_for_both_players():
 	assert_not_null(FateZones.grid("world", 0), "The shared world spell grid exists")
 	assert_eq(FateZones.grid("creatures", 1).get_slot_count(), 6)
 	assert_eq(FateZones.grid("relics", 2).get_slot_count(), 3)
+	assert_true(FateZones.grid("relics", 2).auto_extend, "The relic zone grows: no limit on relics")
 	assert_eq(FateZones.grid("field", 1).get_slot_count(), 1)
 	assert_eq(FateZones.grid("world", 0).get_slot_count(), 1)
 	assert_true(FateZones.grid("energy", 1).auto_extend, "The energy zone grows")

@@ -461,3 +461,62 @@ func test_war_of_attrition_occupies_all_your_creatures_at_the_start_of_your_turn
 	assert_eq(FateZones.zone_of(theirs_a), "occupied")
 	assert_eq(FateZones.zone_of(theirs_b), "occupied")
 	assert_eq(FateZones.zone_of(mine), "creatures", "only the controller's creatures")
+
+
+# --- field spells on the opponent's field ------------------------------------------------------------
+
+func test_a_field_spell_cast_on_the_opponent_replaces_theirs_and_works_against_them() -> void:
+	await _to_main()
+	await fill_mana(1)
+	var old := await put_on_table(2, "Recovering Resources", "field")
+	var war := await put_in_hand(1, "War of Attrition")
+	assert_true(game.play_from_hand(war, 2), "cast on the opponent's field")
+	await wait_seconds(0.3)
+	assert_eq(game.equip.field_spell(2), war, "in the opponent's field slot")
+	assert_eq(war.controller_id, 2, "the opponent controls it")
+	assert_eq(war.owner_id, 1, "the caster owns it")
+	assert_true(_in_pile(old, "discard", 2), "their field spell was replaced")
+	assert_null(game.equip.field_spell(1), "the caster's own slot is untouched")
+	var theirs := await put_creature(2, 2, 2)
+	var mine := await put_creature(1, 2, 2)
+	game.end_turn()
+	await wait_seconds(0.5)
+	assert_eq(FateZones.zone_of(theirs), "occupied", "it occupies the opponent's creatures")
+	assert_eq(FateZones.zone_of(mine), "creatures")
+	game.equip.send_to_discard(war)
+	await wait_seconds(0.3)
+	assert_true(_in_pile(war, "discard", 1), "it goes to its owner's discard pile")
+	assert_eq(war.controller_id, 1)
+
+
+func test_a_field_spell_cast_without_a_seat_goes_to_the_casters_field() -> void:
+	await _to_main()
+	await fill_mana(1)
+	var own := await put_in_hand(1, "Recovering Resources")
+	assert_true(game.play_from_hand(own))
+	await wait_seconds(0.3)
+	assert_eq(game.equip.field_spell(1), own)
+	assert_eq(own.controller_id, 1)
+
+
+func test_a_field_spell_in_hand_may_be_dropped_on_either_field() -> void:
+	var war := await put_in_hand(1, "War of Attrition")
+	assert_true(war.allows_grid(FateZones.grid_name("field", 1)))
+	assert_true(war.allows_grid(FateZones.grid_name("field", 2)))
+	assert_false(war.allows_grid(FateZones.grid_name("relics", 2)))
+	var creature := await put_in_hand(1, "Righteous Guard")
+	assert_false(creature.allows_grid(FateZones.grid_name("creatures", 2)))
+
+
+func test_the_ai_casts_war_of_attrition_on_the_opponent_and_smites_one_on_its_own_field() -> void:
+	const Eval := preload("res://src/custom/fate/ai/FateAIEval.gd")
+	const Choices := preload("res://src/custom/fate/ai/FateAIChoices.gd")
+	var war := await put_in_hand(1, "War of Attrition")
+	assert_eq(Eval.field_target(game, war, 1), 2)
+	var rr := await put_in_hand(1, "Recovering Resources")
+	assert_eq(Eval.field_target(game, rr, 1), 1)
+	var on_me := await put_on_table(1, "War of Attrition", "field")
+	on_me.owner_id = 2
+	assert_lt(Eval.field_standing(game, on_me, 1), 0.0, "a harmful field on my side counts against me")
+	assert_gt(Eval.field_cast_value(game, rr, 1), Eval.hand_value(game, rr), "replacing it is worth more")
+	assert_gt(Choices.score_option(game, 1, on_me, "harm"), 0.0, "Smite may take it")

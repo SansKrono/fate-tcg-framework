@@ -218,7 +218,7 @@ func test_zone_capacity_is_enforced():
 	var errors := _errors('{"format": "fate-board-state", "version": 1, "players": {"1": {"creatures": %s}}}' % seven)
 	assert_true(_has_error(errors, "players.1.creatures: holds at most 6"), str(errors))
 	var relics := _errors('{"format": "fate-board-state", "version": 1, "players": {"1": {"relics": [null, null, null, "Garbage Heap"]}}}')
-	assert_true(_has_error(relics, "players.1.relics: holds at most 3"), str(relics))
+	assert_eq(relics, [], "the relic zone has no limit")
 	var world := _errors('{"format": "fate-board-state", "version": 1, "world": ["Equal Footing", "Equal Footing"]}')
 	assert_true(_has_error(world, "world: holds at most 1"), str(world))
 

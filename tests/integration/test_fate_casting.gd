@@ -148,9 +148,9 @@ func test_a_flip_cast_field_spell_takes_the_slot_and_replaces_the_old_one() -> v
 # --- flip cast: spells -------------------------------------------------------------------------------------
 
 func test_a_flip_cast_spell_resolves_and_goes_to_the_discard_pile() -> void:
-	var fx := _register("Reinforcements")
+	var fx := _register("Battle Ready")
 	await _energy(3)
-	var spell := await put_energy(1, "Reinforcements")
+	var spell := await put_energy(1, "Battle Ready")
 	assert_true(await game.casting.flip_cast_card(spell, 1, true))
 	await wait_seconds(0.1)
 	assert_eq(_names(fx.log), ["resolve", "play"])
@@ -163,31 +163,31 @@ func test_a_flip_cast_spell_resolves_and_goes_to_the_discard_pile() -> void:
 
 
 func test_a_flip_cast_spell_is_not_paid_for_by_itself_either() -> void:
-	_register("Reinforcements")
+	_register("Battle Ready")
 	await _energy(2)
-	var spell := await put_energy(1, "Reinforcements")
+	var spell := await put_energy(1, "Battle Ready")
 	assert_false(await game.casting.flip_cast_card(spell, 1, true))
 	assert_eq(FateZones.zone_of(spell), "energy")
 
 
 func test_the_choice_of_a_flip_cast_spell_is_passed_on() -> void:
-	var fx := _register("Reinforcements")
+	var fx := _register("Battle Ready")
 	fx.has_choice = true
 	var a := await put_creature(2, "Moral Captain")
 	var b := await put_creature(2, "Righteous Guard")
 	fx.picks = [a, b]
-	var s1 := await put_energy(1, "Reinforcements")
+	var s1 := await put_energy(1, "Battle Ready")
 	await game.casting.flip_cast_card(s1, 1, false, b)
 	assert_eq(fx.log[0], ["resolve", 1, b], "the given choice")
 	fx.log.clear()
-	var s2 := await put_energy(1, "Reinforcements")
+	var s2 := await put_energy(1, "Battle Ready")
 	await game.casting.flip_cast_card(s2, 1, false)
 	assert_eq(fx.log[0], ["resolve", 1, a], "without one, the default choice")
 
 
 func test_a_spell_without_a_legal_target_cannot_be_flip_cast() -> void:
-	game.card_effects.register(RefusingRecorder.new("Reinforcements"))
-	var spell := await put_energy(1, "Reinforcements")
+	game.card_effects.register(RefusingRecorder.new("Battle Ready"))
+	var spell := await put_energy(1, "Battle Ready")
 	assert_eq(game.casting.flip_cast_problem(spell, 1, false), "No target")
 	assert_false(await game.casting.flip_cast_card(spell, 1, false))
 	assert_eq(FateZones.zone_of(spell), "energy")
@@ -354,9 +354,9 @@ func test_only_cards_in_the_owners_discard_pile_are_cast_from_it() -> void:
 
 
 func test_a_spell_cast_from_the_discard_pile_resolves_and_returns_to_it() -> void:
-	var fx := _register("Reinforcements")
+	var fx := _register("Battle Ready")
 	await fill_mana(1, 2)
-	var spell := await _in_discard("Reinforcements")
+	var spell := await _in_discard("Battle Ready")
 	assert_true(await game.casting.cast_from_discard(spell, 1, true))
 	await wait_seconds(0.1)
 	assert_eq(_names(fx.log), ["resolve", "play"])
@@ -399,7 +399,7 @@ func test_a_relic_and_a_field_spell_return_to_their_zones() -> void:
 
 
 func test_a_regular_spell_or_a_card_off_a_pile_does_not_return_to_the_table() -> void:
-	var spell := await _in_discard("Reinforcements")
+	var spell := await _in_discard("Battle Ready")
 	assert_false(game.casting.return_to_table(spell, 1))
 	var in_hand := await put_in_hand(1, "Righteous Guard")
 	assert_false(game.casting.return_to_table(in_hand, 1))

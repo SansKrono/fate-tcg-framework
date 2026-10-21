@@ -40,7 +40,7 @@ func test_place_refuses_occupied_slot_out_of_range_and_unknown_card():
 	assert_not_null(game.place_card_at(CREATURE, 1, "creatures", 2))
 	assert_null(game.place_card_at(CREATURE, 1, "creatures", 2), "Occupied")
 	assert_null(game.place_card_at(CREATURE, 1, "creatures", 6), "Six creature slots")
-	assert_null(game.place_card_at(CREATURE, 1, "relics", 3), "Three relic slots")
+	assert_not_null(game.place_card_at(CREATURE, 1, "relics", 4), "The relic zone grows: no limit")
 	assert_null(game.place_card_at("No such card", 1, "creatures", 0))
 	assert_null(game.place_card_at(CREATURE, 1, "hand", 0), "Not a grid")
 	assert_eq(FateZones.grid("creatures", 1).get_slot_count(), 6, "Nothing grew")
