@@ -7,7 +7,7 @@
 # (META), it persists until an effect removes it (set_achieved(card, false)) or the doctrine leaves the table, and
 # the reward is active while it is set.
 #
-# Goals (the "Goal:" line):
+# Goals (the "Goal:" line; the kinds are registered, see register_goal below):
 #   Devotion N <Domain>   N pips of the domain on the player's creatures, relics and field spell
 #                         (the Pips text holds the initial letters: "CC", "O")
 #   Count control N       N cards the player controls but does not own (game.control.controlled_not_owned)
@@ -47,6 +47,7 @@ var _again := false
 
 func _init(owner_game: FateGame) -> void:
 	game = owner_game
+	_register_builtin_goals()
 	game.phase_begins.connect(func(_p, _ph): evaluate())
 	game.card_played.connect(func(_c): evaluate())
 	game.creature_destroyed.connect(func(_c, _cause): evaluate())
@@ -140,9 +141,68 @@ func resync() -> void:
 
 
 # --- goals -----------------------------------------------------------------------------------------
+#
+# Goal kinds are registered (register_goal), so a new doctrine with a new kind of goal adds one entry here (or
+# calls register_goal from its own script) instead of touching the parser, the evaluation and the AI:
+#   pattern       a regex the "Goal:" line must match (from its start); its groups go to `build`
+#   build         Callable(RegExMatch) -> the goal Dictionary ({"kind", "n", ...}: "n" is the number to reach)
+#   progress      Callable(player_id, goal) -> int, the number the goal counts now
+#   contribution  Callable(card, goal) -> int, how much playing that card from the hand adds (the AI's guess;
+#                 a big number means "this card alone completes it")
+# "Count <What> N" goals look up `what` in the counters (register_counter), so a new thing to count is one
+# entry as well.
 
-# The parsed goal of a doctrine: {"kind": "devotion" | "count" | "power" | "ghost", "n": int, "domain": String,
-# "what": String ("control", "creature", "relic", "energy", "token")}. {} if the text has no known goal.
+# The registered goal kinds, in the order they are tried: [{"kind", "pattern": RegEx, "build", "progress",
+# "contribution"}]
+var _goal_kinds: Array = []
+# "Count <what> N": what -> {"count": Callable(player_id) -> int, "contribution": Callable(card) -> int}
+var _counters := {}
+
+
+func register_goal(kind: String, pattern: String, build: Callable, progress_of: Callable,
+		contribution_of := Callable()) -> void:
+	_goal_kinds.append({"kind": kind, "pattern": RegEx.create_from_string(pattern), "build": build,
+			"progress": progress_of, "contribution": contribution_of})
+	_goals.clear()
+
+
+func register_counter(what: String, count: Callable, contribution_of := Callable()) -> void:
+	_counters[what.to_lower()] = {"count": count, "contribution": contribution_of}
+
+
+func _register_builtin_goals() -> void:
+	register_goal("devotion", "^Devotion (\\d+) (\\w+)",
+			func(m): return {"kind": "devotion", "n": int(m.get_string(1)), "domain": m.get_string(2)},
+			func(pid, goal): return devotion(pid, str(goal.domain)),
+			func(card, goal): return _pips_toward(card, str(goal.domain)))
+	register_goal("token count", "^Token Count (\\d+)",
+			func(m): return {"kind": "count", "what": "token", "n": int(m.get_string(1))},
+			func(pid, _goal): return count_of(pid, "token"))
+	register_goal("ghost", "^Ghost Count (\\d+)",
+			func(m): return {"kind": "ghost", "n": int(m.get_string(1))},
+			func(pid, _goal): return _ghosts(pid),
+			func(card, _goal): return 1 if card.properties.get("Type") == "Creature" and is_ghost(card) else 0)
+	register_goal("power", "^Power (\\d+)",
+			func(m): return {"kind": "power", "n": int(m.get_string(1))},
+			func(pid, _goal): return _best_stat(pid),
+			# One creature of that power completes the goal
+			func(card, goal): return 99 if card.properties.get("Type") == "Creature" \
+					and maxi(game.stats.base(card, "Strike"), game.stats.base(card, "Guard")) >= int(goal.n) else 0)
+	register_goal("count", "^Count (\\w+) (\\d+)",
+			func(m): return {"kind": "count", "what": m.get_string(1).to_lower(), "n": int(m.get_string(2))},
+			func(pid, goal): return count_of(pid, str(goal.what)),
+			func(card, goal): return _counter_contribution(card, str(goal.what)))
+	register_counter("control", func(pid): return game.control.controlled_not_owned(pid).size())
+	register_counter("creature", func(pid): return game.creatures_in_play(pid).size(),
+			func(card): return 1 if card.properties.get("Type") == "Creature" else 0)
+	register_counter("relic", func(pid): return game.player(pid).cards_in_grid("relics").filter(
+			func(c): return c.controller_id == pid).size(),
+			func(card): return 1 if card.properties.get("Type") == "Relic" else 0)
+	register_counter("energy", func(pid): return game.player(pid).cards_in_grid("energy").size())
+	register_counter("token", func(pid): return game.tokens.token_count(pid))
+
+
+# The parsed goal of a doctrine (the "Goal:" line through the registered kinds), {} if no kind knows it
 func goal_of(card: Card) -> Dictionary:
 	var line := ""
 	for text_line in str(card.properties.get("Abilities", "")).split("\n"):
@@ -155,22 +215,11 @@ func goal_of(card: Card) -> Dictionary:
 	return goal
 
 
-static func _parse(line: String) -> Dictionary:
-	var found := RegEx.create_from_string("^Devotion (\\d+) (\\w+)").search(line)
-	if found != null:
-		return {"kind": "devotion", "n": int(found.get_string(1)), "domain": found.get_string(2)}
-	found = RegEx.create_from_string("^Token Count (\\d+)").search(line)
-	if found != null:
-		return {"kind": "count", "what": "token", "n": int(found.get_string(1))}
-	found = RegEx.create_from_string("^Ghost Count (\\d+)").search(line)
-	if found != null:
-		return {"kind": "ghost", "n": int(found.get_string(1))}
-	found = RegEx.create_from_string("^Power (\\d+)").search(line)
-	if found != null:
-		return {"kind": "power", "n": int(found.get_string(1))}
-	found = RegEx.create_from_string("^Count (\\w+) (\\d+)").search(line)
-	if found != null:
-		return {"kind": "count", "what": found.get_string(1).to_lower(), "n": int(found.get_string(2))}
+func _parse(line: String) -> Dictionary:
+	for entry in _goal_kinds:
+		var found: RegExMatch = entry.pattern.search(line)
+		if found != null:
+			return entry.build.call(found)
 	return {}
 
 
@@ -183,31 +232,30 @@ func goal_met(card: Card) -> bool:
 
 # The number the goal counts for a player, now
 func progress(player_id: int, goal: Dictionary) -> int:
-	match goal.get("kind", ""):
-		"devotion":
-			return devotion(player_id, str(goal["domain"]))
-		"count":
-			return count_of(player_id, str(goal["what"]))
-		"power":
-			var best := 0
-			for creature in game.creatures_in_play(player_id):
-				best = maxi(best, maxi(game.stats.current(creature, "Strike"), game.stats.current(creature, "Guard")))
-			return best
-		"ghost":
-			var total := 0
-			for creature in game.creatures_in_play(player_id):
-				if is_ghost(creature) or is_embodying(creature):
-					total += 1
-			return total
-	return 0
+	var entry := _kind_entry(goal)
+	return int(entry.progress.call(player_id, goal)) if not entry.is_empty() else 0
+
+
+# How much playing `card` from the hand adds to the number `goal` counts (for the AI); 0 when unknown
+func contribution(card: Card, goal: Dictionary) -> int:
+	var entry := _kind_entry(goal)
+	if entry.is_empty() or not entry.contribution.is_valid():
+		return 0
+	return int(entry.contribution.call(card, goal))
+
+
+func _kind_entry(goal: Dictionary) -> Dictionary:
+	# The entry whose kind the goal names ("Token Count N" is built as a "count" goal of tokens)
+	var kind := str(goal.get("kind", ""))
+	for entry in _goal_kinds:
+		if entry.kind == kind:
+			return entry
+	return {}
 
 
 # Pips of a domain on the face-up permanents a player controls (creatures, relics, field spell)
 func devotion(player_id: int, domain: String) -> int:
-	var letter := ""
-	for initial in FateGame.DOMAIN_BY_INITIAL:
-		if FateGame.DOMAIN_BY_INITIAL[initial] == domain:
-			letter = initial
+	var letter := _initial_of(domain)
 	if letter == "":
 		return 0
 	var total := 0
@@ -219,19 +267,46 @@ func devotion(player_id: int, domain: String) -> int:
 
 
 func count_of(player_id: int, what: String) -> int:
-	match what:
-		"control":
-			return game.control.controlled_not_owned(player_id).size()
-		"creature":
-			return game.creatures_in_play(player_id).size()
-		"relic":
-			return game.player(player_id).cards_in_grid("relics").filter(
-					func(c): return c.controller_id == player_id).size()
-		"energy":
-			return game.player(player_id).cards_in_grid("energy").size()
-		"token":
-			return game.tokens.token_count(player_id)
-	return 0
+	var counter: Dictionary = _counters.get(what.to_lower(), {})
+	return int(counter.count.call(player_id)) if not counter.is_empty() else 0
+
+
+func _counter_contribution(card: Card, what: String) -> int:
+	var counter: Dictionary = _counters.get(what.to_lower(), {})
+	if counter.is_empty() or not counter.contribution.is_valid():
+		return 0
+	return int(counter.contribution.call(card))
+
+
+# The pips of `domain` a card would add to its controller's devotion (permanents only)
+func _pips_toward(card: Card, domain: String) -> int:
+	var type := str(card.properties.get("Type", ""))
+	if type != "Creature" and type != "Relic" and str(card.properties.get("_spell_kind", "")) != "Field":
+		return 0
+	var letter := _initial_of(domain)
+	return str(card.properties.get("Pips", "")).count(letter) if letter != "" else 0
+
+
+static func _initial_of(domain: String) -> String:
+	for initial in FateGame.DOMAIN_BY_INITIAL:
+		if FateGame.DOMAIN_BY_INITIAL[initial] == domain:
+			return initial
+	return ""
+
+
+func _best_stat(player_id: int) -> int:
+	var best := 0
+	for creature in game.creatures_in_play(player_id):
+		best = maxi(best, maxi(game.stats.current(creature, "Strike"), game.stats.current(creature, "Guard")))
+	return best
+
+
+func _ghosts(player_id: int) -> int:
+	var total := 0
+	for creature in game.creatures_in_play(player_id):
+		if is_ghost(creature) or is_embodying(creature):
+			total += 1
+	return total
 
 
 func is_ghost(card: Card) -> bool:

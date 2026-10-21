@@ -68,6 +68,43 @@ func test_goal_lines_are_parsed() -> void:
 		await get_tree().process_frame
 
 
+func test_a_new_goal_kind_and_counter_can_be_registered() -> void:
+	await clear_doctrines()
+	var def: Dictionary = FateData.DOCTRINES["Maintain Your Presence"].duplicate(true)
+	def["Abilities"] = "Goal: Hand Size 2\nReward: nothing"
+	cfc.card_definitions["Test Doctrine"] = def
+	game.doctrines.register_goal("hand", "^Hand Size (\\d+)",
+			func(m): return {"kind": "hand", "n": int(m.get_string(1))},
+			func(pid, _goal): return FateZones.container("hand", pid).get_all_cards().size())
+	var doctrine := await put_doctrine(1, "Test Doctrine")
+	assert_eq(game.doctrines.goal_of(doctrine), {"kind": "hand", "n": 2})
+	await empty_hand(1)
+	game.doctrines.evaluate()
+	assert_false(game.doctrines.achieved(doctrine))
+	await put_in_hand(1, "Smite")
+	await put_in_hand(1, "Smite")
+	game.doctrines.evaluate()
+	assert_true(game.doctrines.achieved(doctrine), "the registered progress counted the hand")
+	game.doctrines.register_counter("discard", func(pid): return FateZones.container("discard", pid).get_all_cards().size())
+	assert_eq(game.doctrines.count_of(1, "discard"), FateZones.container("discard", 1).get_all_cards().size())
+
+
+func test_the_ai_reads_what_a_card_adds_through_the_goal_kind() -> void:
+	var smite := await put_in_hand(1, "Smite")
+	var guard := await put_in_hand(1, "Righteous Guard")
+	var creatures := {"kind": "count", "what": "creature", "n": 4}
+	assert_eq(game.doctrines.contribution(guard, creatures), 1)
+	assert_eq(game.doctrines.contribution(smite, creatures), 0)
+	assert_eq(game.doctrines.contribution(guard, {"kind": "devotion", "domain": "Order", "n": 5}), 1)
+
+
+func test_a_deck_can_name_its_own_doctrines_from_any_domain() -> void:
+	var mixed := FateDecks.doctrines_for(["Order"], ["Be a Fierce Presence", "Maintain Your Presence", "Nonsense"])
+	assert_eq(mixed.size(), 2, "unknown names are left out")
+	assert_true("Be a Fierce Presence" in mixed and "Maintain Your Presence" in mixed)
+	assert_eq(FateDecks.doctrines_for(["Order"]).size(), 3, "without a choice: the domain's three")
+
+
 func test_count_creature_goal_by_event_and_persistence() -> void:
 	await clear_doctrines()
 	var doctrine := await put_doctrine(1, "Maintain Your Presence")

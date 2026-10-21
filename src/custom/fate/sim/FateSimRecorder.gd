@@ -10,7 +10,8 @@
 #   seat data: {"label", "deck" (0 = matchup deck a, 1 = b), "won": bool, "life_end", "life_by_turn": [life at
 #     the start of each game turn, starting at turn 1], "creatures_lost", "dmg_taken": {cause: life lost},
 #     "attacks", "player_hits", "blocked_attacks", "mana_spent", "mana_available", "board_sum", "board_turns",
-#     "energy_plays", "draw_choices", "cards_played", "turns", "cards": {card name: card data}}
+#     "energy_plays", "draw_choices", "cards_played", "turns", "cards": {card name: card data},
+#     "doctrines": {doctrine name: the game turn it was achieved on, -1 if never}}
 #   card data: {"copies" in the deck, "seen" (left the deck), "played" (cast or put into play from the hand),
 #     "energy" (played as energy), "turn_sum" (sum of the turns it was played on), "dmg_c" (damage to
 #     creatures), "dmg_p" (damage to players), "kills" (creatures destroyed with it as the source),
@@ -36,7 +37,7 @@ func _init(owner_game: FateGame, labels: Dictionary, decks: Dictionary) -> void:
 			"label": labels[seat], "deck": decks[seat], "won": false, "life_end": 0, "life_by_turn": [],
 			"creatures_lost": 0, "dmg_taken": {}, "attacks": 0, "player_hits": 0, "blocked_attacks": 0,
 			"mana_spent": 0, "mana_available": 0, "board_sum": 0, "board_turns": 0, "energy_plays": 0,
-			"draw_choices": 0, "cards_played": 0, "turns": 0, "cards": {},
+			"draw_choices": 0, "cards_played": 0, "turns": 0, "cards": {}, "doctrines": {},
 		}
 		_deck_of_seat[seat] = decks[seat]
 	game.turn_started.connect(_on_turn_started)
@@ -49,11 +50,15 @@ func _init(owner_game: FateGame, labels: Dictionary, decks: Dictionary) -> void:
 	game.deck_empty.connect(func(pid): _deck_out = pid)
 	game.combat.attack_declared.connect(_on_attack_declared)
 	game.combat.attack_resolved.connect(_on_attack_resolved)
+	if game.doctrines != null:
+		game.doctrines.doctrine_achieved.connect(_on_doctrine_achieved)
 
 
 func disconnect_all() -> void:
 	if not is_instance_valid(game):
 		return
+	if game.doctrines != null and game.doctrines.doctrine_achieved.is_connected(_on_doctrine_achieved):
+		game.doctrines.doctrine_achieved.disconnect(_on_doctrine_achieved)
 	for pair in [[game.turn_started, _on_turn_started], [game.end_phase_begins, _on_end_phase],
 			[game.energy_phase_choice_made, _on_energy_choice], [game.energy_played, _on_energy_played],
 			[game.card_played, _on_card_played], [game.creature_destroyed, _on_destroyed],
@@ -151,6 +156,14 @@ func _on_damage(source, target, amount: int, cause: String) -> void:
 		_card(source_seat, source.canonical_name).dmg_c += amount
 
 
+func _on_doctrine_achieved(card: Card, player_id: int) -> void:
+	if not _seats.has(player_id):
+		return
+	var achieved: Dictionary = _seats[player_id].doctrines
+	if int(achieved.get(card.canonical_name, -1)) < 0:
+		achieved[card.canonical_name] = game.turn_number
+
+
 func _on_attack_declared(attack: FateAttack) -> void:
 	var seat := _seat_of(attack.attacker)
 	if seat == 0:
@@ -181,6 +194,11 @@ func finish(info: Dictionary, reason := "") -> Dictionary:
 	_count_cards()
 	for seat in _seats:
 		_seats[seat].won = seat == winner
+		# The doctrines in play that were never achieved (the cards are placed after the recorder starts)
+		if game.doctrines != null and game.doctrines.enabled:
+			for doctrine in game.doctrines.doctrine_cards(seat):
+				if not _seats[seat].doctrines.has(doctrine.canonical_name):
+					_seats[seat].doctrines[doctrine.canonical_name] = -1
 		_seats[seat].life_end = game.player(seat).life
 	var problems: Array = []
 	for seat in game.ai_controllers:

@@ -14,8 +14,9 @@
 #     "game_seconds": wall-clock seconds one game may take before it is stopped (reason "stall")
 #     "doctrines":   the doctrine cards both players start with are in play (as in a real game)
 #   }
-#   deck = {"label": "Order", "domains": ["Order"], "list": {card name: copies}}  (list optional: without
-#          it the deck of the domains is used, see FateDecks)
+#   deck = {"label": "Order", "domains": ["Order"], "list": {card name: copies}, "doctrines": [names]}
+#          (list optional: without it the deck of the domains is used, see FateDecks; doctrines optional:
+#          without them the doctrines of the first domain)
 #
 # Game numbers: game g of a run (0 .. matchups * games - 1) belongs to matchup g % matchups, and is the
 # game g / matchups of that matchup. Interleaving keeps a half-finished run balanced across the matchups.
@@ -37,7 +38,7 @@ static func domain_deck(domain: String) -> Dictionary:
 	return deck([domain], domain)
 
 
-# A deck read from a JSON file: {"label": "...", "domains": [...], "cards": {name: copies}} or just
+# A deck read from a JSON file: {"label": "...", "domains": [...], "cards": {name: copies}, "doctrines": [...]} or just
 # {name: copies} (the label is then the file name and the domain is taken from the cards). Returns
 # {"error": text} when the file cannot be used or the deck breaks the deck rules (FateDecks.problems).
 static func deck_from_file(path: String) -> Dictionary:
@@ -56,6 +57,8 @@ static func deck_from_file(path: String) -> Dictionary:
 	if domains.is_empty():
 		domains = domains_of_list(clean)
 	var found := deck(domains, label, clean)
+	if parsed.has("doctrines") and parsed.doctrines is Array:
+		found["doctrines"] = parsed.doctrines.map(func(n): return str(n))
 	var problems := FateDecks.problems(clean, domains)
 	if not problems.is_empty():
 		return {"error": "; ".join(problems)}
@@ -123,7 +126,10 @@ static func preset_deck(preset_id: String) -> Dictionary:
 	var found := FateDecks.preset(preset_id)
 	if found.is_empty():
 		return {}
-	return deck([found.domain], found.name, found.list)
+	var built := deck([found.domain], found.name, found.list)
+	if not found.get("doctrines", []).is_empty():
+		built["doctrines"] = found.doctrines.duplicate()
+	return built
 
 
 # The decks of a tier of the catalogue (FateDecks.TIER_OPTIMISED / TIER_STARTER), one per domain

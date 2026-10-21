@@ -41,21 +41,23 @@ func play_game(config: Dictionary, g: int) -> Dictionary:
 	_errors.take()
 	FateGame.domain_override = {1: decks[seat1].domains, 2: decks[1 - seat1].domains}
 	FateGame.decklist_override = {}
+	FateGame.doctrine_override = {}
 	for seat in deck_of_seat:
 		var list: Dictionary = decks[deck_of_seat[seat]].get("list", {})
 		if not list.is_empty():
 			FateGame.decklist_override[seat] = list
+		FateGame.doctrine_override[seat] = decks[deck_of_seat[seat]].get("doctrines", [])
 	cfc.game_rng_seed = Config.game_seed(config, g)
 	var game: FateGame = await _build_table()
 	var labels := {}
 	for seat in deck_of_seat:
 		labels[seat] = decks[deck_of_seat[seat]].label
+	game.doctrines.enabled = config.get("doctrines", true)
 	var recorder := Recorder.new(game, labels, deck_of_seat)
 	var levels: Array = config.get("levels", [1, 1])
 	for seat in deck_of_seat:
 		var spec = levels[deck_of_seat[seat]]
 		game.set_ai(seat, true, spec if spec is String or spec is Dictionary else int(spec))
-	game.doctrines.enabled = config.get("doctrines", true)
 	var turn_cap: int = int(config.get("turn_cap", 60))
 	var deadline := Time.get_ticks_msec() + int(config.get("game_seconds", 120)) * 1000
 	var frames := 0

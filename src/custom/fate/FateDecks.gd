@@ -180,13 +180,19 @@ static func _generated(domains: Array) -> Array:
 	return deck
 
 
-# The doctrine card names for a player: all three tiers of the first domain's branch.
-static func doctrines_for(domains: Array) -> Array:
+# The doctrine card names for a player, cheapest (lowest tier) first: `chosen` when a deck names its doctrines (any
+# doctrines, of any domain: they can be mixed), otherwise all the doctrines of the first domain's branch.
+# Unknown names and cards that are not doctrines are left out.
+static func doctrines_for(domains: Array, chosen: Array = []) -> Array:
 	var found := []
-	for card_name in cfc.card_definitions:
-		var props: Dictionary = cfc.card_definitions[card_name]
-		if props.get("Type") == "Doctrine" and props.get("Domain") == domains[0]:
+	for card_name in chosen:
+		if cfc.card_definitions.get(card_name, {}).get("Type") == "Doctrine" and not card_name in found:
 			found.append(card_name)
+	if found.is_empty():
+		for card_name in cfc.card_definitions:
+			var props: Dictionary = cfc.card_definitions[card_name]
+			if props.get("Type") == "Doctrine" and props.get("Domain") == domains[0]:
+				found.append(card_name)
 	found.sort_custom(func(a, b): return cfc.card_definitions[a]["Cost"] < cfc.card_definitions[b]["Cost"])
 	return found
 
@@ -202,7 +208,8 @@ const DOMAIN_ORDER := ["Order", "Primal", "Chaos", "Innovation"]
 const TIER_OPTIMISED := "Optimised"
 const TIER_STARTER := "Starter"
 
-# The optimised decks, by domain: {"name", "blurb", "list"}. Built with the AI simulation lab (docs/FATE_DECKS.md).
+# The optimised decks, by domain: {"name", "blurb", "list", "doctrines" (optional: the deck's own doctrine cards,
+# FateDecks.doctrines_for; without it the domain's)}. Built with the AI simulation lab (docs/FATE_DECKS.md).
 const OPTIMISED := {
 	"Order": {
 		"name": "Iron Vanguard",
@@ -341,7 +348,7 @@ static func _preset(domain: String, tier: String) -> Dictionary:
 	if tier == TIER_OPTIMISED:
 		var data: Dictionary = OPTIMISED[domain]
 		return {"id": preset_id_of(domain, tier), "name": data.name, "domain": domain, "tier": tier,
-				"blurb": data.blurb, "list": data.list.duplicate()}
+				"blurb": data.blurb, "list": data.list.duplicate(), "doctrines": data.get("doctrines", []).duplicate()}
 	var list := decklist([domain])
 	if list.is_empty():
 		list = counts_of(_generated([domain]))
@@ -374,6 +381,7 @@ static func select(player_id: int, preset_id: String) -> bool:
 		return false
 	FateGame.domain_override[player_id] = [chosen.domain]
 	FateGame.decklist_override[player_id] = chosen.list.duplicate()
+	FateGame.doctrine_override[player_id] = chosen.get("doctrines", []).duplicate()
 	return true
 
 
@@ -381,3 +389,4 @@ static func select(player_id: int, preset_id: String) -> bool:
 static func clear_selection() -> void:
 	FateGame.domain_override = {}
 	FateGame.decklist_override = {}
+	FateGame.doctrine_override = {}

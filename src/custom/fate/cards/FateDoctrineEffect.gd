@@ -21,6 +21,12 @@ func on_reward_end(_card: Card) -> void:
 	pass
 
 
+# What achieving this doctrine is worth to the AI, in the points of FateAIEval (a creature point is about one point of
+# Strike or Guard). Negative: the AI's default (FateAIDoctrine.REWARD).
+func ai_reward_value(_card: Card, _player_id: int) -> float:
+	return -1.0
+
+
 # Is this the start (MAINTENANCE) of the turn of the doctrine's controller?
 func is_my_turn_start(card: Card, active_id: int, phase: int) -> bool:
 	return phase == FateGame.Phase.MAINTENANCE and active_id == card.controller_id

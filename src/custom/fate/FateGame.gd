@@ -68,6 +68,9 @@ static var domain_override := {}
 # Replaces the deck list of a player for the games started after it is set (player id -> {card name: copies}).
 # The AI simulation (src/custom/fate/sim/) plays custom decks with it; leave it empty otherwise.
 static var decklist_override := {}
+# Replaces the doctrine cards of a player for the games started after it is set (player id -> [doctrine names]).
+# Without an entry a player gets the doctrines of their first domain (FateDecks.doctrines_for).
+static var doctrine_override := {}
 const DOMAIN_BY_INITIAL := {"I": "Innovation", "C": "Chaos", "O": "Order", "P": "Primal"}
 # What the ENERGY phase choice was this turn (`energy_choice`)
 const CHOICE_ENERGY := "energy"
@@ -223,7 +226,7 @@ func _build_deck(p: FatePlayer) -> void:
 
 
 func _place_doctrines(p: FatePlayer) -> void:
-	for card_name in FateDecks.doctrines_for(p.domains):
+	for card_name in FateDecks.doctrines_for(p.domains, doctrine_override.get(p.id, [])):
 		if not place_card_on_table(card_name, p.id, "doctrines"):
 			break
 

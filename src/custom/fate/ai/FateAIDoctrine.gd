@@ -28,32 +28,20 @@ static func bonus(game: FateGame, pid: int, card: Card, profile) -> float:
 		if gives <= 0:
 			continue
 		var frac := minf(1.0, float(gives) / float(need))
-		total += REWARD * (1.0 if gives >= need else 0.35 * frac)
+		total += reward_value(game, doctrine, pid) * (1.0 if gives >= need else 0.35 * frac)
 	return total * profile.doctrine_pursuit
 
 
-# How much a card played from the hand adds to the number a goal counts
+# What achieving this doctrine is worth to the AI: the doctrine script may say (ai_reward_value), else REWARD
+static func reward_value(game: FateGame, doctrine: Card, pid: int) -> float:
+	var effect = game.card_effects.effect_of(doctrine.canonical_name) if game.card_effects != null else null
+	if effect != null and effect.has_method("ai_reward_value"):
+		var stated: float = effect.ai_reward_value(doctrine, pid)
+		if stated >= 0.0:
+			return stated
+	return REWARD
+
+
+# How much a card played from the hand adds to the number a goal counts (the goal kind says: FateDoctrines)
 static func contribution(game: FateGame, card: Card, goal: Dictionary) -> int:
-	var type := str(card.properties.get("Type", ""))
-	match goal.get("kind", ""):
-		"devotion":
-			if type == "Creature" or type == "Relic" or str(card.properties.get("_spell_kind", "")) == "Field":
-				var letter := ""
-				for initial in FateGame.DOMAIN_BY_INITIAL:
-					if FateGame.DOMAIN_BY_INITIAL[initial] == str(goal.domain):
-						letter = initial
-				return str(card.properties.get("Pips", "")).count(letter) if letter != "" else 0
-		"count":
-			match str(goal.get("what", "")):
-				"creature":
-					return 1 if type == "Creature" else 0
-				"relic":
-					return 1 if type == "Relic" else 0
-				"energy":
-					return 0
-		"power":
-			if type == "Creature":
-				var best := maxi(game.stats.base(card, "Strike"), game.stats.base(card, "Guard"))
-				# One creature of that power completes the goal
-				return 99 if best >= int(goal.n) else 0
-	return 0
+	return game.doctrines.contribution(card, goal)

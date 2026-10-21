@@ -96,7 +96,7 @@ func _new_deck() -> Dictionary:
 		"life_end": 0, "creatures_lost": 0, "attacks": 0, "player_hits": 0, "blocked_attacks": 0,
 		"mana_spent": 0, "mana_available": 0, "board_sum": 0, "board_turns": 0, "energy_plays": 0,
 		"draw_choices": 0, "cards_played": 0, "turns": 0, "dmg_taken": {},
-		"life_sum": [], "life_n": [], "cards": {},
+		"life_sum": [], "life_n": [], "cards": {}, "doctrines": {},
 	}
 
 
@@ -146,6 +146,20 @@ func _add_deck_game(seat: Dictionary, seat_id: int, winner: int, mirror: bool, _
 			d.life_n.append(0)
 		d.life_sum[i] += int(curve[i])
 		d.life_n[i] += 1
+	for doctrine_name in seat.get("doctrines", {}):
+		var turn := int(seat.doctrines[doctrine_name])
+		if not d.doctrines.has(doctrine_name):
+			d.doctrines[doctrine_name] = {"games": 0, "achieved": 0, "turn_sum": 0, "won_yes": 0, "dec_yes": 0,
+					"won_no": 0, "dec_no": 0}
+		var doc: Dictionary = d.doctrines[doctrine_name]
+		doc.games += 1
+		if turn >= 0:
+			doc.achieved += 1
+			doc.turn_sum += turn
+		if winner != 0:
+			var key := "yes" if turn >= 0 else "no"
+			doc["dec_" + key] += 1
+			doc["won_" + key] += 1 if won else 0
 	for card_name in seat.get("cards", {}):
 		var data: Dictionary = seat.cards[card_name]
 		if int(data.copies) <= 0:
@@ -340,6 +354,22 @@ func _card_info(card_name: String) -> Dictionary:
 
 
 # Matchup rows in the order they were configured
+# Per deck and doctrine: how often and when it was achieved, and the win rate with and without it.
+# {"label", "doctrine", "games", "achieved_pct", "avg_turn", "wr_yes", "wr_no", "n_yes", "n_no"}
+func doctrine_rows() -> Array:
+	var rows: Array = []
+	for label in decks:
+		var docs: Dictionary = decks[label].get("doctrines", {})
+		for doctrine_name in docs:
+			var doc: Dictionary = docs[doctrine_name]
+			rows.append({"label": label, "doctrine": doctrine_name, "games": doc.games,
+					"achieved_pct": _share(doc.achieved, doc.games),
+					"avg_turn": float(doc.turn_sum) / float(doc.achieved) if doc.achieved > 0 else 0.0,
+					"wr_yes": _share(doc.won_yes, doc.dec_yes), "wr_no": _share(doc.won_no, doc.dec_no),
+					"n_yes": doc.dec_yes, "n_no": doc.dec_no})
+	return rows
+
+
 func matchup_rows() -> Array:
 	var rows: Array = []
 	var keys := matchups.keys()
@@ -360,7 +390,7 @@ func to_dict() -> Dictionary:
 	return {
 		"games": games, "decided": decided, "reasons": reasons, "avg_turns": average_turns(),
 		"median_turns": median(turns_list), "wins_by_seat": wins_by_seat, "turn_buckets": turn_buckets,
-		"decks": deck_rows(), "cards": card_rows(), "matchups": matchup_rows(), "problems": problems,
+		"decks": deck_rows(), "cards": card_rows(), "matchups": matchup_rows(), "doctrines": doctrine_rows(), "problems": problems,
 		"failures": failures, "errors": errors,
 	}
 
@@ -422,6 +452,14 @@ func format_text(top_cards := 8) -> String:
 		var r: Dictionary = m_rows[0]
 		out.append("")
 		out.append("MATCHUP  %s vs %s: %d - %d, %d draws" % [r.a, r.b, r.a_wins, r.b_wins, r.draws])
+	var d_rows := doctrine_rows()
+	if not d_rows.is_empty():
+		out.append("")
+		out.append("DOCTRINES  (achieved = share of games, turn = average game turn it was achieved on)")
+		out.append("  %-12s %-28s %8s %5s %12s %12s" % ["deck", "doctrine", "achieved", "turn", "wr with", "wr without"])
+		for r in d_rows:
+			out.append("  %-12s %-28s %8s %5.1f %6s (%3d) %6s (%3d)" % [r.label, r.doctrine.left(28),
+					pct(r.achieved_pct), r.avg_turn, pct(r.wr_yes), r.n_yes, pct(r.wr_no), r.n_no])
 	var all_cards := card_rows()
 	for label in decks:
 		out.append("")
