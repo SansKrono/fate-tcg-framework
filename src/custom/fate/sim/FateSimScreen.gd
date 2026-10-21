@@ -49,6 +49,9 @@ var _level_choice := [null, null]
 # Optional profile specs (FateAIProfile): "hard+aggro;caution=0.3" or a profile file; replaces the grade when filled in
 var _profile_text := [null, null]
 var _round_robin: CheckBox
+# One deck picker per domain, shown in round robin mode: {domain: OptionButton}
+var _robin_choice := {}
+var _robin_box: VBoxContainer
 var _games: SpinBox
 var _workers: SpinBox
 var _seed: LineEdit
@@ -164,9 +167,25 @@ func _build_setup() -> Control:
 		choice.item_selected.connect(func(i): file.visible = choice.get_item_text(i) == CUSTOM_DECK)
 	_round_robin = CheckBox.new()
 	_round_robin.text = "Round robin: every domain against every other"
-	_round_robin.tooltip_text = "Plays all pairs of the four domains. Use it to see how the domains stand against each other."
+	_round_robin.tooltip_text = "Plays all pairs of the four domains, with the deck picked for each below. Use it to see how the domains stand against each other."
 	_round_robin.toggled.connect(_on_round_robin)
 	box.add_child(_round_robin)
+	_robin_box = VBoxContainer.new()
+	_robin_box.visible = false
+	for domain in Config.DOMAINS:
+		var robin_row := HBoxContainer.new()
+		robin_row.add_child(_small(domain, 60))
+		var robin := OptionButton.new()
+		robin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		robin.add_item("%s (default)" % domain)
+		for preset in FateDecks.presets():
+			if preset.domain == domain:
+				robin.add_item("%s (%s)" % [preset.name, preset.tier.to_lower()])
+				robin.set_item_metadata(robin.item_count - 1, preset.id)
+		_robin_choice[domain] = robin
+		robin_row.add_child(robin)
+		_robin_box.add_child(robin_row)
+	box.add_child(_robin_box)
 	box.add_child(_heading("Games"))
 	_games = _spin(box, "Games per matchup", 1, 5000, 20)
 	_workers = _spin(box, "Processes in parallel", 1, 32, Config.default_workers())
@@ -313,7 +332,7 @@ func _on_start() -> void:
 	_message.text = ""
 	var matchups: Array = []
 	if _round_robin.button_pressed:
-		matchups = Config.round_robin(Config.DOMAINS.map(func(d): return Config.domain_deck(d)))
+		matchups = Config.round_robin(Config.DOMAINS.map(_robin_deck))
 	else:
 		var decks: Array = []
 		for side in 2:
@@ -359,7 +378,17 @@ func _on_stop() -> void:
 	_run.stop()
 
 
+# The deck picked for a domain in the round robin
+func _robin_deck(domain: String) -> Dictionary:
+	var choice: OptionButton = _robin_choice[domain]
+	var preset_id = choice.get_item_metadata(choice.selected)
+	if preset_id is String:
+		return Config.preset_deck(preset_id)
+	return Config.domain_deck(domain)
+
+
 func _on_round_robin(on: bool) -> void:
+	_robin_box.visible = on
 	for side in 2:
 		_deck_choice[side].disabled = on
 		_deck_file[side].editable = not on

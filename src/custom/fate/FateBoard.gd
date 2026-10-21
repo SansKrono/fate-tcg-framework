@@ -292,7 +292,7 @@ func _add_grid(zone: String, pid: int) -> void:
 	var grid: BoardPlacementGrid = GRID_SCENE.instantiate()
 	grid.name = grid_name.replace(" ", "")
 	grid.card_play_scale = FateLayout.zone_scale(zone)
-	grid.auto_extend = zone == "energy"
+	grid.auto_extend = zone in FateLayout.UNLIMITED_ZONES
 	grid.get_node("GridContainer").columns = FateLayout.COLUMNS.get(zone, 1)
 	grid.get_node("Control/Label").text = grid_name
 	grid.get_node("Control/Label").visible = false
@@ -316,6 +316,8 @@ func _add_grid(zone: String, pid: int) -> void:
 		slots = 1
 	elif zone == "energy":
 		slots = FateLayout.ENERGY_START_SLOTS
+	elif zone == "relics":
+		slots = FateLayout.RELIC_START_SLOTS
 	# The scene comes with one slot
 	for _i in range(slots - 1):
 		grid.add_slot()
@@ -349,29 +351,12 @@ func _add_energy_counter(grid: BoardPlacementGrid, pid: int) -> void:
 	energy_counters[pid] = counter
 
 
-# Keeps each energy row on one line: squeezes the cards together when there are more than fit,
-# moves the cards onto their (moved) slots once they stop moving, and updates the counters.
-func _squeeze_energy() -> void:
+# Keeps each energy row and relic row on one line: squeezes the cards together when there are more than fit,
+# moves the cards onto their (moved) slots once they stop moving, and updates the energy counters.
+func _squeeze_rows() -> void:
 	for pid in energy_counters:
-		var grid := FateZones.grid("energy", pid)
-		if grid == null:
-			continue
-		var slot_count := grid.get_slot_count()
-		var card_width: float = CFConst.CARD_SIZE.x * grid.card_play_scale
-		var gap := 5.0
-		if slot_count > 1 and slot_count * card_width + (slot_count - 1) * gap > FateLayout.ENERGY_ROW_WIDTH:
-			gap = floorf((FateLayout.ENERGY_ROW_WIDTH - slot_count * card_width) / (slot_count - 1))
-			gap = maxf(gap, 8.0 - card_width)
-		var container: GridContainer = grid.get_node("GridContainer")
-		if container.get_theme_constant("h_separation") != int(gap):
-			container.add_theme_constant_override("h_separation", int(gap))
-			# Let the panel shrink back to its content
-			grid.size = Vector2.ZERO
-		for card in game.player(pid).cards_in_grid("energy"):
-			var slot: BoardPlacementSlot = card._placement_slot
-			if card.state == Card.CardState.ON_PLAY_BOARD and not card.get_node("Tween").is_active() \
-					and card.position.distance_to(slot.global_position - global_position) > 0.5:
-				card.position = slot.global_position - global_position
+		_squeeze_row(pid, "energy", FateLayout.ENERGY_ROW_WIDTH)
+		_squeeze_row(pid, "relics", FateLayout.RELIC_ROW_WIDTH)
 		var total: int = game.player(pid).cards_in_grid("energy").size()
 		var ready: int = game.mana.untapped_energy(pid).size()
 		var counter: Control = energy_counters[pid]
@@ -380,10 +365,33 @@ func _squeeze_energy() -> void:
 		counter.tooltip_text = "Energy: %d ready, %d tapped" % [ready, total - ready]
 
 
+# One row of a growing zone (energy, relics) of a player
+func _squeeze_row(pid: int, zone: String, width: float) -> void:
+	var grid := FateZones.grid(zone, pid)
+	if grid == null:
+		return
+	var slot_count := grid.get_slot_count()
+	var card_width: float = CFConst.CARD_SIZE.x * grid.card_play_scale
+	var gap := 5.0
+	if slot_count > 1 and slot_count * card_width + (slot_count - 1) * gap > width:
+		gap = floorf((width - slot_count * card_width) / (slot_count - 1))
+		gap = maxf(gap, 8.0 - card_width)
+	var container: GridContainer = grid.get_node("GridContainer")
+	if container.get_theme_constant("h_separation") != int(gap):
+		container.add_theme_constant_override("h_separation", int(gap))
+		# Let the panel shrink back to its content
+		grid.size = Vector2.ZERO
+	for card in game.player(pid).cards_in_grid(zone):
+		var slot: BoardPlacementSlot = card._placement_slot
+		if card.state == Card.CardState.ON_PLAY_BOARD and not card.get_node("Tween").is_active() \
+				and card.position.distance_to(slot.global_position - global_position) > 0.5:
+			card.position = slot.global_position - global_position
+
+
 func _process(delta: float) -> void:
 	super._process(delta)
 	if game != null and game.is_started:
-		_squeeze_energy()
+		_squeeze_rows()
 
 
 # --- status bar and action panel ----------------------------------------------------------

@@ -19,8 +19,14 @@ const SCREEN := Vector2(1280, 720)
 # Scale of the cards in each zone (FateBoard.TABLE_SCALE for the zones not listed)
 const ZONE_SCALES := {"energy": 0.3, "doctrines": 0.3, "world": 0.3}
 const COLUMNS := {
-	"creatures": 6, "occupied": 6, "relics": 3, "field": 1, "doctrines": 3, "energy": 99,
+	"creatures": 6, "occupied": 6, "relics": 99, "field": 1, "doctrines": 3, "energy": 99,
 }
+# The zones with no limit on the number of cards: the grid grows a slot whenever it is full
+const UNLIMITED_ZONES := ["energy", "relics"]
+# The relic zone has no limit either: it starts with RELIC_START_SLOTS slots, grows like the energy row and
+# squeezes its cards together past RELIC_ROW_WIDTH (FateBoard._squeeze_rows)
+const RELIC_START_SLOTS := 3
+const RELIC_ROW_WIDTH := 216.0
 # The energy zone is one row that never wraps: past ENERGY_START_SLOTS cards the cards squeeze
 # together (FateBoard._squeeze_energy) to stay within ENERGY_ROW_WIDTH, and a counter beside the
 # row says how much energy there is, ready and tapped

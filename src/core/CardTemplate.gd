@@ -1155,6 +1155,12 @@ func _set_card_rotation_property(value: int) -> void:
 
 
 # Discovers if a grid placement slot is currently highlighted to be used
+# Can this card be dropped on the grid of this name? With BoardPlacement.SPECIFIC_GRID or
+# GRID_AUTOPLACEMENT only the mandatory grid; a game may allow more (override it).
+func allows_grid(grid_name: String) -> bool:
+	return grid_name == mandatory_grid_name
+
+
 func get_potential_placement_slot() -> BoardPlacementSlot:
 	var placement_slot: BoardPlacementSlot = null
 	for ps in get_tree().get_nodes_in_group("placement_slot"):
@@ -1206,8 +1212,7 @@ func move_to(targetHost,
 			BoardPlacement.SPECIFIC_GRID, BoardPlacement.GRID_AUTOPLACEMENT:
 				var slot = get_potential_placement_slot()
 				if slot:
-					if get_potential_placement_slot().get_grid_name() \
-							== mandatory_grid_name:
+					if allows_grid(get_potential_placement_slot().get_grid_name()):
 						board_position = slot
 					else:
 						targetHost = parentHost

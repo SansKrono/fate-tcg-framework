@@ -231,14 +231,15 @@ static func slot_kind(card: Card) -> String:
 func occupant_for(card: Card) -> Card:
 	match slot_kind(card):
 		"field":
-			return field_spell(card.owner_id if card is FateCardTemplate else game.active_id)
+			return field_spell(card.field_seat() if card is FateCardTemplate else game.active_id)
 		"world":
 			return world_spell()
 	return null
 
 
 # Called by FateCardTemplate.common_pre_move_scripts before a card lands on the table: a field / world
-# spell sends the card in its slot (a field spell: the same player's, a world spell: whoever's) to that
+# spell sends the card in its slot (a field spell: the player's it is aimed at, FateCardTemplate.field_seat;
+# a world spell: whoever's) to that
 # card's owner's discard pile. Does nothing if the spell is not going to the table's own slot (the board
 # refuses a drop on another zone). Returns the replaced card, or null.
 func make_room(card: Card) -> Card:

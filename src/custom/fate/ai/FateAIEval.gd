@@ -226,7 +226,7 @@ static func has_engine(effect) -> bool:
 # What a card whose effect hurts its caster as well is worth right now, or -1 when the AI has no special
 # knowledge of the card. The AI cannot read an effect, so the known sweepers and self-harming cards are listed
 # here (a card script can say better with ai_value): Toll of War / No Where to Hide destroy every creature in
-# strike / guard position, theirs AND the AI's; War of Attrition occupies the AI's own creatures; Self-destruction
+# strike / guard position, theirs AND the AI's; Self-destruction
 # makes the caster consume permanents. 0 = never cast.
 static func spell_hint(game: FateGame, card: Card) -> float:
 	match card.canonical_name:
@@ -240,9 +240,45 @@ static func spell_hint(game: FateGame, card: Card) -> float:
 					continue
 				net += unit_value(u) if u.ctrl != card.owner_id else -unit_value(u)
 			return maxf(0.0, 0.9 * net - 0.5)
-		"War of Attrition", "Self-destruction":
+		"Self-destruction":
 			return 0.0
 	return -1.0
+
+
+# --- field spells ----------------------------------------------------------------------------------------------
+# A field spell can be cast on either player's field, replacing the one there; the player whose field it is in
+# controls it. One that harms its holder (FateCardEffect.harms_holder: War of Attrition) goes on the opponent's.
+
+static func _harms_holder(game: FateGame, card: Card) -> bool:
+	var effect = game.card_effects.effect_of(card.canonical_name) if game.card_effects != null else null
+	return effect != null and effect.harms_holder(card)
+
+
+# The seat the AI casts a field spell on
+static func field_target(game: FateGame, card: Card, me: int) -> int:
+	return FateZones.opponent_of(me) if _harms_holder(game, card) else me
+
+
+# What a field spell on the table is worth to `me` (negative: it works against me)
+static func field_standing(game: FateGame, field: Card, me: int, w: Dictionary = DEFAULT_W) -> float:
+	var holder: int = field.controller_id
+	var effect = game.card_effects.effect_of(field.canonical_name) if game.card_effects != null else null
+	var to_holder: float
+	if _harms_holder(game, field):
+		to_holder = -maxf(0.0, effect.ai_value(field, FateZones.opponent_of(holder))) * w.spell_value
+	else:
+		to_holder = _live_value(game, field, effect) * w.spell_value
+	return to_holder if holder == me else -to_holder
+
+
+# What casting a field spell from the hand is worth now: its own value where it goes, plus what removing the
+# field spell already there gains (their helpful one, or a harmful one on my own field) or loses
+static func field_cast_value(game: FateGame, card: Card, me: int, w: Dictionary = DEFAULT_W) -> float:
+	var v := hand_value(game, card, w)
+	var old: Card = game.equip.field_spell(field_target(game, card, me)) if game.equip != null else null
+	if old != null and is_instance_valid(old):
+		v -= field_standing(game, old, me, w)
+	return v
 
 
 # Does a script define a hook beyond the keyword defaults? (creatures: an enters or activated effect)

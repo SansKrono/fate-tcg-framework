@@ -121,6 +121,35 @@ func assign_owner(player_id: int) -> void:
 		mandatory_grid_name = FateZones.grid_name(zone, player_id)
 
 
+# A field spell can be cast on either player's field (it replaces the spell there): the player whose field
+# slot it takes controls it ("you" in its text), its caster stays the owner. `mandatory_grid_name` names the
+# field slot it is aimed at.
+func field_seat() -> int:
+	if board_zone() != "field":
+		return controller_id
+	for pid in [1, 2]:
+		if mandatory_grid_name == FateZones.grid_name("field", pid):
+			return pid
+	return owner_id
+
+
+# Aims a field spell at a player's field slot (no effect on other cards)
+func aim_field(player_id: int) -> void:
+	if board_zone() == "field":
+		mandatory_grid_name = FateZones.grid_name("field", player_id)
+
+
+# A field spell in the hand may be dropped on either player's field slot
+func allows_grid(grid_name: String) -> bool:
+	if board_zone() == "field" and not _is_board_parent():
+		return grid_name in [FateZones.grid_name("field", 1), FateZones.grid_name("field", 2)]
+	return super.allows_grid(grid_name)
+
+
+func _is_board_parent() -> bool:
+	return cfc.NMAP.has("board") and get_parent() == cfc.NMAP.board
+
+
 # Gives the card the look of the zone it stands in, at once (no animation): `is_energy` follows
 # the "energy" zone, `face` is "up" or "down" and `tapped` tilts the card by 90 degrees. The
 # defaults are FateBoardState.default_face / default_tapped: energy lies face-down, occupied
@@ -187,6 +216,10 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 	if game.card_effects and old_host == cfc.NMAP.get("board") and new_host != old_host \
 			and not is_energy:
 		game.card_effects.card_left.call_deferred(self, _zone_name_of(new_host.name))
+		# A field spell off the table is its owner's again, aimed at their field
+		if board_zone() == "field":
+			aim_field(owner_id)
+			controller_id = owner_id
 	if "Scripted" in move_tags or not old_host is Hand or new_host == old_host:
 		_make_room(game, new_host, old_host)
 		return new_host
@@ -206,6 +239,12 @@ func common_pre_move_scripts(new_host: Node, old_host: Node, move_tags: Array) -
 		return new_host
 	if not game.can_play_from_hand(self):
 		return old_host
+	# A field spell dropped on a field slot is aimed at that player's field
+	var hovered: BoardPlacementSlot = get_potential_placement_slot()
+	if hovered != null and board_zone() == "field":
+		for pid in [1, 2]:
+			if hovered.get_grid_name() == FateZones.grid_name("field", pid):
+				aim_field(pid)
 	if is_instant_spell():
 		# A regular spell resolves into the discard pile. The move to the pile cannot fail
 		# from here, so it is paid for now
@@ -251,6 +290,7 @@ func common_post_move_scripts(new_host: String, old_host: String, _move_tags: Ar
 		return
 	if game.debug_mode or game.pay(self):
 		entered_turn = game.turn_number
+		controller_id = field_seat()
 		game.card_played.emit(self)
 		if game.card_effects:
 			game.card_effects.card_entered(self, true)

@@ -1,4 +1,4 @@
-# Steelwork Salvager (Innovation, 2/1): "When it attacks, create a scrap token".
+# Steelwork Salvager (Innovation, 2/2): "When it attacks, create a scrap token".
 extends "res://src/custom/fate/cards/FateCardEffect.gd"
 
 

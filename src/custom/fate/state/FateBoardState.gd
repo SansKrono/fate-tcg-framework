@@ -25,11 +25,11 @@ const PILE_ZONES := ["hand", "deck", "discard", "removed"]
 const GRID_ZONES := ["creatures", "occupied", "relics", "field", "energy", "doctrines"]
 const ZONE_ORDER := ["hand", "deck", "discard", "removed", "creatures", "occupied", "relics", "field",
 		"energy", "doctrines"]
-# How many cards a zone holds. Energy has no real limit (the grid grows), ENERGY_MAX is a sanity limit.
+# How many cards a zone holds. Energy and relics have no real limit (the grid grows), ENERGY_MAX is a sanity limit.
 const ENERGY_MAX := 40
 const HAND_SIZE := 10
 const GRID_CAPACITY := {
-	"creatures": 6, "occupied": 6, "relics": 3, "field": 1, "doctrines": 3, "energy": ENERGY_MAX,
+	"creatures": 6, "occupied": 6, "relics": ENERGY_MAX, "field": 1, "doctrines": 3, "energy": ENERGY_MAX,
 }
 const WORLD_CAPACITY := 1
 

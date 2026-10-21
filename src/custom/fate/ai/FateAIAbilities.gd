@@ -23,6 +23,7 @@
 extends RefCounted
 
 const Eval := preload("res://src/custom/fate/ai/FateAIEval.gd")
+const Choices := preload("res://src/custom/fate/ai/FateAIChoices.gd")
 const Sim := preload("res://src/custom/fate/ai/FateAISim.gd")
 const Combat := preload("res://src/custom/fate/ai/FateAICombat.gd")
 const WhatIf := preload("res://src/custom/fate/ai/FateAIWhatIf.gd")
@@ -127,6 +128,10 @@ static var CARD_RULES := {}
 const MANA_IDS := ["elder_spirit", "ancient_tree"]
 # Cards whose abilities turn ingots into something (an ingot is worth more with one of them on the table)
 const INGOT_SINKS := ["Battle Smith", "Factory Crafter", "Brogir, Master Artificer", "Thrang's Crafting Table"]
+# Cards that turn scrap into ingots: with one of them and a sink on the table, scrap starts the whole chain
+const SCRAP_CONVERTERS := ["Acquisition Fabricator", "Brogir, Master Artificer", "Factory Refinery"]
+# What a scrap is worth on top when it feeds a converter and a sink (the ingot, then what the sink makes of it)
+const CHAIN_BONUS := 1.5
 
 
 # The abilities of the AI's cards worth using this turn: [{"card": Card, "id": String, "value": float}], best
@@ -238,7 +243,9 @@ static func _value(game: FateGame, state: Dictionary, profile, card: Card, actio
 			if name == "Garbage Heap":
 				# Two scrap for a relic that does nothing else
 				return {"value": 1.8 + (2.0 if _has_card(game, me, "Rarink, Crafty Opportunist") else 0.0), "risky": true}
-			return {"value": 0.8 + (0.3 if _sink_present(game, me) else 0.0), "occupies": true}
+			var sink := _sink_present(game, me)
+			var chain := CHAIN_BONUS if sink and scrap < 1 and _converter_present(game, me) else 0.0
+			return {"value": 0.8 + (0.3 if sink else 0.0) + chain, "occupies": true}
 		"fabricate", "scrap_to_ingot", "refine":
 			if scrap < 1:
 				return {"skip": true}
@@ -296,10 +303,22 @@ static func _sink_present(game: FateGame, pid: int) -> bool:
 	return false
 
 
+static func _converter_present(game: FateGame, pid: int) -> bool:
+	if game.card_effects == null:
+		return false
+	for c in game.card_effects.table_cards():
+		if c is FateCardTemplate and c.controller_id == pid and c.canonical_name in SCRAP_CONVERTERS:
+			return true
+	return false
+
+
 static func _free(game: FateGame, pid: int, zone: String) -> int:
 	var grid := game.player(pid).grid(zone)
 	if grid == null:
 		return 0
+	# A zone without a limit (energy, relics) always has room
+	if grid.auto_extend:
+		return 99
 	var n := 0
 	for slot in grid.get_all_slots():
 		if slot.occupying_card == null:

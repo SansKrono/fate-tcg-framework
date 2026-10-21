@@ -324,7 +324,7 @@ func _is_placement_slot_valid(slot: BoardPlacementSlot, potential_cards := []) -
 		if cfc.card_drag_ongoing.board_placement in [
 				Card.BoardPlacement.GRID_AUTOPLACEMENT,
 				Card.BoardPlacement.SPECIFIC_GRID]:
-			if slot.get_grid_name() != cfc.card_drag_ongoing.mandatory_grid_name:
+			if not cfc.card_drag_ongoing.allows_grid(slot.get_grid_name()):
 				is_valid = false
 		# If a card is not allowed on the board
 		# We do not highlight grid slots when it's hovering them

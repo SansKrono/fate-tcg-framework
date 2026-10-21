@@ -224,6 +224,10 @@ func _finish_card(card: Card, entry: Dictionary, zone: String, pid: int, path: S
 			card.assign_owner(owner)
 		# Unless the state says otherwise the controller is the player whose zone it is
 		card.controller_id = entry.get("controller", pid if pid != 0 else owner)
+		# A field spell stands in its controller's field slot, whoever owns it
+		if zone == "field":
+			card.aim_field(pid)
+			card.controller_id = pid
 		card.entered_turn = entry.get("entered_turn", 0)
 		if entry.get("achieved", false):
 			card.set_meta("doctrine_achieved", true)

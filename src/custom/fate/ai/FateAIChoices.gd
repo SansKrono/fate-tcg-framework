@@ -200,7 +200,7 @@ static func intent_of(game: FateGame, seat: int, request: Dictionary) -> String:
 	var mine := 0
 	var theirs := 0
 	for o in request.options:
-		var owner_id := _owner_of(o)
+		var owner_id := _owner_of(o, game)
 		if owner_id == seat:
 			mine += 1
 		elif owner_id != 0:
@@ -218,12 +218,16 @@ static func _hits(text: String, words: Array) -> int:
 	return n
 
 
-# Who the option belongs to: the controller of a card on the table, the owner of other cards, the player id
-static func _owner_of(option) -> int:
+# Who the option belongs to: the controller of a card on the table (a field spell that harms its holder: the
+# other player), the owner of other cards, the player id
+static func _owner_of(option, game: FateGame = null) -> int:
 	if option is FatePlayer:
 		return option.id
 	if option is FateCardTemplate:
-		return option.controller_id if FateZones.zone_of(option) != "" else option.owner_id
+		var zone := FateZones.zone_of(option)
+		if zone == "field" and game != null and Eval._harms_holder(game, option):
+			return FateZones.opponent_of(option.controller_id)
+		return option.controller_id if zone != "" else option.owner_id
 	return 0
 
 
@@ -231,7 +235,7 @@ static func _owner_of(option) -> int:
 
 # How much the AI wants this option picked, given the intent. Higher is better.
 static func score_option(game: FateGame, seat: int, option, intent: String, w: Dictionary = Eval.DEFAULT_W) -> float:
-	var mine := _owner_of(option) == seat
+	var mine := _owner_of(option, game) == seat
 	var worth := _worth(game, option, w)
 	match intent:
 		"harm":
@@ -254,9 +258,17 @@ static func _worth(game: FateGame, option, w: Dictionary = Eval.DEFAULT_W) -> fl
 	var zone := FateZones.zone_of(option)
 	if zone in FateZones.CREATURE_ZONES:
 		return Eval.unit_value(Snapshot.unit_of(game, option), -1, -1, w)
+	if zone == "field":
+		return 1.5 + absf(Eval.field_standing(game, option, option.controller_id, w))
 	if zone != "":
-		# A relic, field or world spell on the table
-		return 1.5 + 0.5 * float(option.mana_value())
+		# A relic, field or world spell on the table. Token relics cost nothing to make but do real work
+		# (a hammer on its creature, a spear to throw), so they are not the first thing to give up
+		var bonus := 0.0
+		if option.canonical_name == "Battle Hammer Token":
+			bonus = 2.2 * float(w.get("w_strike", 1.0))
+		elif option.canonical_name == "Soul Spear Token":
+			bonus = 2.0
+		return 1.5 + 0.5 * float(option.mana_value()) + bonus
 	return maxf(Eval.hand_value(game, option, w), 0.5)
 
 

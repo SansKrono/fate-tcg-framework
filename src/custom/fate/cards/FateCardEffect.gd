@@ -202,6 +202,12 @@ func ai_value(_card: Card, _caster_id: int) -> float:
 	return -1.0
 
 
+# A field spell that hurts the player whose field it stands in (its controller), so its caster puts it on the
+# opponent's field. The AI casts it there and values ai_value as the harm done.
+func harms_holder(_card: Card) -> bool:
+	return false
+
+
 # What a choice of this card is for, so the AI picks sensibly: "harm" (destroy, damage: the opponent's best
 # thing), "help" (a buff: its own best thing), "give" (a cost: its cheapest thing), or "" for the AI to guess
 # from the rules text. `request` is the FateChoices request.

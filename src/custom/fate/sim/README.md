@@ -7,7 +7,7 @@ and AI as a real game (`docs/FATE_RULES_SPEC.md`, `src/custom/fate/ai/`), played
 ## Using it
 
 **In the game:** main menu -> *Fate AI Simulation Lab*. Pick deck A and deck B (a domain, a deck of the catalogue, or the path of a deck
-`.json` file), or tick *Round robin* to play every domain against every other. Set the games per matchup, the
+`.json` file), or tick *Round robin* to play every domain against every other (pick the deck of each domain: its default list, optimised or starter). Set the games per matchup, the
 number of processes, the AI level of each deck, press *Start*. The tables fill up while the games are played;
 *Stop* keeps what was played. *Earlier runs* reloads a finished run.
 

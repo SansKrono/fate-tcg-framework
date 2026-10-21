@@ -1,4 +1,4 @@
-# Goblin Ledgerkeeper (Innovation, 0/1 placeholder stats): "Occupy: create a scrap token".
+# Goblin Ledgerkeeper (Innovation, 1/2): "Occupy: create a scrap token".
 extends "res://src/custom/fate/cards/FateCardEffect.gd"
 
 

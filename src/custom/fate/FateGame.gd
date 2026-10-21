@@ -336,12 +336,14 @@ func reset_table() -> void:
 	for card in doomed:
 		_delete_table_card(card)
 	for pid in players:
-		var energy: BoardPlacementGrid = players[pid].grid("energy")
-		while energy.get_slot_count() > FateLayout.ENERGY_START_SLOTS:
-			var extra: Node = energy.get_all_slots().back()
-			extra.get_parent().remove_child(extra)
-			extra.queue_free()
-		energy.size = Vector2.ZERO
+		var start_slots := {"energy": FateLayout.ENERGY_START_SLOTS, "relics": FateLayout.RELIC_START_SLOTS}
+		for zone in start_slots:
+			var grown: BoardPlacementGrid = players[pid].grid(zone)
+			while grown.get_slot_count() > start_slots[zone]:
+				var extra: Node = grown.get_all_slots().back()
+				extra.get_parent().remove_child(extra)
+				extra.queue_free()
+			grown.size = Vector2.ZERO
 	if stats != null and stats.has_method("clear_all"):
 		stats.clear_all()
 	if tokens != null:
@@ -590,14 +592,20 @@ func can_tilt(card: Card) -> bool:
 # spells resolve into the discard pile. Reaction spells cannot be played here (D8, see FateReactions).
 # Returns whether the card was played. For the AI and tests; the UI uses the drag and drop of the
 # framework, which ends in the same hooks (FateCardTemplate.common_pre_move_scripts).
-func play_from_hand(card: Card) -> bool:
+# `field_seat` (a field spell only): the player whose field it is cast on (default: its owner's); that
+# player controls it, and the field spell already there goes to its owner's discard pile.
+func play_from_hand(card: Card, field_seat := 0) -> bool:
 	if not can_play_from_hand(card):
 		return false
 	var fate_card: FateCardTemplate = card
 	if fate_card.is_instant_spell():
 		fate_card.move_to(cfc.NMAP.board)
 		return not fate_card.get_parent() is Hand
-	var grid: BoardPlacementGrid = FateZones.grid(fate_card.board_zone(), fate_card.owner_id)
+	var seat: int = fate_card.owner_id
+	if fate_card.board_zone() == "field":
+		seat = field_seat if players.has(field_seat) else fate_card.owner_id
+		fate_card.aim_field(seat)
+	var grid: BoardPlacementGrid = FateZones.grid(fate_card.board_zone(), seat)
 	if grid == null:
 		return false
 	# A field or world spell replaces the card in its slot (the old one goes to the discard pile)

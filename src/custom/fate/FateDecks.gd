@@ -206,12 +206,13 @@ const TIER_STARTER := "Starter"
 const OPTIMISED := {
 	"Order": {
 		"name": "Iron Vanguard",
-		"blurb": "A fast human army. Cheap soldiers and Reinforcements go wide, Moral Captain and Battle Ready send the whole line in with extra Strike, Devote Paladin adds Savage, Smite removes the blocker that matters and Lucran closes the game.",
+		"blurb": "A fast human army. Cheap soldiers, Righteous Guards and Reinforcements go wide, Moral Captain and Battle Ready send the whole line in with extra Strike, Devote Paladin adds Savage, War of Attrition, cast on the enemy field, keeps their army occupied, Smite removes the blocker that matters and Lucran closes the game. Rebalanced in docs/FATE_ORDER_CARDS.md.",
 		"list": {
 			# 2
 			"Faithful Worshiper": 3,
-			"Hold the Line": 3,
 			"Holy Healer": 3,
+			"Reinforcements": 3,
+			"Righteous Guard": 3,
 			"Sigil Mage": 3,
 			"Smite": 3,
 			"Streetside Recruiter": 3,
@@ -219,13 +220,12 @@ const OPTIMISED := {
 			"Battle Ready": 3,
 			"Moral Captain": 3,
 			"Recovering Resources": 3,
-			"Reinforcements": 3,
 			"Tactical Combatant": 3,
 			"War of Attrition": 2,
 			# 4
 			"Devote Paladin": 3,
 			"Zelith, Mage Justiciar": 1,
-			# 7
+			# 5
 			"Lucran, Divine Saviour": 1,
 		},
 	},
@@ -288,28 +288,26 @@ const OPTIMISED := {
 	},
 	"Innovation": {
 		"name": "Goblin Foundry",
-		"blurb": "A scrap engine that ends in fire. Goblins and Garbage Heaps make scrap, Scrap Cannons turn every spare scrap into a point of damage to the opponent's life, Factory Crafter and Battle Smith turn ingots into automatons and hammers, and Safety Measure and Factory Shutdown buy the time. Slow to start, and the stock of scrap is a clock the opponent cannot see.",
+		"blurb": "A scrap engine that ends in fire. Goblins, Salvagers and Clockwork Sentinels make scrap even as they fall, Scrap Cannons turn every spare scrap into a point of damage, Factory Crafter and Battle Smith turn ingots into automatons and hammers, Scrapheap Colossus grows with every relic and Disassemble takes the small threats apart. Rebalanced in docs/FATE_INNOVATION_CARDS.md.",
 		"list": {
 			# 1
 			"Goblin Ledgerkeeper": 3,
 			# 2
-			"Factory Shutdown": 3,
-			"Garbage Heap": 3,
+			"Clockwork Sentinel": 3,
+			"Disassemble": 3,
+			"Factory Refinery": 3,
+			"Garbage Heap": 2,
 			"Rapid Scavenging": 3,
 			"Safety Measure": 3,
-			"Skulking Goblin": 3,
+			"Steelwork Salvager": 3,
 			# 3
 			"Acquisition Fabricator": 3,
 			"Battle Smith": 3,
 			"Factory Crafter": 3,
-			"Factory Refinery": 3,
-			"Rarink, Crafty Opportunist": 1,
-			"Rustmarket Tinkerer": 3,
 			"Scrap Cannon": 3,
 			# 4
 			"Brogir, Master Artificer": 1,
-			# 5
-			"Thrang's Crafting Table": 1,
+			"Scrapheap Colossus": 3,
 			# 7
 			"Thrang, Perpetual Innovation": 1,
 		},

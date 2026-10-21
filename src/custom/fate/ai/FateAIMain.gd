@@ -85,6 +85,8 @@ static func plan_plays(game: FateGame, state: Dictionary, profile) -> Dictionary
 					if extra < 0.0:
 						continue
 					var base_value := Eval.hand_value(game, card, w)
+					if card is FateCardTemplate and card.board_zone() == "field":
+						base_value = Eval.field_cast_value(game, card, me, w)
 					# Worth nothing (a card that only hurts its caster, see FateAIEval.spell_hint): never cast
 					if base_value <= 0.0:
 						continue
@@ -182,6 +184,9 @@ static func _free_slots(game: FateGame, pid: int, zone: String) -> int:
 	var grid := game.player(pid).grid(zone)
 	if grid == null:
 		return 0
+	# A zone without a limit (energy, relics) always has room
+	if grid.auto_extend:
+		return 99
 	var free := 0
 	for slot in grid.get_all_slots():
 		if slot.occupying_card == null:
@@ -233,7 +238,7 @@ static func run(ctrl, token: int) -> void:
 		var name: String = card.canonical_name
 		# An earlier play may have filled the zone (a creature that creates tokens when it enters)
 		var zone: String = card.board_zone() if card is FateCardTemplate else ""
-		if zone != "" and zone != "world" and _free_slots(game, seat, zone) == 0:
+		if zone != "" and zone not in ["field", "world"] and _free_slots(game, seat, zone) == 0:
 			ctrl.note("no room in the %s zone for %s" % [zone, name])
 			continue
 		# A pump or a removal spell: check again with the creatures that are on the table now, and tell the
@@ -245,8 +250,9 @@ static func run(ctrl, token: int) -> void:
 				ctrl.note("keeps %s (no gain now)" % name)
 				continue
 			profile.focus = r.focus
-		if game.play_from_hand(card):
-			ctrl.note("plays %s" % name)
+		var field_seat := Eval.field_target(game, card, seat) if zone == "field" else 0
+		if game.play_from_hand(card, field_seat):
+			ctrl.note("plays %s%s" % [name, " on the opponent's field" if field_seat not in [0, seat] else ""])
 		else:
 			ctrl.problem("could not play %s" % name)
 		await ctrl.pause()
