@@ -146,14 +146,14 @@ func test_playable_cards_in_hand_glow():
 	# Energy phase: every card of player 1's hand can be played as energy, player 2 plays nothing
 	board._refresh_hud()
 	for card in FateZones.container("hand", 1).get_all_cards():
-		assert_true(card._playable_glow != null and card._playable_glow.visible,
+		assert_true(card.playable and card.fx.glowing,
 				"%s glows" % card.canonical_name)
 	for card in FateZones.container("hand", 2).get_all_cards():
-		assert_false(card._playable_glow != null and card._playable_glow.visible)
+		assert_false(card.playable and card.fx.glowing)
 	go_to_main()
 	board._refresh_hud()
 	for card in FateZones.container("hand", 1).get_all_cards():
-		assert_eq(card._playable_glow != null and card._playable_glow.visible,
+		assert_eq(card.playable and card.fx.glowing,
 				game.can_play_from_hand(card), "%s glows only if it can be paid" % card.canonical_name)
 
 

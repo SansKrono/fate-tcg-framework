@@ -19,12 +19,14 @@ var entered_turn := 0
 # True between the pre- and the post-move script of a move from the hand to the table that
 # the rules allowed, so that the payment happens only if the card really lands there
 var _play_pending := false
-var _playable_glow: Control
+# True while the card glows as playable (FateBoard decides, FateCardFx draws the glow)
+var playable := false
 # True while the card is face-down in the opponent's hand (FateHand): it ignores the mouse
 var concealed := false
 # Set when the card left a concealed hand (the AI's): it was face-down there, and turns face-up as it
 # reaches the table (an energy card stays face-down)
 var reveal_on_table := false
+var fx: FateCardFx
 const PLAYABLE_COLOR := Color(0.35, 0.72, 1.0)
 
 
@@ -35,7 +37,8 @@ func _ready() -> void:
 	# and no playable glow
 	if card_front and card_front.has_method("set_table_mode"):
 		card_front.set_table_mode(false)
-	_playable_glow = $Control.get_node_or_null("PlayableGlow")
+	# Tilt, lift, shadow, the playable glow and the foil of the card's rarity (FateRarity)
+	fx = FateCardFx.attach(self)
 	set_playable(false)
 
 
@@ -67,25 +70,12 @@ func set_control_mouse_filters(value = true) -> void:
 	super.set_control_mouse_filters(value and not concealed)
 
 
-# The blue glow of a card in the hand that can be played right now (FateBoard decides)
+# The blue glow of a card in the hand that can be played right now (FateBoard decides). FateCardFx
+# draws it around the card's tilted shape.
 func set_playable(on: bool) -> void:
-	if on and _playable_glow == null:
-		# A crisp border with a soft halo around it (two border-only frames: a StyleBox shadow
-		# would also show through the transparent middle)
-		_playable_glow = Control.new()
-		_playable_glow.name = "PlayableGlow"
-		_playable_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for ring in [[7, 6, 0.3], [3, 3, 1.0]]:
-			var frame := Panel.new()
-			frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			frame.position = -Vector2(ring[0], ring[0])
-			frame.size = card_size + Vector2(ring[0], ring[0]) * 2
-			frame.add_theme_stylebox_override("panel", FateTheme.box(Color.TRANSPARENT,
-					Color(PLAYABLE_COLOR, ring[2]), 10 + ring[0], ring[1], 0.0))
-			_playable_glow.add_child(frame)
-		$Control.add_child(_playable_glow)
-	if _playable_glow:
-		_playable_glow.visible = on
+	playable = on
+	if fx:
+		fx.glowing = on
 
 
 # Cards on the table take the scale of the zone they stand in (FateLayout.ZONE_SCALES) and show

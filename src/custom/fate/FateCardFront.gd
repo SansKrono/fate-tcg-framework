@@ -113,6 +113,23 @@ func set_label_text(node: Label, value, scale: float = 1):
 	super.set_label_text(node, value, scale)
 
 
+# The rarity gem in the bottom right corner (FateRarity; FateCardFx sets it)
+func set_rarity(rarity: int) -> void:
+	var gem: Panel = find_child("RarityGem", true, false)
+	if gem == null:
+		gem = Panel.new()
+		gem.name = "RarityGem"
+		gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		gem.custom_minimum_size = Vector2(8, 8)
+		gem.size = gem.custom_minimum_size
+		gem.pivot_offset = gem.size / 2.0
+		gem.rotation = PI / 4.0
+		gem.position = Vector2(137, 227)
+		$Margin.add_child(gem)
+	var color := FateRarity.color_of(rarity)
+	gem.add_theme_stylebox_override("panel", FateTheme.box(color, color.darkened(0.6), 1, 1, 0.0))
+
+
 # --- table mode -----------------------------------------------------------------------------
 #
 # On the table cards are drawn at less than half size, where the full layout is unreadable.
