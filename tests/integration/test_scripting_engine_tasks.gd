@@ -280,7 +280,7 @@ class TestCreateGrid:
 	func test_create_grid():
 		card.scripts = {"manual": {"hand": [
 				{"name": "add_grid",
-				"scene_path": "res://src/custom/CGFPlacementGridDemo.tscn",
+				"scene_path": "res://tests/fixtures/CGFPlacementGridDemo.tscn",
 				"object_count": 2,
 				"board_position":  Vector2(50,50)}]}}
 		await execute_with_yield(card)
@@ -288,7 +288,7 @@ class TestCreateGrid:
 		assert_eq(grids.size(), 3, "All grids were created")
 		card.scripts = {"manual": {"hand": [
 				{"name": "add_grid",
-				"scene_path": "res://src/custom/CGFPlacementGridDemo.tscn",
+				"scene_path": "res://tests/fixtures/CGFPlacementGridDemo.tscn",
 				"grid_name": "GUT Grid",
 				"object_count": 3,
 				"board_position":  Vector2(600,50)}]}}

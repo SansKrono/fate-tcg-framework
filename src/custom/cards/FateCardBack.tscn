@@ -1,10 +1,47 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://src/custom/cards/FateCardBack.gd" id="1"]
+[ext_resource type="Script" path="res://src/custom/cards/FateCardBack.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bvul0ud060qhd" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_back/Dark_elf_card_back.png" id="2_back"]
+[ext_resource type="Texture2D" path="res://assets/icons/view.svg" id="3_eye"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_back"]
 
 [node name="FateCardBack" type="Panel"]
-custom_minimum_size = Vector2(150, 240)
-offset_right = 150.0
-offset_bottom = 240.0
+texture_filter = 1
+custom_minimum_size = Vector2(195, 284)
+offset_right = 195.0
+offset_bottom = 284.0
 mouse_filter = 2
-script = ExtResource("1")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_back")
+script = ExtResource("1_script")
+
+[node name="Art" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_back")
+expand_mode = 1
+
+[node name="Viewed" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+modulate = Color(1.5, 1.2, 0.4, 1)
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -22.0
+offset_top = 24.0
+offset_right = 22.0
+offset_bottom = 68.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("3_eye")
+expand_mode = 1
+stretch_mode = 5

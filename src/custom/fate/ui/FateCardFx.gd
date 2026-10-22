@@ -45,10 +45,15 @@ const SHADOW_TILT_SHIFT := 10.0   # px shadow slides at full tilt
 # Parts of the card where the colour effects are toned down, as (x, y, x2, y2) in 0..1 card space.
 # Full card: pips, rules text, Strike and the rarity gem, Guard. Table face: cost and pips, Strike and
 # Guard badges.
-const PROTECT_FULL := [Vector4(0.0, 0.0, 0.15, 0.54), Vector4(0.12, 0.55, 0.88, 0.93),
-		Vector4(0.37, 0.92, 1.0, 1.0), Vector4(0.88, 0.62, 0.99, 0.8)]
-const PROTECT_TABLE := [Vector4(0.0, 0.0, 1.0, 0.24), Vector4(0.05, 0.77, 0.95, 0.97),
-		Vector4.ZERO, Vector4.ZERO]
+const PROTECT_FULL := [Vector4(0.0, 0.0, 0.19, 0.5), Vector4(0.06, 0.65, 0.94, 0.715),
+		Vector4(0.0, 0.76, 1.0, 1.0), Vector4(0.45, 0.55, 0.55, 0.61)]
+const PROTECT_TABLE := [Vector4(0.0, 0.0, 0.31, 0.21), Vector4(0.09, 0.22, 0.91, 0.55),
+		Vector4(0.0, 0.64, 1.0, 1.0), Vector4.ZERO]
+# Corner radius of the card art, and the widths of the gold rim and the playable glow, in card pixels
+const CORNER_RADIUS := 6.0
+const RIM_WIDTH := 9.0
+const GLOW_WIDTH := 3.5
+const GLOW_HALO := 10.0
 
 static var _shadow_texture: ImageTexture
 
@@ -122,13 +127,15 @@ func _setup() -> void:
 
 
 func _refresh() -> void:
-	if card.card_size != _size:
-		_size = card.card_size
+	# The card's own size: an enlarged card (the detail dock) is scaled as a whole
+	if card.canonical_size != _size:
+		_size = card.canonical_size
+		var ratio := _size.y / FateLayout.CARD_SIZE.y
 		_material.set_shader_parameter("card_size", _size)
-		_material.set_shader_parameter("corner_radius", 10.0 * _size.y / CFConst.CARD_SIZE.y)
-		_material.set_shader_parameter("rim_width", 9.0 * _size.y / CFConst.CARD_SIZE.y)
-		_material.set_shader_parameter("glow_width", 3.0 * _size.y / CFConst.CARD_SIZE.y)
-		_material.set_shader_parameter("glow_halo", 9.0 * _size.y / CFConst.CARD_SIZE.y)
+		_material.set_shader_parameter("corner_radius", CORNER_RADIUS * ratio)
+		_material.set_shader_parameter("rim_width", RIM_WIDTH * ratio)
+		_material.set_shader_parameter("glow_width", GLOW_WIDTH * ratio)
+		_material.set_shader_parameter("glow_halo", GLOW_HALO * ratio)
 		_material.set_shader_parameter("cam_dist", _size.y * CAM_DIST)
 		queue_redraw()
 	if card.canonical_name != _rarity_for:
@@ -251,10 +258,12 @@ func _frame_preview() -> void:
 	# The camera zooms in: the viewport shows view / zoom of the world
 	var zoom := (get_viewport().get_final_transform() * get_viewport().get_canvas_transform()).get_scale()
 	var view := Vector2(get_viewport().get_visible_rect().size) / zoom
-	var room := _size * (1.0 + PREVIEW_PAD * 2.0)
+	var control := get_parent() as Control
+	var room := _size * control.scale * (1.0 + PREVIEW_PAD * 2.0)
 	var fit := minf(1.0, minf(view.x / room.x, view.y / room.y))
 	card.scale = Vector2.ONE * fit
-	camera.position = card.global_position + (_size * fit - view) * 0.5
+	var on_canvas: Rect2 = control.get_global_transform() * Rect2(Vector2.ZERO, _size)
+	camera.position = on_canvas.get_center() - view * 0.5
 
 
 # The renderer copies the BackBufferCopy rect as it is, in render target pixels: it applies neither
@@ -288,7 +297,7 @@ func _update_shadow(rotation_on_screen: float) -> void:
 	_shadow.position = _size * 0.5 + offset.rotated(-rotation_on_screen) \
 			- (tilt / MAX_TILT) * SHADOW_TILT_SHIFT
 	_shadow.scale = Vector2(cos(tilt.x), cos(tilt.y)) * (1.0 + SHADOW_LIFT_GROW * lift) \
-			* (_size / CFConst.CARD_SIZE)
+			* (_size / FateLayout.CARD_SIZE)
 	_shadow.modulate.a = lerpf(SHADOW_REST_ALPHA, SHADOW_LIFT_ALPHA, clampf(lift, 0.0, 1.0))
 
 
@@ -310,11 +319,11 @@ static func fit_scale(card_tilt: Vector2, size: Vector2, cam_dist: float) -> flo
 
 
 static func _make_shadow_texture() -> ImageTexture:
-	var half := CFConst.CARD_SIZE * 0.5
+	var half := FateLayout.CARD_SIZE * 0.5
 	var size := Vector2i(int(half.x * 2.0) + SHADOW_MARGIN * 2, int(half.y * 2.0) + SHADOW_MARGIN * 2)
 	var img := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
 	var center := Vector2(size) * 0.5
-	var corner := 10.0
+	var corner := CORNER_RADIUS
 	var inner := half - Vector2(corner, corner)
 	for y in size.y:
 		for x in size.x:

@@ -15,7 +15,7 @@ const HAND_SCENE := preload("res://src/custom/fate/FateHand.tscn")
 const GRID_SCENE := preload("res://src/core/BoardPlacementGrid.tscn")
 
 # Scale of the cards on the table, and the size of one grid slot at that scale
-const TABLE_SCALE := 0.45
+const TABLE_SCALE := 0.36
 const SCREEN := Vector2(1280, 720)
 # The words written in the corner of each empty zone
 const ZONE_CAPTIONS := {
@@ -231,6 +231,7 @@ func _add_pile(zone: String, pid: int, scene: PackedScene, faceup: bool) -> void
 	pile.faceup_cards = faceup
 	pile.pile_name = "P%d %s" % [pid, zone.capitalize()]
 	pile.scale = Vector2(FateLayout.PILE_SCALE, FateLayout.PILE_SCALE)
+	pile.card_size = FateLayout.CARD_SIZE
 	wrapper.add_child(pile)
 	_style_pile(pile, PILE_CAPTIONS[zone])
 
@@ -259,8 +260,8 @@ func _style_pile(pile: Pile, caption_text: String) -> void:
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_color_override("font_outline_color", Color.BLACK)
 	caption.add_theme_constant_override("outline_size", 10)
-	caption.position = Vector2(0, CFConst.CARD_SIZE.y - 44)
-	caption.size = Vector2(CFConst.CARD_SIZE.x, 40)
+	caption.position = Vector2(0, FateLayout.CARD_SIZE.y - 44)
+	caption.size = Vector2(FateLayout.CARD_SIZE.x, 40)
 	floor_panel.add_child(caption)
 
 
@@ -281,6 +282,8 @@ func _add_hand(pid: int) -> void:
 	hand.hand_size = 10
 	hand.excess_cards = Hand.ExcessCardsBehaviour.DISCARD_DRAWN
 	hand.excess_discard_pile_name = FateZones.node_name("discard", pid)
+	hand.card_size = FateLayout.CARD_SIZE
+	hand.bottom_margin = FateLayout.CARD_SIZE.y * CFConst.BOTTOM_MARGIN_MULTIPLIER
 	wrapper.add_child(hand)
 
 
@@ -292,6 +295,7 @@ func _add_grid(zone: String, pid: int) -> void:
 	var grid: BoardPlacementGrid = GRID_SCENE.instantiate()
 	grid.name = grid_name.replace(" ", "")
 	grid.card_play_scale = FateLayout.zone_scale(zone)
+	grid.card_size = FateLayout.CARD_SIZE
 	grid.auto_extend = zone in FateLayout.UNLIMITED_ZONES
 	grid.get_node("GridContainer").columns = FateLayout.COLUMNS.get(zone, 1)
 	grid.get_node("Control/Label").text = grid_name
@@ -371,7 +375,7 @@ func _squeeze_row(pid: int, zone: String, width: float) -> void:
 	if grid == null:
 		return
 	var slot_count := grid.get_slot_count()
-	var card_width: float = CFConst.CARD_SIZE.x * grid.card_play_scale
+	var card_width: float = FateLayout.CARD_SIZE.x * grid.card_play_scale
 	var gap := 5.0
 	if slot_count > 1 and slot_count * card_width + (slot_count - 1) * gap > width:
 		gap = floorf((width - slot_count * card_width) / (slot_count - 1))

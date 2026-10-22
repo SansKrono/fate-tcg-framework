@@ -94,6 +94,10 @@ const PATH_CARDS := PATH_CUSTOM + "cards/"
 # The path where the set definitions exist.
 # This includes Card definition and card script definitions.
 const PATH_SETS := PATH_CARDS + "sets/"
+# Card templates and sets used only by the framework's unit tests (the original demo cards). They
+# are loaded in addition to the game's own while cfc.is_testing is set.
+const PATH_TEST_CARDS := "res://tests/fixtures/cards/"
+const PATH_TEST_SETS := PATH_TEST_CARDS + "sets/"
 # The path where assets needed by this game are placed
 # such as token images
 const PATH_ASSETS := "res://assets/"

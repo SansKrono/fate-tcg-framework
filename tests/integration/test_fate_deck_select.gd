@@ -109,7 +109,7 @@ func test_the_screen_starts_with_the_default_pairing_and_shows_the_decks() -> vo
 	assert_eq(screen.choice, {1: "order_optimised", 2: "primal_optimised"})
 	assert_eq(screen.presets.size(), 8)
 	for pid in [1, 2]:
-		var text: String = screen._details[pid].text
+		var text: String = screen.panel(pid).summary_text()
 		assert_true("Mana curve" in text)
 		assert_true(FateDecks.preset(screen.choice[pid]).name in text)
 
@@ -119,10 +119,10 @@ func test_choosing_and_swapping_decks_on_the_screen() -> void:
 	add_child_autofree(screen)
 	await get_tree().process_frame
 	assert_true(screen.select(1, "chaos_optimised"))
-	assert_true(screen._buttons[1]["chaos_optimised"].button_pressed)
-	assert_false(screen._buttons[1]["order_optimised"].button_pressed, "one deck per player")
+	assert_true(screen.panel(1).tile("chaos_optimised").button_pressed)
+	assert_false(screen.panel(1).tile("order_optimised").button_pressed, "one deck per player")
 	assert_false(screen.select(2, "nope"))
 	assert_eq(screen.choice[2], "primal_optimised", "an unknown deck changes nothing")
 	screen.swap_decks()
 	assert_eq(screen.choice, {1: "primal_optimised", 2: "chaos_optimised"})
-	assert_true("Abyssal" in screen._details[2].text or FateDecks.preset("chaos_optimised").name in screen._details[2].text)
+	assert_true("Abyssal" in screen.panel(2).summary_text() or FateDecks.preset("chaos_optimised").name in screen.panel(2).summary_text())

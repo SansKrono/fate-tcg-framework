@@ -31,6 +31,10 @@ const PLAYABLE_COLOR := Color(0.35, 0.72, 1.0)
 
 
 func _ready() -> void:
+	# The card size starts as the framework default (CFConst.CARD_SIZE); a Fate card has its own
+	# (FateLayout.CARD_SIZE, the canonical_size of FateCardTemplate.tscn). A duplicate keeps its own.
+	if _card_size == CFConst.CARD_SIZE:
+		_card_size = canonical_size
 	super._ready()
 	state_changed.connect(_on_state_changed)
 	# New cards, and the duplicates the card detail dock makes of table cards, show the full card
@@ -40,6 +44,16 @@ func _ready() -> void:
 	# Tilt, lift, shadow, the playable glow and the foil of the card's rarity (FateRarity)
 	fx = FateCardFx.attach(self)
 	set_playable(false)
+
+
+# The card detail dock enlarges its duplicate of a card ("resize" zoom type). The framework does it by
+# resizing and moving every Control in the card, which breaks the anchors of the Fate card scenes:
+# a Fate card is scaled as a whole instead. Its fonts are MSDF, so they stay crisp at any scale.
+func resize_recursively(control_node: Node, requested_scale: float) -> void:
+	if control_node != _control:
+		return
+	_card_size = canonical_size * requested_scale
+	_control.scale = Vector2.ONE * requested_scale
 
 
 # Hotkeys for the card under the mouse (the hover buttons are small and hard to hit):

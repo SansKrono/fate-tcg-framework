@@ -110,8 +110,8 @@ func test_relics_and_spells_have_no_combat_stats():
 	board.add_child(relic)
 	board.add_child(spell)
 	await wait_seconds(0.3)
-	assert_false(relic.card_front.card_labels["Strike"].visible, "Relic hides strike")
-	assert_false(spell.card_front.card_labels["Guard"].visible, "Spell hides guard")
+	assert_false(relic.card_front.card_labels["Strike"].is_visible_in_tree(), "Relic hides strike")
+	assert_false(spell.card_front.card_labels["Guard"].is_visible_in_tree(), "Spell hides guard")
 	assert_false(relic.properties.has("Strike"))
 	assert_eq(spell.properties.get("_spell_kind"), "Regular")
 	relic.queue_free()
@@ -228,7 +228,7 @@ func test_window_content_scales_to_the_design_size():
 func test_slot_highlight_matches_the_slot():
 	for grid_name in ["creatures", "relics", "energy", "doctrines", "field"]:
 		var slot: BoardPlacementSlot = FateZones.grid(grid_name, 1).get_slot(0)
-		var expected: Vector2 = CFConst.CARD_SIZE * FateLayout.zone_scale(grid_name)
+		var expected: Vector2 = FateLayout.CARD_SIZE * FateLayout.zone_scale(grid_name)
 		assert_eq(slot.custom_minimum_size, expected, "%s slot is sized for table cards" % grid_name)
 		slot.set_highlight(true)
 		await get_tree().process_frame

@@ -1,0 +1,74 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/custom/fate/card/FateStatBadge.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://byxnuubcqih5w" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version3/details/sircle.png" id="2_ring"]
+[ext_resource type="Shader" path="res://src/custom/fate/card/fate_hue_tint.gdshader" id="3_tint"]
+[ext_resource type="FontFile" uid="uid://bq0rmvay7go8k" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Bold.ttf" id="4_font"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ring"]
+resource_local_to_scene = true
+shader = ExtResource("3_tint")
+shader_parameter/tint = Color(0.38, 0.62, 0.83, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[node name="FateStatBadge" type="Control"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 35.0
+offset_bottom = 35.0
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Ring" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_ring")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_ring")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Icon" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.38)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.06, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 17
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

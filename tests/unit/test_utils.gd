@@ -19,11 +19,9 @@ func test_array_join():
 
 
 func test_list_files_in_directory():
-	var list := CFUtils.list_files_in_directory(
-			"res://src/custom/cards/sets/")
-	assert_eq(5,len(list), "There should be 5 files")
-	list = CFUtils.list_files_in_directory(
-			"res://src/custom/cards/sets/", "SetScripts_")
+	var list := CFUtils.list_files_in_directory(CFConst.PATH_TEST_SETS)
+	assert_eq(4,len(list), "There should be 4 files")
+	list = CFUtils.list_files_in_directory(CFConst.PATH_TEST_SETS, "SetScripts_")
 	assert_eq(2,len(list), "There should be 2 set files")
 	assert_true(list.has("SetScripts_Demo1.gd"), "Should contain demo1")
 	assert_true(list.has("SetScripts_Demo2.gd"), "Should contain demo2")

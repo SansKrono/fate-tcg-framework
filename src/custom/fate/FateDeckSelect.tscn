@@ -1,12 +1,229 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=13 format=3]
 
-[ext_resource type="Script" path="res://src/custom/fate/FateDeckSelect.gd" id="1"]
+[ext_resource type="Script" path="res://src/custom/fate/FateDeckSelect.gd" id="1_script"]
+[ext_resource type="Theme" path="res://src/custom/fate/ui/deck_select/deck_select_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://c0cs2atjikxnu" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Illustrations/Illustration2_background.png" id="3_backdrop"]
+[ext_resource type="Texture2D" uid="uid://ca83j8rynshmo" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version1/details/element.png" id="4_gem"]
+[ext_resource type="Texture2D" uid="uid://dno2652mjr8o2" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version3/details/number_element.png" id="5_orb"]
+[ext_resource type="Shader" path="res://src/custom/fate/card/fate_hue_tint.gdshader" id="6_tint"]
+[ext_resource type="PackedScene" path="res://src/custom/fate/ui/deck_select/FateDeckPanel.tscn" id="7_panel"]
+[ext_resource type="FontFile" uid="uid://ddqmwrwg7i6t7" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-ExtraBold.ttf" id="8_title_font"]
+
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0.25, 1)
+colors = PackedColorArray(0.02, 0.02, 0.05, 0.05, 0.02, 0.02, 0.05, 0.85)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
+width = 128
+height = 72
+fill = 1
+fill_from = Vector2(0.5, 0.45)
+fill_to = Vector2(1.05, 1.05)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gold"]
+shader = ExtResource("6_tint")
+shader_parameter/tint = Color(0.95, 0.72, 0.28, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_versus"]
+shader = ExtResource("6_tint")
+shader_parameter/tint = Color(0.62, 0.16, 0.2, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
 
 [node name="FateDeckSelect" type="Control"]
+texture_filter = 1
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1")
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="TextureRect" parent="."]
+modulate = Color(0.72, 0.72, 0.85, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_backdrop")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Vignette" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="VBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Layout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="LeftGem" type="TextureRect" parent="Margin/Layout/Header/TitleRow"]
+material = SubResource("ShaderMaterial_gold")
+custom_minimum_size = Vector2(78, 30)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_gem")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="Margin/Layout/Header/TitleRow"]
+layout_mode = 2
+theme_type_variation = &"GoldTitle"
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("8_title_font")
+theme_override_font_sizes/font_size = 32
+text = "Choose Your Decks"
+
+[node name="RightGem" type="TextureRect" parent="Margin/Layout/Header/TitleRow"]
+material = SubResource("ShaderMaterial_gold")
+custom_minimum_size = Vector2(78, 30)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_gem")
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
+[node name="Subtitle" type="Label" parent="Margin/Layout/Header"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 12
+text = "Each player takes up a deck. The table is shared: pass the device between turns."
+horizontal_alignment = 1
+
+[node name="Columns" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Player1" parent="Margin/Layout/Columns" instance=ExtResource("7_panel")]
+unique_name_in_owner = true
+layout_mode = 2
+player_name = "Player 1"
+
+[node name="Versus" type="Control" parent="Margin/Layout/Columns"]
+z_index = 1
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Orb" type="TextureRect" parent="Margin/Layout/Columns/Versus"]
+material = SubResource("ShaderMaterial_versus")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -40.0
+offset_right = 64.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_orb")
+stretch_mode = 2
+
+[node name="VsLabel" type="Label" parent="Margin/Layout/Columns/Versus"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -38.0
+offset_right = 20.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"GoldTitle"
+theme_override_font_sizes/font_size = 14
+text = "VS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Player2" parent="Margin/Layout/Columns" instance=ExtResource("7_panel")]
+unique_name_in_owner = true
+layout_mode = 2
+player_name = "Player 2"
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Back" type="Button" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+focus_mode = 0
+text = "Back to menu"
+
+[node name="Spacer" type="Control" parent="Margin/Layout/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Swap" type="Button" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+focus_mode = 0
+text = "Swap decks"
+
+[node name="Start" type="Button" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+theme_type_variation = &"StartButton"
+text = "Start game"
+
+[connection signal="pressed" from="Margin/Layout/Footer/Back" to="." method="_on_back"]
+[connection signal="pressed" from="Margin/Layout/Footer/Swap" to="." method="swap_decks"]
+[connection signal="pressed" from="Margin/Layout/Footer/Start" to="." method="start_game"]

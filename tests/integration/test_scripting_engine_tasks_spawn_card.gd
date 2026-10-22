@@ -13,7 +13,7 @@ class TestSpawnCard:
 		assert_eq(3,board.get_card_count(),
 			"Card spawned on board")
 		card = board.get_card(0)
-		assert_eq("res://src/custom/cards/Token.tscn",card.scene_file_path,
+		assert_eq("res://tests/fixtures/cards/Token.tscn",card.scene_file_path,
 			"Card of the correct scene spawned")
 		assert_eq(Card.CardState.ON_PLAY_BOARD,card.state,
 			"Spawned card left in correct state")

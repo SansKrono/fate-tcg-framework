@@ -11,7 +11,7 @@ extends Panel
 # Each card_front scene should have its own script extending this class
 # which set the dictionary to map to the necessary nodes
 #
-# See "res://src/custom/CGFCardFront.gd" for an example.
+# See "res://src/custom/fate/FateCardFront.gd" for an example.
 var card_labels := {}
 # Simply points to the container which holds all the labels
 var _card_text

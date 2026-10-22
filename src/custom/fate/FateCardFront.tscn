@@ -1,262 +1,381 @@
-[gd_scene format=3 uid="uid://bi35x8m0s73q"]
+[gd_scene load_steps=22 format=3]
 
-[ext_resource type="FontFile" uid="uid://cyvilmejxgi8w" path="res://fonts/Xolonium-Regular.ttf" id="1"]
-[ext_resource type="Script" uid="uid://c566e0o0c8o0n" path="res://src/custom/fate/FateCardFront.gd" id="2"]
-[ext_resource type="Theme" uid="uid://c8nqf6ckde63m" path="res://themes/darktheme/darktheme.tres" id="3"]
-[ext_resource type="FontFile" uid="uid://bwm3ca7s3da87" path="res://themes/darktheme/fonts/Oxanium/Oxanium-VariableFont_wght.ttf" id="3_o8ug1"]
-[ext_resource type="Texture2D" uid="uid://djwrcn843tbev" path="res://assets/icons/broadsword.png" id="4"]
-[ext_resource type="Texture2D" uid="uid://cxaef311d058h" path="res://assets/icons/shield.svg" id="5"]
-[ext_resource type="FontFile" uid="uid://cv5g5ixn6pko4" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Light.ttf" id="5_47nn4"]
-[ext_resource type="FontFile" uid="uid://wby4jv04pw7i" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Regular.ttf" id="6_degad"]
-[ext_resource type="FontFile" uid="uid://bkosdr5sug70x" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-SemiBold.ttf" id="7_li1pl"]
-[ext_resource type="FontFile" uid="uid://msst1l2s2s" path="res://addons/gut/fonts/AnonymousPro-BoldItalic.ttf" id="8_3nl84"]
+[ext_resource type="Script" path="res://src/custom/fate/FateCardFront.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cycmkeg1lsdnn" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version3/Dark_elf_card_version3.png" id="2_frame"]
+[ext_resource type="Shader" path="res://src/custom/fate/card/fate_hue_tint.gdshader" id="3_tint"]
+[ext_resource type="Texture2D" uid="uid://c0cs2atjikxnu" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Illustrations/Illustration2_background.png" id="4_art"]
+[ext_resource type="Texture2D" uid="uid://drhgjf7h5verj" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/sword_no_shadow.png" id="5_sword"]
+[ext_resource type="Texture2D" uid="uid://dlrq6fyh5cqu2" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/shield_no_shadow.png" id="6_shield"]
+[ext_resource type="Texture2D" uid="uid://km8ub2vg5234" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/jem_no_shadow.png" id="7_jem"]
+[ext_resource type="PackedScene" path="res://src/custom/fate/card/FateStatBadge.tscn" id="8_badge"]
+[ext_resource type="FontFile" uid="uid://bq0rmvay7go8k" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Bold.ttf" id="9_bold"]
+[ext_resource type="FontFile" uid="uid://bkosdr5sug70x" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-SemiBold.ttf" id="10_semibold"]
+[ext_resource type="FontFile" uid="uid://wnv02yy8mlek" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Medium.ttf" id="11_medium"]
 
-[sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.48, 0.13, 0.14, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_front"]
 
-[sub_resource type="StyleBoxFlat" id="2"]
-bg_color = Color(0.82, 0.82, 0.62, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_frame"]
+resource_local_to_scene = true
+shader = ExtResource("3_tint")
+shader_parameter/tint = Color(0.6, 0.62, 0.7, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.35
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
 
-[node name="Front" type="Panel" unique_id=1500801263]
-custom_minimum_size = Vector2(150, 240)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
+resource_local_to_scene = true
+shader = ExtResource("3_tint")
+shader_parameter/tint = Color(0.6, 0.62, 0.7, 1)
+shader_parameter/hue_min = 0.0
+shader_parameter/hue_max = 1.0
+shader_parameter/min_saturation = 0.0
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.45
+shader_parameter/source_value = 0.75
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gem"]
+resource_local_to_scene = true
+shader = ExtResource("3_tint")
+shader_parameter/tint = Color(0.62, 0.64, 0.7, 1)
+shader_parameter/hue_min = 0.0
+shader_parameter/hue_max = 1.0
+shader_parameter/min_saturation = 0.1
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+colors = PackedColorArray(0.03, 0.03, 0.06, 0, 0.03, 0.03, 0.06, 0.88)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+width = 8
+height = 64
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_name"]
+font = ExtResource("10_semibold")
+font_size = 12
+font_color = Color(1, 0.96, 0.86, 1)
+outline_size = 4
+outline_color = Color(0.06, 0.05, 0.1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_type"]
+font = ExtResource("9_bold")
+font_size = 8
+font_color = Color(0.95, 0.82, 0.52, 1)
+outline_size = 2
+outline_color = Color(0.06, 0.05, 0.1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_tags"]
+font = ExtResource("11_medium")
+font_size = 8
+font_color = Color(0.84, 0.86, 0.93, 1)
+outline_size = 2
+outline_color = Color(0.06, 0.05, 0.1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_table_name"]
+font = ExtResource("9_bold")
+font_size = 26
+font_color = Color(1, 0.97, 0.9, 1)
+outline_size = 8
+outline_color = Color(0.03, 0.03, 0.06, 1)
+
+[node name="Front" type="Panel"]
+texture_filter = 1
+custom_minimum_size = Vector2(195, 284)
+offset_right = 195.0
+offset_bottom = 284.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_front")
+script = ExtResource("1_script")
+
+[node name="Art" type="Control" parent="."]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 38.0
+offset_right = 179.0
+offset_bottom = 176.0
+mouse_filter = 2
+
+[node name="ArtBackground" type="TextureRect" parent="Art"]
+unique_name_in_owner = true
+modulate = Color(0.78, 0.78, 0.84, 1)
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -1130.0
-offset_bottom = -480.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-theme = ExtResource("3")
-theme_override_styles/panel = SubResource("1")
-script = ExtResource("2")
+texture = ExtResource("4_art")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="Margin" type="Control" parent="." unique_id=576839406]
-custom_minimum_size = Vector2(150, 240)
-anchors_preset = 0
+[node name="ArtIcon" type="TextureRect" parent="Art"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_icon")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -26.0
+offset_top = -30.0
+offset_right = 26.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_sword")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Frame" type="TextureRect" parent="."]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_frame")
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_frame")
+expand_mode = 1
+
+[node name="RarityGem" type="TextureRect" parent="."]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_gem")
+layout_mode = 1
+anchors_preset = 0
+offset_left = 90.0
+offset_top = 158.0
+offset_right = 105.0
+offset_bottom = 173.0
+mouse_filter = 2
+texture = ExtResource("7_jem")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Details" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="NameBar" type="Panel" parent="Margin" unique_id=1180776369]
-custom_minimum_size = Vector2(108, 16)
-layout_mode = 0
+[node name="Name" type="Label" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
 offset_left = 34.0
-offset_top = 3.0
-offset_right = 142.0
-offset_bottom = 19.0
-mouse_filter = 2
-
-[node name="Name" type="Label" parent="Margin" unique_id=1399141916]
-custom_minimum_size = Vector2(102, 16)
-layout_mode = 0
-offset_left = 37.0
-offset_top = 3.0
-offset_right = 139.0
-offset_bottom = 19.0
-size_flags_vertical = 1
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3_o8ug1")
+offset_top = 13.0
+offset_right = 168.0
+offset_bottom = 35.0
 text = "Card Name"
+label_settings = SubResource("LabelSettings_name")
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
-[node name="Art" type="ColorRect" parent="Margin" unique_id=1094409023]
-custom_minimum_size = Vector2(134, 105)
-layout_mode = 0
-offset_left = 8.0
-offset_top = 20.0
-offset_right = 142.0
-offset_bottom = 125.0
+[node name="TypeLine" type="HBoxContainer" parent="Details"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 185.0
+offset_right = 183.0
+offset_bottom = 203.0
 mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 1
 
-[node name="PipColumn" type="VBoxContainer" parent="Margin" unique_id=1879012087]
-custom_minimum_size = Vector2(18, 58)
-layout_mode = 0
-offset_left = 3.0
-offset_top = 8.0
-offset_right = 21.0
-offset_bottom = 66.0
-mouse_filter = 2
-theme_override_constants/separation = 2
-
-[node name="CostPip" type="Panel" parent="Margin/PipColumn" unique_id=752873776]
-custom_minimum_size = Vector2(18, 18)
+[node name="Type" type="Label" parent="Details/TypeLine"]
+unique_name_in_owner = true
 layout_mode = 2
-mouse_filter = 2
+text = "Creature"
+label_settings = SubResource("LabelSettings_type")
+vertical_alignment = 1
+uppercase = true
 
-[node name="Cost" type="Label" parent="Margin/PipColumn/CostPip" unique_id=1840672201]
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 0
+[node name="Separator" type="Label" parent="Details/TypeLine"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "·"
+label_settings = SubResource("LabelSettings_type")
+vertical_alignment = 1
+
+[node name="Tags" type="Label" parent="Details/TypeLine"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Goblin - Engineer"
+label_settings = SubResource("LabelSettings_tags")
+vertical_alignment = 1
+
+[node name="Abilities" type="Label" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 34.0
+offset_top = 217.0
+offset_right = 161.0
+offset_bottom = 276.0
+theme_override_colors/font_color = Color(0.2, 0.13, 0.07, 1)
+theme_override_fonts/font = ExtResource("11_medium")
+theme_override_font_sizes/font_size = 10
+text = "Occupy: create a scrap token"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+clip_text = true
+
+[node name="Pips" type="VBoxContainer" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 9.0
+offset_top = 37.0
+offset_right = 27.0
+offset_bottom = 140.0
+mouse_filter = 2
+theme_override_constants/separation = -2
+
+[node name="CostBadge" parent="Details" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
 offset_left = 1.0
 offset_top = 1.0
-offset_right = 17.0
-offset_bottom = 17.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("1")
-theme_override_font_sizes/font_size = 12
-text = "0"
-horizontal_alignment = 1
-vertical_alignment = 1
+offset_right = 36.0
+offset_bottom = 36.0
+tint = Color(0.6, 0.62, 0.7, 1)
 
-[node name="Pips" type="Label" parent="Margin" unique_id=99804370]
-visible = false
-layout_mode = 0
-
-[node name="Domain" type="Label" parent="Margin" unique_id=2049211701]
-visible = false
-layout_mode = 0
-text = "Domain"
-
-[node name="TypeStrip" type="Panel" parent="Margin" unique_id=1998150302]
-custom_minimum_size = Vector2(8, 90)
-layout_mode = 0
-offset_left = 8.0
-offset_top = 132.0
-offset_right = 16.0
-offset_bottom = 222.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("2")
-
-[node name="Type" type="Label" parent="Margin" unique_id=1558335081]
-custom_minimum_size = Vector2(71.95, 12)
-layout_mode = 0
-offset_left = 6.0
-offset_top = 222.0
-offset_right = 77.95
-offset_bottom = 236.0
-size_flags_vertical = 1
-theme_override_colors/font_color = Color(0.12, 0.1, 0.05, 1)
-theme_override_constants/outline_size = 0
-theme_override_fonts/font = ExtResource("5_47nn4")
-theme_override_font_sizes/font_size = 9
-text = "Type"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
-uppercase = true
-
-[node name="TextBox" type="Panel" parent="Margin" unique_id=1672320486]
-custom_minimum_size = Vector2(113, 90)
-layout_mode = 0
-offset_left = 19.0
-offset_top = 132.0
-offset_right = 132.0
-offset_bottom = 222.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("2")
-
-[node name="Tags" type="Label" parent="Margin" unique_id=107808993]
-custom_minimum_size = Vector2(109, 10)
-layout_mode = 0
-offset_left = 21.0
-offset_top = 133.0
-offset_right = 130.0
-offset_bottom = 143.0
-size_flags_vertical = 1
-theme_override_colors/font_color = Color(0.3, 0.25, 0.1, 1)
-theme_override_constants/outline_size = 0
-theme_override_fonts/font = ExtResource("6_degad")
-theme_override_font_sizes/font_size = 8
-text = "Tag1 - Tag2"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
-uppercase = true
-
-[node name="Abilities" type="RichTextLabel" parent="Margin" unique_id=1651673582]
-custom_minimum_size = Vector2(109, 77)
-layout_mode = 0
-offset_left = 21.0
-offset_top = 144.0
-offset_right = 130.0
-offset_bottom = 221.0
-mouse_filter = 2
-theme_override_colors/default_color = Color(0.1, 0.08, 0.03, 1)
-theme_override_constants/outline_size = 0
-theme_override_fonts/normal_font = ExtResource("6_degad")
-theme_override_fonts/bold_font = ExtResource("7_li1pl")
-theme_override_fonts/bold_italics_font = ExtResource("8_3nl84")
-theme_override_fonts/mono_font = ExtResource("1")
-text = "This is the card ability text.
-"
-scroll_active = false
-
-[node name="GuardPlate" type="Panel" parent="Margin" unique_id=2138350895]
-custom_minimum_size = Vector2(16, 40)
-layout_mode = 0
-offset_left = 132.0
-offset_top = 150.0
-offset_right = 148.0
-offset_bottom = 190.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("2")
-
-[node name="GuardIcon" type="TextureRect" parent="Margin/GuardPlate" unique_id=932270092]
-custom_minimum_size = Vector2(14, 14)
-layout_mode = 0
+[node name="StrikeBadge" parent="Details" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
 offset_left = 1.0
-offset_top = 3.0
-offset_right = 15.0
-offset_bottom = 17.0
-mouse_filter = 2
-texture = ExtResource("5")
-expand_mode = 1
-stretch_mode = 5
+offset_top = 248.0
+offset_right = 36.0
+offset_bottom = 283.0
+icon = ExtResource("5_sword")
+tint = Color(0.85, 0.3, 0.28, 1)
 
-[node name="Guard" type="Label" parent="Margin/GuardPlate" unique_id=1071624864]
-custom_minimum_size = Vector2(16, 20)
-layout_mode = 0
-offset_top = 18.0
-offset_right = 16.0
-offset_bottom = 38.0
-theme_override_colors/font_color = Color(0.1, 0.08, 0.03, 1)
-theme_override_constants/outline_size = 0
-theme_override_fonts/font = ExtResource("1")
-theme_override_font_sizes/font_size = 13
-text = "0"
+[node name="GuardBadge" parent="Details" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 159.0
+offset_top = 248.0
+offset_right = 194.0
+offset_bottom = 283.0
+icon = ExtResource("6_shield")
+tint = Color(0.32, 0.55, 0.9, 1)
+
+[node name="TableFace" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Shade" type="TextureRect" parent="TableFace"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 70.0
+offset_right = 179.0
+offset_bottom = 176.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_shade")
+expand_mode = 1
+
+[node name="TableName" type="Label" parent="TableFace"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 62.0
+offset_right = 177.0
+offset_bottom = 156.0
+text = "Card Name"
+label_settings = SubResource("LabelSettings_table_name")
+horizontal_alignment = 1
+vertical_alignment = 2
+autowrap_mode = 3
+clip_text = true
+max_lines_visible = 3
+
+[node name="TableType" type="Label" parent="TableFace"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 182.0
+offset_right = 183.0
+offset_bottom = 206.0
+text = "Creature"
+label_settings = SubResource("LabelSettings_type")
 horizontal_alignment = 1
 vertical_alignment = 1
+uppercase = true
 
-[node name="StrikePlate" type="Panel" parent="Margin" unique_id=524563261]
-custom_minimum_size = Vector2(38, 18)
-layout_mode = 0
-offset_left = 56.0
-offset_top = 222.0
-offset_right = 94.0
-offset_bottom = 240.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("2")
-
-[node name="StrikeIcon" type="TextureRect" parent="Margin/StrikePlate" unique_id=889910337]
-custom_minimum_size = Vector2(14, 12)
-layout_mode = 0
-offset_left = 4.0
-offset_top = 3.0
-offset_right = 18.0
-offset_bottom = 15.0
-mouse_filter = 2
-texture = ExtResource("4")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Strike" type="Label" parent="Margin/StrikePlate" unique_id=1736298089]
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 0
-offset_left = 19.0
+[node name="TableCost" parent="TableFace" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 0.0
+offset_top = 0.0
 offset_right = 35.0
-offset_bottom = 18.0
-theme_override_colors/font_color = Color(0.1, 0.08, 0.03, 1)
-theme_override_constants/outline_size = 0
-theme_override_fonts/font = ExtResource("1")
-theme_override_font_sizes/font_size = 13
-text = "0"
-horizontal_alignment = 1
-vertical_alignment = 1
+offset_bottom = 35.0
+scale = Vector2(1.7, 1.7)
+tint = Color(0.6, 0.62, 0.7, 1)
+
+[node name="TableStrike" parent="TableFace" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 10.0
+offset_top = 208.0
+offset_right = 45.0
+offset_bottom = 243.0
+scale = Vector2(1.9, 1.9)
+icon = ExtResource("5_sword")
+tint = Color(0.85, 0.3, 0.28, 1)
+
+[node name="TableGuard" parent="TableFace" instance=ExtResource("8_badge")]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 118.5
+offset_top = 208.0
+offset_right = 153.5
+offset_bottom = 243.0
+scale = Vector2(1.9, 1.9)
+icon = ExtResource("6_shield")
+tint = Color(0.32, 0.55, 0.9, 1)
+
+[node name="Data" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Domain" type="Label" parent="Data"]
+unique_name_in_owner = true
+layout_mode = 0
+text = "Innovation"
+
+[node name="PipText" type="Label" parent="Data"]
+unique_name_in_owner = true
+layout_mode = 0
+text = "II"

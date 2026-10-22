@@ -237,8 +237,11 @@ func restore_rng_state() -> void:
 func instance_card(card_name: String) -> Card:
 	# We discover the template from the "Type"  property defined
 	# in each card. Any property can be used
-	var template = load(CFConst.PATH_CARDS
-			+ card_definitions[card_name][CardConfig.SCENE_PROPERTY] + ".tscn")
+	var scene_name: String = card_definitions[card_name][CardConfig.SCENE_PROPERTY] + ".tscn"
+	var template_path := CFConst.PATH_CARDS + scene_name
+	if is_testing and not ResourceLoader.exists(template_path):
+		template_path = CFConst.PATH_TEST_CARDS + scene_name
+	var template = load(template_path)
 	var card = template.instantiate()
 	# We set the card_name variable so that it's able to be used later
 	card.canonical_name = card_name
@@ -252,15 +255,19 @@ func load_card_definitions() -> Dictionary:
 	if "CARD_SETS" in SetPreload and SetPreload.CARD_SETS.size() > 0:
 		loaded_definitions = SetPreload.CARD_SETS
 	else:
-		var set_files = CFUtils.list_files_in_directory(
-				CFConst.PATH_SETS, CFConst.CARD_SET_NAME_PREPEND)
-		for set_file in set_files:
-			loaded_definitions.append(load(CFConst.PATH_SETS + set_file))
+		for sets_path in _set_paths():
+			for set_file in CFUtils.list_files_in_directory(sets_path, CFConst.CARD_SET_NAME_PREPEND):
+				loaded_definitions.append(load(sets_path + set_file))
 	var combined_sets := {}
 	for set_def in loaded_definitions:
 		for card_name in set_def.CARDS:
 			combined_sets[card_name] = set_def.CARDS[card_name].duplicate(true)
 	return(combined_sets)
+
+
+# The directories holding set files: the game's, plus the test fixtures while testing
+func _set_paths() -> Array:
+	return [CFConst.PATH_SETS, CFConst.PATH_TEST_SETS] if is_testing else [CFConst.PATH_SETS]
 
 
 # Returns a Dictionary with the combined Script definitions of all set files
@@ -270,10 +277,9 @@ func load_script_definitions() -> void:
 		for preload_set_scripts in SetPreload.CARD_SCRIPTS:
 			loaded_script_definitions.append(preload_set_scripts.new())
 	else:
-		var script_definition_files := CFUtils.list_files_in_directory(
-					CFConst.PATH_SETS, CFConst.SCRIPT_SET_NAME_PREPEND)
-		for script_file in script_definition_files:
-			loaded_script_definitions.append(load(CFConst.PATH_SETS + script_file).new())
+		for sets_path in _set_paths():
+			for script_file in CFUtils.list_files_in_directory(sets_path, CFConst.SCRIPT_SET_NAME_PREPEND):
+				loaded_script_definitions.append(load(sets_path + script_file).new())
 	var combined_scripts := {}
 	for card_name in card_definitions.keys():
 		for scripts_obj in loaded_script_definitions:

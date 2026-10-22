@@ -1,0 +1,236 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://src/custom/fate/ui/deck_select/FateDeckPanel.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://ca83j8rynshmo" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version1/details/element.png" id="2_gem"]
+[ext_resource type="Texture2D" uid="uid://bvul0ud060qhd" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_back/Dark_elf_card_back.png" id="3_back"]
+[ext_resource type="Shader" path="res://src/custom/fate/card/fate_hue_tint.gdshader" id="4_tint"]
+[ext_resource type="Texture2D" uid="uid://drhgjf7h5verj" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/sword_no_shadow.png" id="5_sword"]
+[ext_resource type="Texture2D" uid="uid://dwev1ogyofbsu" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/crystal_no_shadow.png" id="6_crystal"]
+[ext_resource type="Texture2D" uid="uid://cqch3u0okko7u" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/magic_no_shadow.png" id="7_magic"]
+[ext_resource type="Texture2D" uid="uid://b64twnisvm8xl" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Dark_elf_card_version1/details/paper.png" id="8_paper"]
+[ext_resource type="PackedScene" path="res://src/custom/fate/ui/deck_select/FateManaCurve.tscn" id="9_curve"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_deck_art"]
+resource_local_to_scene = true
+shader = ExtResource("4_tint")
+shader_parameter/tint = Color(0.38, 0.62, 0.83, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.4
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gem"]
+shader = ExtResource("4_tint")
+shader_parameter/tint = Color(0.95, 0.72, 0.28, 1)
+shader_parameter/hue_min = 0.52
+shader_parameter/hue_max = 0.66
+shader_parameter/min_saturation = 0.47
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[node name="FateDeckPanel" type="PanelContainer"]
+texture_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"DeckPanel"
+script = ExtResource("1_script")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="LeftGem" type="TextureRect" parent="Layout/Header"]
+material = SubResource("ShaderMaterial_gem")
+custom_minimum_size = Vector2(58, 22)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_gem")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerName" type="Label" parent="Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GoldTitle"
+text = "Player 1"
+
+[node name="RightGem" type="TextureRect" parent="Layout/Header"]
+material = SubResource("ShaderMaterial_gem")
+custom_minimum_size = Vector2(58, 22)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_gem")
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
+[node name="Tiles" type="GridContainer" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="Body" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="DeckBox" type="VBoxContainer" parent="Layout/Body"]
+custom_minimum_size = Vector2(108, 0)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DeckArt" type="TextureRect" parent="Layout/Body/DeckBox"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_deck_art")
+custom_minimum_size = Vector2(98, 143)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardCount" type="Label" parent="Layout/Body/DeckBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "40 cards"
+horizontal_alignment = 1
+
+[node name="Types" type="VBoxContainer" parent="Layout/Body/DeckBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="CreatureRow" type="HBoxContainer" parent="Layout/Body/DeckBox/Types"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="Layout/Body/DeckBox/Types/CreatureRow"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("5_sword")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CreatureCount" type="Label" parent="Layout/Body/DeckBox/Types/CreatureRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "0 creatures"
+
+[node name="RelicRow" type="HBoxContainer" parent="Layout/Body/DeckBox/Types"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="Layout/Body/DeckBox/Types/RelicRow"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("6_crystal")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RelicCount" type="Label" parent="Layout/Body/DeckBox/Types/RelicRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "0 relics"
+
+[node name="SpellRow" type="HBoxContainer" parent="Layout/Body/DeckBox/Types"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="Layout/Body/DeckBox/Types/SpellRow"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("7_magic")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpellCount" type="Label" parent="Layout/Body/DeckBox/Types/SpellRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "0 spells"
+
+[node name="Parchment" type="NinePatchRect" parent="Layout/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("8_paper")
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+
+[node name="Margin" type="MarginContainer" parent="Layout/Body/Parchment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Page" type="VBoxContainer" parent="Layout/Body/Parchment/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DeckName" type="Label" parent="Layout/Body/Parchment/Margin/Page"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InkTitle"
+text = "Deck name"
+text_overrun_behavior = 3
+
+[node name="DeckTier" type="Label" parent="Layout/Body/Parchment/Margin/Page"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(0.45, 0.3, 0.14, 1)
+theme_override_font_sizes/font_size = 10
+text = "Order · Optimised"
+
+[node name="Blurb" type="Label" parent="Layout/Body/Parchment/Margin/Page"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+text = "Deck description"
+autowrap_mode = 3
+
+[node name="ManaCurve" parent="Layout/Body/Parchment/Margin/Page" instance=ExtResource("9_curve")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ListTitle" type="Label" parent="Layout/Body/Parchment/Margin/Page"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 10
+text = "Cards"
+
+[node name="ListScroll" type="ScrollContainer" parent="Layout/Body/Parchment/Margin/Page"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CardList" type="Label" parent="Layout/Body/Parchment/Margin/Page/ListScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 10
+text = "3x Card"

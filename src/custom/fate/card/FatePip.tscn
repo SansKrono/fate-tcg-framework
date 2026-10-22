@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/custom/fate/card/FatePip.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://broimn6hgav76" path="res://assets/fantasy-tcg-cards-pixel-art/PNG/Cards_color1/Objects/ball_no_shadow.png" id="2_ball"]
+[ext_resource type="Shader" path="res://src/custom/fate/card/fate_hue_tint.gdshader" id="3_tint"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pip"]
+resource_local_to_scene = true
+shader = ExtResource("3_tint")
+shader_parameter/tint = Color(0.38, 0.62, 0.83, 1)
+shader_parameter/hue_min = 0.0
+shader_parameter/hue_max = 1.0
+shader_parameter/min_saturation = 0.15
+shader_parameter/background_tint = 0.0
+shader_parameter/source_saturation = 0.6
+shader_parameter/source_value = 0.75
+
+[node name="FatePip" type="TextureRect"]
+material = SubResource("ShaderMaterial_pip")
+custom_minimum_size = Vector2(18, 18)
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
+texture = ExtResource("2_ball")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("1_script")

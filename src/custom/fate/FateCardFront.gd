@@ -1,181 +1,238 @@
 # Front of a Fate card.
 #
-# Maps the Fate card properties to their labels. Creatures show Strike and
-# Guard; relics, spells and doctrines hide them (has_combat_stats = false).
+# The look lives in FateCardFront.tscn, laid out at the pixel art's native size (FateLayout.CARD_SIZE,
+# 195x284): the frame, the art window, the title banner, the type line, the parchment with the rules
+# text, and the stat badges (FateStatBadge) for cost, Strike and Guard. This script only binds the
+# card's properties to those nodes:
+# - the framework sets each property's text on its label (card_labels); the labels of the badges and
+#   the hidden Domain / PipText labels keep the plain values, which tests and scripts read
+# - the domain recolours the frame accents, the cost badge and the art icon (fate_hue_tint.gdshader)
+# - the Pips text becomes one FatePip per letter
+# - the rules text shrinks until it fits the parchment
+# - Strike and Guard are compared with the printed values: a buffed or damaged stat changes colour
 #
-# Layout: the name along the top, the mana cost running down the top left (one pip per domain
-# pip, then a grey pip with the colourless amount), artwork, the type (sideways) and effect
-# text under it, Guard on the right edge and Strike at the bottom. The card background takes the
-# colour of the card's domain.
+# On the table cards are drawn at about a third of their size, where the full layout is unreadable:
+# the table face (set_table_mode) hides the details and shows the name, the cost and the stats big.
 extends CardFront
 
-const BG_DARKEN := 0.55
-const PIP_COLORLESS := Color(0.6, 0.62, 0.68)
-const PIP_SIZE := 18
+const PIP_SCENE := preload("res://src/custom/fate/card/FatePip.tscn")
+const ART_DIR := "res://assets/fantasy-tcg-cards-pixel-art/PNG/"
+# Placeholder art per card type until cards have their own ("_art" property, a texture path): a
+# backdrop and the type's emblem, in the domain's colour
+const TYPE_ART := {
+	"Creature": ["Illustrations/Illustration2_background.png", "Cards_color1/Objects/sword_no_shadow.png"],
+	"Relic": ["Illustrations/Illustration1_background.png", "Cards_color1/Objects/crystal_no_shadow.png"],
+	"Spell": ["Illustrations/Illustration1_background.png", "Cards_color1/Objects/magic_no_shadow.png"],
+	"Doctrine": ["Illustrations/Illustration2_background.png", "Cards_color1/Objects/star2_no_shadow.png"],
+}
+const NAME_FONT_SIZES := Vector2i(8, 12)
+const RULES_FONT_SIZES := Vector2i(6, 10)
+const TABLE_NAME_FONT_SIZES := Vector2i(16, 26)
 
 # Set on the per-type front scenes (CreatureFront, RelicFront etc.)
 @export var has_combat_stats := true
 
+var table_mode := false
+
+@onready var _frame: TextureRect = %Frame
+@onready var _art_background: TextureRect = %ArtBackground
+@onready var _art_icon: TextureRect = %ArtIcon
+@onready var _rarity_gem: TextureRect = %RarityGem
+@onready var _details: Control = %Details
+@onready var _table_face: Control = %TableFace
+@onready var _name: Label = %Name
+@onready var _type: Label = %Type
+@onready var _separator: Label = %Separator
+@onready var _tags: Label = %Tags
+@onready var _abilities: Label = %Abilities
+@onready var _pips: VBoxContainer = %Pips
+@onready var _cost: FateStatBadge = %CostBadge
+@onready var _strike: FateStatBadge = %StrikeBadge
+@onready var _guard: FateStatBadge = %GuardBadge
+@onready var _table_name: Label = %TableName
+@onready var _table_type: Label = %TableType
+@onready var _table_cost: FateStatBadge = %TableCost
+@onready var _table_strike: FateStatBadge = %TableStrike
+@onready var _table_guard: FateStatBadge = %TableGuard
+
 
 func _ready() -> void:
-	card_labels["Name"] = find_child("Name")
-	card_labels["Type"] = find_child("Type")
-	card_labels["Tags"] = find_child("Tags")
-	card_labels["Domain"] = find_child("Domain")
-	card_labels["Abilities"] = find_child("Abilities")
-	card_labels["Cost"] = find_child("Cost")
-	card_labels["Pips"] = find_child("Pips")
-	card_labels["Strike"] = find_child("Strike")
-	card_labels["Guard"] = find_child("Guard")
-
-	card_label_min_sizes["Name"] = Vector2(102, 16)
-	card_label_min_sizes["Type"] = Vector2(90, 12)
-	card_label_min_sizes["Tags"] = Vector2(109, 10)
-	card_label_min_sizes["Domain"] = Vector2(100, 11)
-	card_label_min_sizes["Abilities"] = Vector2(109, 77)
-	card_label_min_sizes["Cost"] = Vector2(16, 16)
-	card_label_min_sizes["Pips"] = Vector2(16, 16)
-	card_label_min_sizes["Strike"] = Vector2(16, 16)
-	card_label_min_sizes["Guard"] = Vector2(16, 20)
-
-	for l in card_label_min_sizes:
-		card_labels[l].custom_minimum_size = card_label_min_sizes[l]
-
-	for label in card_labels:
-		match label:
-			"Cost", "Pips", "Strike", "Guard":
-				original_font_sizes[label] = 13
-			"Domain":
-				original_font_sizes[label] = 11
-			"Abilities":
-				original_font_sizes[label] = 25
-			"Tags", "Type":
-				original_font_sizes[label] = 9
-			_:
-				original_font_sizes[label] = 16
-
-	_style_layout()
-	if not has_combat_stats:
-		for node_name in ["StrikePlate", "GuardPlate"]:
-			find_child(node_name).visible = false
+	card_labels["Name"] = _name
+	card_labels["Type"] = _type
+	card_labels["Tags"] = _tags
+	card_labels["Domain"] = %Domain
+	card_labels["Abilities"] = _abilities
+	card_labels["Cost"] = _cost.value_label()
+	card_labels["Pips"] = %PipText
+	card_labels["Strike"] = _strike.value_label()
+	card_labels["Guard"] = _guard.value_label()
+	# The fitted font sizes are per card
+	_name.label_settings = _name.label_settings.duplicate()
+	_table_name.label_settings = _table_name.label_settings.duplicate()
+	for badge in [_strike, _guard, _table_strike, _table_guard]:
+		badge.visible = has_combat_stats
+	_place_table_type()
+	_set_domain("")
+	_set_pips("")
 
 
-# The parts of the layout that depend on the domain colour or need code to set up
-func _style_layout() -> void:
-	find_child("NameBar").add_theme_stylebox_override("panel",
-			FateTheme.box(Color(0.27, 0.27, 0.27), Color.TRANSPARENT, 2, 0, 0.0))
-	_set_pip_style(find_child("CostPip"), PIP_COLORLESS)
-	# The type reads bottom to top along the left strip
-	var type_label: Label = card_labels["Type"]
-	type_label.pivot_offset = Vector2.ZERO
-	type_label.rotation = -PI / 2.0
-	type_label.position = Vector2(8, 222)
-	_set_background(FateTheme.NEUTRAL_DOMAIN)
-	_rebuild_pips("")
+# The framework's text fitting (fonts measured over several frames, cached on disk) is not used:
+# the scene sets the fonts, and set_label_text fits the few texts that can overflow at once.
+func set_label_text(node: Label, value, _scale: float = 1) -> void:
+	var text := str(_check_for_replacements(node, value))
+	node.text = text
+	match node:
+		_name:
+			_table_name.text = text
+			_fit_label_settings(_name, NAME_FONT_SIZES)
+			_fit_label_settings(_table_name, TABLE_NAME_FONT_SIZES)
+		_type:
+			_table_type.text = text
+			_set_art(text)
+		_tags:
+			_separator.visible = text != ""
+			_tags.visible = text != ""
+		_abilities:
+			_fit_font(_abilities, RULES_FONT_SIZES)
+		_:
+			if node == card_labels["Domain"]:
+				_set_domain(text)
+			elif node == card_labels["Pips"]:
+				_set_pips(text)
+			elif node == card_labels["Cost"]:
+				_set_cost(text)
+			elif node == card_labels["Strike"]:
+				_set_stat(_strike, _table_strike, "Strike", text)
+			elif node == card_labels["Guard"]:
+				_set_stat(_guard, _table_guard, "Guard", text)
 
 
-func _set_background(domain_color: Color) -> void:
-	var style := FateTheme.box(domain_color.darkened(BG_DARKEN), Color.TRANSPARENT, 10, 0, 0.0)
-	add_theme_stylebox_override("panel", style)
+func set_rich_label_text(node: RichTextLabel, value: String, _is_resize := false, _scale: float = 1) -> void:
+	node.text = _check_for_replacements(node, value)
 
 
-func _set_pip_style(pip: Panel, color: Color) -> void:
-	pip.add_theme_stylebox_override("panel",
-			FateTheme.box(color, Color(0, 0, 0, 0.8), PIP_SIZE / 2, 1, 0.0))
+# The card is scaled as a whole (FateCardTemplate.resize_recursively): the fonts need no resizing
+func scale_to(_scale_multiplier: float) -> void:
+	pass
 
 
-# One domain pip per letter of the Pips text, above the colourless pip
-func _rebuild_pips(pips: String) -> void:
-	var column: VBoxContainer = find_child("PipColumn")
-	for pip in column.get_children():
-		if pip.name != "CostPip":
-			column.remove_child(pip)
-			pip.queue_free()
-	var index := 0
-	for letter in pips:
-		var pip := Panel.new()
-		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pip.custom_minimum_size = Vector2(PIP_SIZE, PIP_SIZE)
-		_set_pip_style(pip, FateTheme.domain_color(FateGame.DOMAIN_BY_INITIAL.get(letter, "")))
-		column.add_child(pip)
-		column.move_child(pip, index)
-		index += 1
-
-
-# Domain pips, the colourless pip and the background follow the text the card sets on the labels
-func set_label_text(node: Label, value, scale: float = 1):
-	if node == card_labels["Pips"]:
-		_rebuild_pips(str(value))
-	elif node == card_labels["Cost"]:
-		find_child("CostPip").visible = str(value) not in ["", "0"]
-	elif node == card_labels["Domain"]:
-		_set_background(FateTheme.domain_color(str(value)))
-	super.set_label_text(node, value, scale)
-
-
-# The rarity gem in the bottom right corner (FateRarity; FateCardFx sets it)
+# The rarity gem in the frame's centre jewel (FateRarity; FateCardFx sets it)
 func set_rarity(rarity: int) -> void:
-	var gem: Panel = find_child("RarityGem", true, false)
-	if gem == null:
-		gem = Panel.new()
-		gem.name = "RarityGem"
-		gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		gem.custom_minimum_size = Vector2(8, 8)
-		gem.size = gem.custom_minimum_size
-		gem.pivot_offset = gem.size / 2.0
-		gem.rotation = PI / 4.0
-		gem.position = Vector2(137, 227)
-		$Margin.add_child(gem)
-	var color := FateRarity.color_of(rarity)
-	gem.add_theme_stylebox_override("panel", FateTheme.box(color, color.darkened(0.6), 1, 1, 0.0))
-
-
-# --- table mode -----------------------------------------------------------------------------
-#
-# On the table cards are drawn at less than half size, where the full layout is unreadable.
-# In table mode the front shows only what matters there, big: the name, the cost and its domain
-# pips, the type, and for creatures Strike and Guard. The frame takes the card's domain colour.
-# The full card is still shown in the card detail dock on hover. The regular labels are only
-# hidden, so they keep their text (tests and scripts read card_labels).
-
-const TABLE_NAME_SIZE := 30
-const STRIKE_COLOR := Color(0.85, 0.3, 0.28)
-const GUARD_COLOR := Color(0.32, 0.55, 0.9)
-
-var table_mode := false
-var _table_face: Control
-var _table_name: Label
-var _table_cost: Label
-var _table_pips: HBoxContainer
-var _table_type: Label
-var _table_strike: Label
-var _table_guard: Label
-var _table_stats: Control
-var _table_shown := ""
+	(_rarity_gem.material as ShaderMaterial).set_shader_parameter("tint", FateRarity.color_of(rarity))
 
 
 # Always applies the mode, even when it did not change: the card detail dock shows a duplicate
 # of the card, which starts with whatever the original showed.
 func set_table_mode(on: bool) -> void:
 	table_mode = on
-	if _table_face == null:
-		_table_face = get_node_or_null("TableFace")
-	if on and (_table_face == null or _table_name == null):
-		if _table_face:
-			remove_child(_table_face)
-			_table_face.queue_free()
-		_build_table_face()
-	$Margin.visible = not on
-	if _table_face:
-		_table_face.visible = on
-	if on:
-		_table_shown = ""
-		_refresh_table_face()
+	_details.visible = not on
+	_table_face.visible = on
 
 
-func _process(_delta: float) -> void:
-	if table_mode:
-		_refresh_table_face()
+# --- binding ---------------------------------------------------------------------------------
+
+func _set_domain(domain: String) -> void:
+	var color := FateTheme.domain_color(domain)
+	(_frame.material as ShaderMaterial).set_shader_parameter("tint", color)
+	(_art_icon.material as ShaderMaterial).set_shader_parameter("tint", color.lightened(0.15))
+	_cost.tint = color
+	_table_cost.tint = color
+
+
+# One pip per letter, in the colour of the domain the letter stands for
+func _set_pips(pips: String) -> void:
+	for pip in _pips.get_children():
+		_pips.remove_child(pip)
+		pip.queue_free()
+	for letter in pips:
+		var pip: FatePip = PIP_SCENE.instantiate()
+		pip.color = FateTheme.domain_color(FateGame.DOMAIN_BY_INITIAL.get(letter, ""))
+		_pips.add_child(pip)
+	# Whether the colourless cost shows depends on the pips
+	_set_cost(_cost.text)
+
+
+# A card that costs only pips shows no colourless cost
+func _set_cost(text: String) -> void:
+	_cost.text = text
+	_table_cost.text = text
+	var pips_only: bool = text in ["", "0"] and card_labels["Pips"].text != ""
+	_cost.visible = not pips_only
+	_table_cost.visible = not pips_only
+
+
+func _set_stat(badge: FateStatBadge, table_badge: FateStatBadge, stat: String, text: String) -> void:
+	var printed := _printed(stat)
+	for b in [badge, table_badge]:
+		b.base_text = printed
+		b.text = text
+
+
+# A stat as printed on the card (its definition), before damage and modifiers
+func _printed(stat: String) -> String:
+	var card := _card()
+	if card == null or not cfc.card_definitions.has(card.canonical_name):
+		return ""
+	var printed = cfc.card_definitions[card.canonical_name].get(stat)
+	return "" if printed == null else str(printed)
+
+
+func _set_art(card_type: String) -> void:
+	var card := _card()
+	var art_path: String = card.properties.get("_art", "") if card else ""
+	if art_path != "" and ResourceLoader.exists(art_path):
+		_art_background.texture = load(art_path)
+		_art_background.modulate = Color.WHITE
+		_art_icon.visible = false
+		return
+	var art: Array = TYPE_ART.get(card_type, TYPE_ART["Creature"])
+	_art_background.texture = load(ART_DIR + art[0])
+	_art_icon.texture = load(ART_DIR + art[1])
+	_art_icon.visible = true
+
+
+# Creatures show their stats along the bottom of the table face, so their type sits on the dark band
+# above; the other cards have the parchment to themselves and show their type there, big
+func _place_table_type() -> void:
+	if has_combat_stats:
+		return
+	_table_type.position = Vector2(20, 222)
+	_table_type.size = Vector2(155, 48)
+	var settings: LabelSettings = _table_type.label_settings.duplicate()
+	settings.font_size = 20
+	settings.font_color = Color(0.25, 0.16, 0.07)
+	settings.outline_size = 0
+	_table_type.label_settings = settings
+
+
+# --- text fitting ------------------------------------------------------------------------------
+
+# The largest font size (within `sizes`, min and max) at which the label's text fits its box
+func _fit_font(label: Label, sizes: Vector2i) -> void:
+	var font: Font = label.get_theme_font("font")
+	label.add_theme_font_size_override("font_size", _fitting_size(font, label, sizes))
+
+
+func _fit_label_settings(label: Label, sizes: Vector2i) -> void:
+	label.label_settings.font_size = _fitting_size(label.label_settings.font, label, sizes)
+
+
+func _fitting_size(font: Font, label: Label, sizes: Vector2i) -> int:
+	var box := label.size if label.size != Vector2.ZERO else label.custom_minimum_size
+	var wraps := label.autowrap_mode != TextServer.AUTOWRAP_OFF
+	for font_size in range(sizes.y, sizes.x - 1, -1):
+		var needed: Vector2
+		if wraps:
+			# The label breaks lines a little earlier than the font measures, and adds line spacing
+			var lines := font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_CENTER,
+					box.x - 6.0, font_size, label.max_lines_visible)
+			var line_count := roundi(lines.y / font.get_height(font_size))
+			needed = Vector2(lines.x, lines.y + line_count * 3.0)
+		else:
+			needed = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
+		if needed.x <= box.x and needed.y <= box.y:
+			return font_size
+	return sizes.x
 
 
 func _card() -> Card:
@@ -183,115 +240,3 @@ func _card() -> Card:
 	while node != null and not node is Card:
 		node = node.get_parent()
 	return node
-
-
-# Follows the card's properties (Strike and Guard change during play)
-func _refresh_table_face() -> void:
-	var card := _card()
-	if card == null:
-		return
-	var props: Dictionary = card.properties
-	var shown := "%s|%s|%s|%s|%s" % [card.canonical_name, props.get("Cost", ""),
-			props.get("Pips", ""), props.get("Strike", ""), props.get("Guard", "")]
-	if shown == _table_shown:
-		return
-	_table_shown = shown
-	_table_name.text = card.canonical_name
-	_table_cost.text = str(props.get("Cost", 0))
-	_table_type.text = str(props.get("Type", "")).to_upper()
-	for pip in _table_pips.get_children():
-		_table_pips.remove_child(pip)
-		pip.queue_free()
-	for letter in str(props.get("Pips", "")):
-		var pip := Panel.new()
-		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pip.custom_minimum_size = Vector2(18, 18)
-		var color := FateTheme.domain_color(FateGame.DOMAIN_BY_INITIAL.get(letter, ""))
-		pip.add_theme_stylebox_override("panel", FateTheme.box(color, Color(0, 0, 0, 0.8), 9, 2, 0.0))
-		_table_pips.add_child(pip)
-	_table_stats.visible = has_combat_stats
-	_table_strike.text = str(props.get("Strike", ""))
-	_table_guard.text = str(props.get("Guard", ""))
-
-
-func _build_table_face() -> void:
-	var card_size: Vector2 = CFConst.CARD_SIZE
-	_table_face = Control.new()
-	_table_face.name = "TableFace"
-	_table_face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_table_face.size = card_size
-	add_child(_table_face)
-	# The frame in the card's domain colour
-	var frame := Panel.new()
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.size = card_size
-	var color := FateTheme.card_color(_card())
-	frame.add_theme_stylebox_override("panel", FateTheme.box(Color.TRANSPARENT, color, 10, 7, 0.0))
-	_table_face.add_child(frame)
-	# Cost badge and domain pips along the top
-	var cost_badge := Panel.new()
-	cost_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cost_badge.position = Vector2(10, 10)
-	cost_badge.size = Vector2(42, 42)
-	cost_badge.add_theme_stylebox_override("panel",
-			FateTheme.box(FateTheme.GOLD, Color(0.25, 0.16, 0.0), 21, 3, 0.0))
-	_table_face.add_child(cost_badge)
-	_table_cost = _big_label(30, Color(0.15, 0.09, 0.0), 0)
-	_table_cost.size = cost_badge.size
-	cost_badge.add_child(_table_cost)
-	_table_pips = HBoxContainer.new()
-	_table_pips.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_table_pips.add_theme_constant_override("separation", 3)
-	_table_pips.position = Vector2(58, 22)
-	_table_face.add_child(_table_pips)
-	# Name in the middle
-	_table_name = _big_label(TABLE_NAME_SIZE, Color.WHITE, 7)
-	_table_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_table_name.max_lines_visible = 3
-	_table_name.clip_text = true
-	_table_name.position = Vector2(8, 58)
-	_table_name.size = Vector2(card_size.x - 16, 104)
-	_table_face.add_child(_table_name)
-	_table_type = _big_label(17, Color(1, 1, 1, 0.55), 4)
-	_table_type.position = Vector2(0, 160)
-	_table_type.size = Vector2(card_size.x, 24)
-	_table_face.add_child(_table_type)
-	# Strike and Guard badges along the bottom
-	_table_stats = Control.new()
-	_table_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_table_face.add_child(_table_stats)
-	_table_strike = _stat_badge(Vector2(8, 186), STRIKE_COLOR, "res://assets/icons/fist.png")
-	_table_guard = _stat_badge(Vector2(card_size.x / 2.0 + 3, 186), GUARD_COLOR,
-			"res://assets/icons/broadsword.png")
-
-
-func _stat_badge(at: Vector2, color: Color, icon_path: String) -> Label:
-	var badge := Panel.new()
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.position = at
-	badge.size = Vector2(CFConst.CARD_SIZE.x / 2.0 - 11, 46)
-	badge.add_theme_stylebox_override("panel", FateTheme.box(Color(color, 0.85), color.lightened(0.4), 10, 2, 0.0))
-	_table_stats.add_child(badge)
-	var icon := TextureRect.new()
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.texture = load(icon_path)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.position = Vector2(4, 9)
-	icon.size = Vector2(26, 26)
-	badge.add_child(icon)
-	var value := _big_label(32, Color.WHITE, 6)
-	value.position = Vector2(26, 0)
-	value.size = Vector2(badge.size.x - 28, badge.size.y)
-	badge.add_child(value)
-	return value
-
-
-func _big_label(font_size: int, color: Color, outline: int) -> Label:
-	var label := FateTheme.label("", font_size, color, "Bold")
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	if outline > 0:
-		label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-		label.add_theme_constant_override("outline_size", outline)
-	return label

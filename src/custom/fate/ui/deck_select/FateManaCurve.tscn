@@ -1,0 +1,333 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/custom/fate/ui/deck_select/FateManaCurve.gd" id="1_script"]
+
+[node name="FateManaCurve" type="VBoxContainer"]
+custom_minimum_size = Vector2(0, 74)
+mouse_filter = 2
+theme_override_constants/separation = 2
+script = ExtResource("1_script")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 10
+text = "Mana curve"
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Mv0" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv0"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv0"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv0/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv0"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Mv1" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv1"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv1"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv1/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv1"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "1"
+horizontal_alignment = 1
+
+[node name="Mv2" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv2"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv2"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv2/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv2"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "2"
+horizontal_alignment = 1
+
+[node name="Mv3" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv3"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv3"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv3/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv3"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "3"
+horizontal_alignment = 1
+
+[node name="Mv4" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv4"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv4"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv4/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv4"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "4"
+horizontal_alignment = 1
+
+[node name="Mv5" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv5"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv5"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv5/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv5"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "5"
+horizontal_alignment = 1
+
+[node name="Mv6" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv6"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv6"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv6/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv6"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "6"
+horizontal_alignment = 1
+
+[node name="Mv7" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Count" type="Label" parent="Columns/Mv7"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "0"
+horizontal_alignment = 1
+
+[node name="Well" type="Control" parent="Columns/Mv7"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Bar" type="ColorRect" parent="Columns/Mv7/Well"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.45, 0.25, 0.12, 1)
+
+[node name="Mv" type="Label" parent="Columns/Mv7"]
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 9
+text = "7+"
+horizontal_alignment = 1

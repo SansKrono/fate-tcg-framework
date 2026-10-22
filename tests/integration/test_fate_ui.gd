@@ -118,7 +118,7 @@ func test_table_cards_show_their_compact_face():
 	var creature := await put_creature(1, 3, 2)
 	await wait_seconds(0.4)
 	assert_true(creature.card_front.table_mode)
-	assert_false(creature.card_front.get_node("Margin").visible)
+	assert_false(creature.card_front._details.visible, "The details give way to the table face")
 	var in_hand = await put_in_hand(1, "Battle Smith")
 	assert_false(in_hand.card_front.table_mode)
 	creature.move_to(FateZones.container("hand", 1), -1, null, ["Scripted"])

@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://tests/fixtures/CGFCounters.gd" type="Script" id=1]
+[ext_resource path="res://tests/fixtures/CGFCounter.tscn" type="PackedScene" id=2]
+
+[node name="Counters" type="PanelContainer"]
+offset_right = 14.0
+offset_bottom = 14.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+counter_scene = ExtResource( 2 )
+
+[node name="VBC" type="VBoxContainer" parent="."]
+offset_left = 7.0
+offset_top = 7.0
+offset_right = 7.0
+offset_bottom = 7.0

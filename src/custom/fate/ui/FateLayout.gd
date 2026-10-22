@@ -16,8 +16,12 @@ class_name FateLayout
 extends RefCounted
 
 const SCREEN := Vector2(1280, 720)
+# The size of a Fate card: the native size of its pixel art (assets/fantasy-tcg-cards-pixel-art), which
+# the card scenes are laid out at. The framework's CFConst.CARD_SIZE stays the framework default; the
+# Fate cards (FateCardTemplate.tscn canonical_size) and the Fate containers (FateBoard) use this one.
+const CARD_SIZE := Vector2(195, 284)
 # Scale of the cards in each zone (FateBoard.TABLE_SCALE for the zones not listed)
-const ZONE_SCALES := {"energy": 0.3, "doctrines": 0.3, "world": 0.3}
+const ZONE_SCALES := {"energy": 0.25, "doctrines": 0.25, "world": 0.25}
 const COLUMNS := {
 	"creatures": 6, "occupied": 6, "relics": 99, "field": 1, "doctrines": 3, "energy": 99,
 }
@@ -36,7 +40,7 @@ const ENERGY_COUNTER_SIZE := Vector2(48, 76)
 # Gap between the slots of the creature rows: a tilted creature (guarding, or occupied) is as
 # wide as a card is tall, so it needs about this much room on each side not to cover its
 # neighbours
-const SLOT_GAPS := {"creatures": 18, "occupied": 18}
+const SLOT_GAPS := {"creatures": 14, "occupied": 14}
 # Top-left corner of each zone for the bottom seat
 const BOTTOM_GRIDS := {
 	"creatures": Vector2(248, 348),
@@ -52,12 +56,14 @@ const BOTTOM_PILES := {
 	"removed": Vector2(1210, 520),
 }
 # Piles are drawn as small stacks
-const PILE_SCALE := 0.4
+const PILE_SCALE := 0.34
 const RAIL_ZONES := ["doctrines"]
 const TABLE_MIDLINE := 312.0
 const HAND_RECT := Rect2(240, 480, 810, 240)
 # The top hand is a small face-down fan
-const TOP_HAND_SCALE := 0.45
+const TOP_HAND_SCALE := 0.38
+# The active player's hand, a little under full size so the cards fit HAND_RECT
+const BOTTOM_HAND_SCALE := 0.85
 const TOP_HAND_RECT := Rect2(380, 0, 540, 44)
 const PLATE_RECT := Rect2(1062, 624, 212, 88)
 const STATUS_RECT := Rect2(240, 284, 810, 42)
@@ -79,7 +85,7 @@ static func zone_scale(zone: String) -> float:
 
 # The size of an empty zone with its columns (one row)
 static func grid_height(zone: String) -> float:
-	return CFConst.CARD_SIZE.y * zone_scale(zone) + 4.0
+	return FateLayout.CARD_SIZE.y * zone_scale(zone) + 4.0
 
 
 static func grid_position(zone: String, seat: String) -> Vector2:
@@ -92,7 +98,7 @@ static func grid_position(zone: String, seat: String) -> Vector2:
 static func pile_position(zone: String, seat: String) -> Vector2:
 	var pos: Vector2 = BOTTOM_PILES[zone]
 	if seat == "top":
-		pos.y = _mirror(pos.y, CFConst.CARD_SIZE.y * PILE_SCALE, true)
+		pos.y = _mirror(pos.y, FateLayout.CARD_SIZE.y * PILE_SCALE, true)
 	return pos
 
 

@@ -42,11 +42,11 @@ func test_every_fate_card_has_a_rarity_with_effects():
 
 
 func test_a_flat_card_needs_no_fit():
-	assert_eq(FateCardFx.fit_scale(Vector2.ZERO, CFConst.CARD_SIZE, 500.0), 1.0)
+	assert_eq(FateCardFx.fit_scale(Vector2.ZERO, FateLayout.CARD_SIZE, 500.0), 1.0)
 
 
 func test_a_tilted_card_grows_just_enough_to_cover_the_flat_card():
-	var size := CFConst.CARD_SIZE
+	var size := FateLayout.CARD_SIZE
 	var max_tilt := FateCardFx.MAX_TILT
 	for tilt in [Vector2(max_tilt, 0), Vector2(0, -max_tilt), Vector2(max_tilt, max_tilt).limit_length(max_tilt)]:
 		var fit := FateCardFx.fit_scale(tilt, size, size.y * FateCardFx.CAM_DIST)

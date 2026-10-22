@@ -27,7 +27,7 @@ func _ready() -> void:
 func set_seat(new_seat: String) -> void:
 	seat = new_seat
 	mirrored = seat == "top"
-	var hand_scale: float = FateLayout.TOP_HAND_SCALE if mirrored else 1.0
+	var hand_scale: float = FateLayout.TOP_HAND_SCALE if mirrored else FateLayout.BOTTOM_HAND_SCALE
 	scale = Vector2(hand_scale, hand_scale)
 	set_concealed(mirrored)
 	re_place()
