@@ -1,5 +1,8 @@
 # Goblin Foundry (Innovation, optimised)
 
+> **Outdated (2026-10-21):** this describes the list before the Innovation rebalance and before the relic limit was
+> lifted. The current cards, list and numbers are in `docs/FATE_INNOVATION_CARDS.md`.
+
 The optimised Innovation deck of the catalogue (`FateDecks.OPTIMISED["Innovation"]`, preset id `innovation_optimised`).
 A scrap engine that ends in fire: goblins and Garbage Heaps make **scrap**, Scrap Cannons turn every spare scrap into
 a point of damage to the opponent's life, Factory Crafter and Battle Smith turn **ingots** (made from scrap) into

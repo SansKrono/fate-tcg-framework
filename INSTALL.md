@@ -2,7 +2,7 @@
 
 Simply copy the src folder to your project.
 
-[We've created a quickstart guide](tutorial/QUICKSTART.md) which takes you up to the point where you're creating your first custom card. Once you've done this, continue with the installation guide for more detailed information.
+In this repository the framework's original demo game has been replaced by the Fate card game (`src/custom/fate/`). The demo's board, cards and sets survive only as unit test fixtures in `tests/fixtures/`, and are referenced below as examples.
 
 You can rename the folder or any subfolders as you wish to fit your directory structure, just make sure you do it within Godot to allow it to rename all instanced scenes.
 However if you do so, you'll also need to adjust the variables starting with `PATH_` inside `CFControl.gd`.
@@ -19,7 +19,7 @@ On the other hand, te scripts and scenes inside `res://src/custom` are demontstr
 A few notes about the custom scenes.
 
 While everything in there can be modified, some files need to exist in one form or another.
-* You **need** a board scene, which you will load into your Main.tcsn "Board Scene" variable. The current provided CGFBoard.tcsn is full of demo functions and you can safely delete everything inside except the class extends declaration.
+* You **need** a board scene, which you will load into your Main.tcsn "Board Scene" variable. See `src/custom/fate/FateBoard.tscn`, or the demo board kept for the tests (`tests/UTBoard.tscn` with `tests/fixtures/CGFBoard.gd`).
 * You **need** CardConfig.gd, but it is in custom because its contents should change from game to game, and it should not be overriden via an upgrade.
 * You **need** CustomScripts.gd, even if it custom_script() function does not match anything.
 * You **need** CFConst, but you should customize its constants to fit your needs. It is in custom so that you do not lose your changes during an upgrade.
@@ -51,7 +51,7 @@ The below instructions will set up your game to use the `Card` class as a framew
 	Add those card scenes into either custom/cards directory, or another directory of your preference.
 1. If the card type is supposed to be attached to others, check the "Is Attachment"
 1. If you have designed your own card back scene, modify the card_back variable to point it to your own card back scene. Make sure your card back extends CardBack.
-1. Either use the provided template `res://src/custom/CGFCardFront.tscn` or create your own. Then adjust the card_front variable to point it. To design from scratch, make sure its script extends CardFront.
+1. Either use the provided template `res://tests/fixtures/cards/CGFCardFront.tscn` or create your own. Then adjust the card_front variable to point it. To design from scratch, make sure its script extends CardFront.
 	Ensure you populate the card_labels dictionary within with the paths to all your text labels.
 1. Either use the provided template `res://src/custom/CGFCardManipulationButton.tscn` or create your own. Then adjust the manipulation_button variable on the ManipulationButtons node to point to it.
 
@@ -140,7 +140,7 @@ The below instructions will set up your game to use the `Board` class as a frame
 
    `extends Board`
 
-1. If you're not using the provided `CGFBoard.tcsn`, then all you need to do is add a Node2D in the root of your scene and make sure the scene root is called "Board"
+1. If you're not starting from an existing board scene, then all you need to do is add a Node2D in the root of your scene and make sure the scene root is called "Board"
 
 Of course without instancing a few Hand or Pile objects, there won't be anything you can do.
 
@@ -175,7 +175,7 @@ To use this class:
 	```
 
 1. Create a new script for your Counters scene by extending `res://core/Counters.gd`.
-1. Inside the new script's `_ready()` function, you need to specify which counters you'll need. See documentation in the provided sample `res://src/custom/CGFCounters.gd`
+1. Inside the new script's `_ready()` function, you need to specify which counters you'll need. See documentation in the provided sample `res://tests/fixtures/CGFCounters.gd`
 1. Create a new scene for an individual counter. It has to have at least 1 label on the root node, which will hold the value of the counter to display to the player.
 	The label names should match the definitions in the script extended from Counters.
 1. From the editor on your counters scene, assign your new counter scene to the "Counter Scene" exported variable.

@@ -1,0 +1,30 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cdqd7u7yi6s63"]
+
+[ext_resource type="Shader" uid="uid://elwj1ksymgc3" path="res://assets/BinbunVFX/card_effects/src/shader/card.gdshader" id="1_j6rth"]
+
+[sub_resource type="Gradient" id="Gradient_yocba"]
+interpolation_color_space = 2
+offsets = PackedFloat32Array(0.2, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_e24vb"]
+gradient = SubResource("Gradient_yocba")
+fill = 2
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0, 1)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_kek77"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_j6rth")
+shader_parameter/main_texture = SubResource("CompressedTexture2D_kek77")
+shader_parameter/effect_steps = 32
+shader_parameter/effect_size = Vector2(1, 1)
+shader_parameter/holo_amount = 0.0
+shader_parameter/shimmer_strength = 1.499999966472
+shader_parameter/view_affect = 4.0
+shader_parameter/value_pre_inversion = 0.999999977648
+shader_parameter/value_post_inversion = 0.0
+shader_parameter/color_mask_texture = SubResource("GradientTexture2D_e24vb")
+shader_parameter/color_replace = Color(0.28235295, 0.92156863, 0.78039217, 1)
+shader_parameter/replace_amount = 0.0

@@ -1,0 +1,27 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cw14oogriojna"]
+
+[ext_resource type="Shader" uid="uid://elwj1ksymgc3" path="res://assets/BinbunVFX/card_effects/src/shader/card.gdshader" id="1_1prcs"]
+[ext_resource type="Texture2D" uid="uid://cogyd5ytuq564" path="res://assets/BinbunVFX/card_effects/textures/card_full.png" id="2_87kru"]
+
+[sub_resource type="Gradient" id="Gradient_7mycd"]
+interpolation_color_space = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_272bh"]
+gradient = SubResource("Gradient_7mycd")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_1prcs")
+shader_parameter/main_texture = ExtResource("2_87kru")
+shader_parameter/effect_steps = 8
+shader_parameter/effect_size = Vector2(1, 2)
+shader_parameter/holo_amount = 0.999999977648
+shader_parameter/shimmer_strength = 1.5
+shader_parameter/view_affect = 4.0
+shader_parameter/value_pre_inversion = 0.0
+shader_parameter/value_post_inversion = 0.0
+shader_parameter/color_mask_texture = SubResource("GradientTexture2D_272bh")
+shader_parameter/color_replace = Color(0.9529412, 0.99215686, 0, 1)
+shader_parameter/replace_amount = 1.0

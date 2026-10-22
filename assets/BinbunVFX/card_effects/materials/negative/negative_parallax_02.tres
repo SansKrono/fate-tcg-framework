@@ -1,0 +1,43 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://24tq53mwc42e"]
+
+[ext_resource type="Shader" uid="uid://bgl2oe4mh7k7u" path="res://assets/BinbunVFX/card_effects/src/shader/parallax_card.gdshader" id="1_pmjkx"]
+[ext_resource type="Texture2D" uid="uid://drowspjgkjka1" path="res://assets/BinbunVFX/card_effects/textures/card_layer_01.png" id="2_dm5a3"]
+[ext_resource type="Texture2D" uid="uid://n5ontl10rjqa" path="res://assets/BinbunVFX/card_effects/textures/card_layer_02.png" id="3_ip3la"]
+[ext_resource type="Texture2D" uid="uid://ciiwdbb6ugucv" path="res://assets/BinbunVFX/card_effects/textures/card_layer_03.png" id="4_x438n"]
+[ext_resource type="Texture2D" uid="uid://wn8mkwg5ejdy" path="res://assets/BinbunVFX/card_effects/textures/card_layer_04.png" id="5_b7lj6"]
+[ext_resource type="Texture2D" uid="uid://bcu07hecpj1co" path="res://assets/BinbunVFX/card_effects/textures/card_layer_05.png" id="6_ejjy8"]
+
+[sub_resource type="Gradient" id="Gradient_yocba"]
+interpolation_color_space = 2
+offsets = PackedFloat32Array(0.2, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_g7ixy"]
+gradient = SubResource("Gradient_yocba")
+fill = 2
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0, 1)
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_pmjkx")
+shader_parameter/layer_01_texture = ExtResource("2_dm5a3")
+shader_parameter/layer_01_emission = 1.0
+shader_parameter/layer_02_texture = ExtResource("3_ip3la")
+shader_parameter/layer_02_emission = 1.0
+shader_parameter/layer_03_texture = ExtResource("4_x438n")
+shader_parameter/layer_03_emission = 1.0
+shader_parameter/layer_04_texture = ExtResource("5_b7lj6")
+shader_parameter/layer_04_emission = 1.0
+shader_parameter/layer_05_texture = ExtResource("6_ejjy8")
+shader_parameter/layer_05_emission = 1.0
+shader_parameter/depth_amount = 0.4
+shader_parameter/effect_steps = 8
+shader_parameter/effect_size = Vector2(2, 2)
+shader_parameter/holo_amount = 0.499999988824
+shader_parameter/shimmer_strength = 1.5
+shader_parameter/view_affect = 4.0
+shader_parameter/value_pre_inversion = 0.0
+shader_parameter/value_post_inversion = 0.999999977648
+shader_parameter/color_mask_texture = SubResource("GradientTexture2D_g7ixy")
+shader_parameter/color_replace = Color(0.28235295, 0.92156863, 0.78039217, 1)
+shader_parameter/replace_amount = 0.0

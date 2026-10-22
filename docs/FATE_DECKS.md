@@ -7,6 +7,13 @@ of the domain's cards). The optimised decks were built from the data of the AI s
 (`src/custom/fate/sim/README.md`). The choice reaches the table through `FateGame.domain_override` and
 `decklist_override`; a table opened without the screen plays Order against Primal.
 
+> **2026-10-21:** the relic zone no longer has a limit, and the Innovation and then the Order cards were rebalanced
+> (`docs/FATE_INNOVATION_CARDS.md`, `docs/FATE_ORDER_CARDS.md`). The four decks now win 49 to 52% in a round robin; the
+> current field is in `docs/FATE_ORDER_CARDS.md`. Later that day field spells became castable on either player's field
+> (War of Attrition restored, Clockwork Sentinel 2/3): Chaos 53.0%, Order 49.3%, Primal 49.0%, Foundry 48.7%
+> (`docs/FATE_CARD_CHANGELIST.md`). On 2026-10-22 cards and doctrine goals were rebalanced so the decks are even both
+> with and without doctrines (`docs/FATE_DOCTRINES.md`). The tables below are older.
+>
 > The first two tables (how the decks were made) were measured with the AI as it was before the weighted profile system
 > (`docs/FATE_AI.md`). **The Goblin Foundry list was rebuilt after it** (see "The second pass"); the other three lists
 > were re-tested against the new AI and kept. The current standings are under "The field".
@@ -104,9 +111,12 @@ Redone after the weighted AI (`docs/FATE_AI.md`), to see what was left on the ta
 
 ### Iron Vanguard (Order, optimised)
 
-A fast human army. Cheap soldiers and Reinforcements go wide, Moral Captain and Battle Ready send the whole line in with extra Strike, Devote Paladin adds Savage, Smite removes the blocker that matters and Lucran closes the game.
+Rebalanced on 2026-10-21 (`docs/FATE_ORDER_CARDS.md`). A fast human army. Cheap soldiers, Righteous Guards and
+Reinforcements go wide, and Moral Captain and Battle Ready send the whole line in with extra Strike. Devote Paladin adds
+Savage, War of Attrition, cast on the enemy's field, keeps their army occupied, Smite removes the blocker that
+matters and Lucran closes the game.
 
-3x Battle Ready, 3x Devote Paladin, 3x Faithful Worshiper, 3x Hold the Line, 3x Holy Healer, 3x Moral Captain, 3x Recovering Resources, 3x Reinforcements, 3x Sigil Mage, 3x Smite, 3x Streetside Recruiter, 3x Tactical Combatant, 2x War of Attrition, 1x Lucran, Divine Saviour, 1x Zelith, Mage Justiciar
+3x Battle Ready, 3x Devote Paladin, 3x Faithful Worshiper, 3x Holy Healer, 3x Moral Captain, 3x Recovering Resources, 3x Reinforcements, 3x Righteous Guard, 3x Sigil Mage, 3x Smite, 3x Streetside Recruiter, 3x Tactical Combatant, 2x War of Attrition, 1x Lucran, Divine Saviour, 1x Zelith, Mage Justiciar
 
 ### Wild Stampede (Primal, optimised)
 
@@ -122,9 +132,13 @@ Steals the other player's army. Unseen Manipulator and Harbinger of Krelgar take
 
 ### Goblin Foundry (Innovation, optimised)
 
-A scrap engine that ends in fire. Goblins and Garbage Heaps make scrap, Scrap Cannons turn every spare scrap into a point of damage to the opponent's life, Factory Crafter and Battle Smith turn ingots into automatons and hammers, and Safety Measure and Factory Shutdown buy the time. Slow to start, and the stock of scrap is a clock the opponent cannot see.
+Rebalanced on 2026-10-21, together with lifting the relic limit: see `docs/FATE_INNOVATION_CARDS.md` for the card
+changes, the new cards and the measurements. A scrap engine that ends in fire. Goblins, Salvagers and Clockwork
+Sentinels make scrap even as they fall, and Scrap Cannons turn every spare scrap into damage. Factory Crafter and
+Battle Smith turn ingots into automatons and hammers, Scrapheap Colossus grows with every relic, and Disassemble takes
+the small threats apart.
 
-3x Acquisition Fabricator, 3x Battle Smith, 3x Factory Crafter, 3x Factory Refinery, 3x Factory Shutdown, 3x Garbage Heap, 3x Goblin Ledgerkeeper, 3x Rapid Scavenging, 3x Rustmarket Tinkerer, 3x Safety Measure, 3x Scrap Cannon, 3x Skulking Goblin, 1x Brogir, Master Artificer, 1x Rarink, Crafty Opportunist, 1x Thrang's Crafting Table, 1x Thrang, Perpetual Innovation
+3x Acquisition Fabricator, 3x Battle Smith, 3x Clockwork Sentinel, 3x Disassemble, 3x Factory Crafter, 3x Factory Refinery, 3x Goblin Ledgerkeeper, 3x Rapid Scavenging, 3x Safety Measure, 3x Scrap Cannon, 3x Scrapheap Colossus, 3x Steelwork Salvager, 2x Garbage Heap, 1x Brogir, Master Artificer, 1x Thrang, Perpetual Innovation
 
 ## Changing a deck
 

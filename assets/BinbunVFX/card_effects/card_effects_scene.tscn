@@ -1,0 +1,229 @@
+[gd_scene format=3 uid="uid://b2uail0rogdku"]
+
+[ext_resource type="Material" uid="uid://dlt0senyfelr0" path="res://assets/BinbunVFX/card_effects/materials/holo/holo_parallax_01.tres" id="1_84qak"]
+[ext_resource type="Texture2D" uid="uid://drowspjgkjka1" path="res://assets/BinbunVFX/card_effects/textures/card_layer_01.png" id="2_8pjj6"]
+[ext_resource type="Material" uid="uid://b53g2k64873y" path="res://assets/BinbunVFX/card_effects/materials/holo/holo_parallax_02.tres" id="3_7amj2"]
+[ext_resource type="Shader" uid="uid://elwj1ksymgc3" path="res://assets/BinbunVFX/card_effects/src/shader/card.gdshader" id="4_lph14"]
+[ext_resource type="Texture2D" uid="uid://cogyd5ytuq564" path="res://assets/BinbunVFX/card_effects/textures/card_full.png" id="5_oc7cs"]
+[ext_resource type="Material" uid="uid://cw14oogriojna" path="res://assets/BinbunVFX/card_effects/materials/holo/holo_02.tres" id="6_3rpfe"]
+[ext_resource type="Material" uid="uid://0r0xi6cw1uhp" path="res://assets/BinbunVFX/card_effects/materials/diamond/diamond_parallax_01.tres" id="7_guyh0"]
+[ext_resource type="Material" uid="uid://ciypip4yg2aiy" path="res://assets/BinbunVFX/card_effects/materials/diamond/diamond_parallax_02.tres" id="8_gewp5"]
+[ext_resource type="Material" uid="uid://ds2hnnh4r02i3" path="res://assets/BinbunVFX/card_effects/materials/diamond/diamond_01.tres" id="9_p184s"]
+[ext_resource type="Material" uid="uid://dbe1figdxgs55" path="res://assets/BinbunVFX/card_effects/materials/diamond/diamond_02.tres" id="10_ee7ua"]
+[ext_resource type="Material" uid="uid://b81u0gn8mhjxg" path="res://assets/BinbunVFX/card_effects/materials/foil/foil_parallax_01.tres" id="11_ylv08"]
+[ext_resource type="Material" uid="uid://bwge5l7oomjwl" path="res://assets/BinbunVFX/card_effects/materials/foil/foil_parallax_02.tres" id="12_w710j"]
+[ext_resource type="Material" uid="uid://cnm5k05nrod7p" path="res://assets/BinbunVFX/card_effects/materials/foil/foil_01.tres" id="13_mi53o"]
+[ext_resource type="Material" uid="uid://bte473inp85h0" path="res://assets/BinbunVFX/card_effects/materials/foil/foil_02.tres" id="14_7xw5l"]
+[ext_resource type="Material" uid="uid://cao8vtcsaaqwu" path="res://assets/BinbunVFX/card_effects/materials/tiers/legendary_parallax.tres" id="15_52xfg"]
+[ext_resource type="Material" uid="uid://yw3ftiasugpc" path="res://assets/BinbunVFX/card_effects/materials/tiers/rare_parallax.tres" id="16_w6xrq"]
+[ext_resource type="Material" uid="uid://b5or5jtirk5uk" path="res://assets/BinbunVFX/card_effects/materials/tiers/uncommon_parallax.tres" id="17_pv7sq"]
+[ext_resource type="Material" uid="uid://tto8auit6xvu" path="res://assets/BinbunVFX/card_effects/materials/tiers/common_parallax.tres" id="18_5d8ev"]
+[ext_resource type="Material" uid="uid://cuuhv7w1ct1wp" path="res://assets/BinbunVFX/card_effects/materials/tiers/legendary.tres" id="19_wnjnt"]
+[ext_resource type="Material" uid="uid://cpokmjxfjmr45" path="res://assets/BinbunVFX/card_effects/materials/tiers/rare.tres" id="20_mdw2u"]
+[ext_resource type="Material" uid="uid://k8yjccylyhyj" path="res://assets/BinbunVFX/card_effects/materials/tiers/uncommon.tres" id="21_kdyhc"]
+[ext_resource type="Material" uid="uid://qs4oobus41d4" path="res://assets/BinbunVFX/card_effects/materials/tiers/common.tres" id="22_jj524"]
+[ext_resource type="Material" uid="uid://c2iv5l0m2twu2" path="res://assets/BinbunVFX/card_effects/materials/negative/negative_parallax_01.tres" id="23_cp5ix"]
+[ext_resource type="Material" uid="uid://24tq53mwc42e" path="res://assets/BinbunVFX/card_effects/materials/negative/negative_parallax_02.tres" id="24_kxjph"]
+[ext_resource type="Material" uid="uid://cdqd7u7yi6s63" path="res://assets/BinbunVFX/card_effects/materials/negative/negative_01.tres" id="25_awtx0"]
+[ext_resource type="Material" uid="uid://dqnyvo504kj47" path="res://assets/BinbunVFX/card_effects/materials/negative/negative_02.tres" id="26_1hh78"]
+
+[sub_resource type="Environment" id="Environment_7mycd"]
+background_mode = 1
+glow_enabled = true
+glow_intensity = 1.0
+
+[sub_resource type="Gradient" id="Gradient_7mycd"]
+interpolation_color_space = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_272bh"]
+gradient = SubResource("Gradient_7mycd")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4c57u"]
+render_priority = 0
+shader = ExtResource("4_lph14")
+shader_parameter/main_texture = ExtResource("5_oc7cs")
+shader_parameter/effect_steps = 16
+shader_parameter/effect_size = Vector2(1, 1)
+shader_parameter/holo_amount = 0.999999977648
+shader_parameter/shimmer_strength = 1.5
+shader_parameter/view_affect = 2.0
+shader_parameter/value_pre_inversion = 0.0
+shader_parameter/value_post_inversion = 0.0
+shader_parameter/color_mask_texture = SubResource("GradientTexture2D_272bh")
+shader_parameter/color_replace = Color(0.76588744, 0.9872834, 0.99999994, 1)
+shader_parameter/replace_amount = 0.0
+
+[node name="Node3D" type="Node3D" unique_id=521096506]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=34812138]
+environment = SubResource("Environment_7mycd")
+
+[node name="Holo" type="Node3D" parent="." unique_id=676112171]
+
+[node name="ParallaxCard_Holo_01" type="Sprite3D" parent="Holo" unique_id=1124346944]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
+visible = false
+material_override = ExtResource("1_84qak")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Holo_02" type="Sprite3D" parent="Holo" unique_id=681895626]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -1)
+visible = false
+material_override = ExtResource("3_7amj2")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="Card_Holo_01" type="Sprite3D" parent="Holo" unique_id=580780154]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, 0)
+visible = false
+material_override = SubResource("ShaderMaterial_4c57u")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Holo_02" type="Sprite3D" parent="Holo" unique_id=534224603]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -1)
+visible = false
+material_override = ExtResource("6_3rpfe")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Diamond" type="Node3D" parent="." unique_id=1120612679]
+visible = false
+
+[node name="ParallaxCard_Diamond_01" type="Sprite3D" parent="Diamond" unique_id=347964975]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -2)
+material_override = ExtResource("7_guyh0")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Diamond_02" type="Sprite3D" parent="Diamond" unique_id=1802718077]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -3)
+visible = false
+material_override = ExtResource("8_gewp5")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="Card_Diamond_01" type="Sprite3D" parent="Diamond" unique_id=7965690]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -2)
+visible = false
+material_override = ExtResource("9_p184s")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Diamond_02" type="Sprite3D" parent="Diamond" unique_id=1832135771]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -3)
+visible = false
+material_override = ExtResource("10_ee7ua")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Foil" type="Node3D" parent="." unique_id=1074699008]
+visible = false
+
+[node name="ParallaxCard_Foil_01" type="Sprite3D" parent="Foil" unique_id=1583966927]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -4)
+material_override = ExtResource("11_ylv08")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Foil_02" type="Sprite3D" parent="Foil" unique_id=1256604015]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -5)
+visible = false
+material_override = ExtResource("12_w710j")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="Card_Foil_01" type="Sprite3D" parent="Foil" unique_id=400049170]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -4)
+visible = false
+material_override = ExtResource("13_mi53o")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Foil_02" type="Sprite3D" parent="Foil" unique_id=448902837]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -5)
+visible = false
+material_override = ExtResource("14_7xw5l")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Tier" type="Node3D" parent="." unique_id=1197551026]
+visible = false
+
+[node name="ParallaxCard_Legendary" type="Sprite3D" parent="Tier" unique_id=966308071]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -6)
+material_override = ExtResource("15_52xfg")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Rare" type="Sprite3D" parent="Tier" unique_id=269388824]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -7)
+material_override = ExtResource("16_w6xrq")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Uncommon" type="Sprite3D" parent="Tier" unique_id=972227064]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -8)
+material_override = ExtResource("17_pv7sq")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Common" type="Sprite3D" parent="Tier" unique_id=1882593290]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -9)
+material_override = ExtResource("18_5d8ev")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="Card_Legendary" type="Sprite3D" parent="Tier" unique_id=676688104]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -6)
+material_override = ExtResource("19_wnjnt")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Rare" type="Sprite3D" parent="Tier" unique_id=1442101129]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -7)
+material_override = ExtResource("20_mdw2u")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Uncommon" type="Sprite3D" parent="Tier" unique_id=1884984827]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -8)
+material_override = ExtResource("21_kdyhc")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Common" type="Sprite3D" parent="Tier" unique_id=863663698]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -9)
+material_override = ExtResource("22_jj524")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Negative" type="Node3D" parent="." unique_id=1651863584]
+visible = false
+
+[node name="ParallaxCard_Negative_01" type="Sprite3D" parent="Negative" unique_id=531582245]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -10)
+material_override = ExtResource("23_cp5ix")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="ParallaxCard_Negative_02" type="Sprite3D" parent="Negative" unique_id=1315938233]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -11)
+material_override = ExtResource("24_kxjph")
+texture_filter = 0
+texture = ExtResource("2_8pjj6")
+
+[node name="Card_Negative_01" type="Sprite3D" parent="Negative" unique_id=2143130598]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -10)
+material_override = ExtResource("25_awtx0")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")
+
+[node name="Card_Negative_02" type="Sprite3D" parent="Negative" unique_id=549508661]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, -11)
+material_override = ExtResource("26_1hh78")
+texture_filter = 0
+texture = ExtResource("5_oc7cs")

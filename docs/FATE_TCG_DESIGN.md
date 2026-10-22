@@ -187,7 +187,7 @@ configurable:
 | **Relic** | Scene `Relic.tscn`, `Type = "Relic"`. Lives on the relic grid or attached to a creature | **CONFIG** |
 | **Spell: regular** | Scene `Spell.tscn`, tag `Spell`. Scripts run from `hand` state; the card resolves, then moves to discard | **CONFIG** + timing gate (SYS-TURN) |
 | **Spell: reaction** | Same scene; cast in response windows | **CUSTOM** (SYS-RESPONSE) |
-| **Spell: persisting - field** | One slot per player. New field spell sent to discard when replaced | **EXTEND** (SYS-SLOT, replacement via `common_pre_move_scripts`) |
+| **Spell: persisting - field** | One slot per player. Can be cast on either player's field; the field spell already there is sent to its owner's discard pile. The player whose field it is in controls it | **EXTEND** (SYS-SLOT, replacement via `common_pre_move_scripts`) |
 | **Spell: persisting - world** | One shared slot between the two fields. Only one in play | **EXTEND** (SYS-SLOT) |
 | **Token** (soldier, automaton, relic tokens) | `Type = "Token"` cards, spawned by `spawn_card`; hidden from the deck builder by `CardConfig.TYPES_TO_HIDE_IN_CARDVIEWER` | **CONFIG** |
 | **Doctrine** | New scene `Doctrine.tscn`, not part of the 40-card deck | **CUSTOM** (SYS-DOCTRINE) |
@@ -478,19 +478,23 @@ doctrine's goal is met its reward persists unless an effect removes it.
 | ID | Doctrine | Goal | Reward | Reward implementation | Status |
 |----|----------|------|--------|-----------------------|--------|
 | C1 | Subtle Influence | Count control 2 (2 opponent cards in your energy zone or field) | Once per turn, flip cast a card by paying its cost | Grants a flip-cast permission token each turn (`cast_card`) | CUSTOM |
-| C2 | Ensue Chaos | Devotion 5 Chaos | Instead of playing a card from hand for turn, take the top card of an opponent's deck into your energy zone | Alters the upkeep energy-play option (SYS-TURN/SYS-ENERGY) | CUSTOM |
-| C3 | Convert the Masses | Count control 6 | At the beginning of each turn, take the weakest creature on a target player's field | Phase trigger + SYS-CONTROL, "weakest" = lowest Strike+Guard | CUSTOM |
+| C2 | Ensue Chaos | Devotion 4 Chaos | Instead of playing a card from hand for turn, take the top card of an opponent's deck into your energy zone | Alters the upkeep energy-play option (SYS-TURN/SYS-ENERGY) | CUSTOM |
+| C3 | Convert the Masses | Count control 4 | At the beginning of each turn, take the weakest creature on a target player's field | Phase trigger + SYS-CONTROL, "weakest" = lowest Strike+Guard | CUSTOM |
 | O1 | Maintain Your Presence | Count Creature 4 | Create a 1/1 soldier at the beginning of your turn | Phase trigger + `spawn_card` | CONFIG |
-| O2 | Defend the Innocent | Devotion 5 Order | While conditions are met, creatures gain +1 Strike and +1 Guard | Static effect, SYS-MOD | CUSTOM |
+| O2 | Defend the Innocent | Devotion 6 Order | Your creatures gain +1 Strike and +1 Guard | Static effect, SYS-MOD | CUSTOM |
 | O3 | Vanquish Thine Foes | Count Creature 10 | When your creatures attack, any creature that interacts with them is destroyed | Combat hook | CUSTOM |
 | P1 | Be a Fierce Presence | Power 4 (a creature with Strike or Guard >= 4) | Your highest-Strike creature may guard from strike position as well as attack | Combat rule override | CUSTOM |
-| P2 | Devote Yourself to the Wilds | Devotion 5 Primal | Creatures can attack the turn they are played | Grants Charge globally | CUSTOM |
+| P2 | Devote Yourself to the Wilds | Devotion 6 Primal | Creatures can attack the turn they are played | Grants Charge globally | CUSTOM |
 | P3 | Channel the Spirit's Will | Ghost Count 4 (4 Ghosts and/or embodying creatures) | A creature that would die from combat damage stays and its controller takes 3 damage instead | Combat replacement effect | CUSTOM |
 | I1 | Construct the Future | Count Relic 3 | Create a scrap token at the beginning of your upkeep | Phase trigger + `mod_counter` scrap | CONFIG |
-| I2 | Devote Yourself to Progress | Devotion 5 Innovation | Creatures can occupy the turn they are played | Grants Productive globally | CUSTOM |
+| I2 | Devote Yourself to Progress | Devotion 6 Innovation | Creatures can occupy the turn they are played | Grants Productive globally | CUSTOM |
 | I3 | Produce Endlessly | Token Count 6 | Whenever you create a token, create an additional one of that kind | **Alterant** on `spawn_card` / scrap `mod_counter` (the framework's alterant engine does exactly this) | EXTEND |
 
 The draft heading says "Innervation"; the domain is Innovation (Section 12).
+
+Goal numbers of C2, C3, O2, P2 and I2 were changed by the doctrine rebalance (2026-10-22, `docs/FATE_DOCTRINES.md`,
+which also describes how to add doctrines: goal kinds are registered in `FateDoctrines`, decks may name their own
+doctrines).
 
 ---
 
@@ -531,7 +535,7 @@ adds nothing the counters do not already provide (DECIDE if physical tokens are 
 | Regular spell, own turn, Main 1 or 2 | Gate in the cast helper using the current phase | **EXTEND** |
 | Reaction spell, any time in response | SYS-RESPONSE window | **CUSTOM** |
 | Reaction spells never counter spells | Content rule: no card may target a spell on a stack. No stack is required (see SYS-RESPONSE) | **DESIGN** |
-| Field spell: one per player's field; new one replaces the old (old to discard) | `common_pre_move_scripts` on a field spell finds the occupant of `field_spell`, moves it to discard, then allows the move | **EXTEND** |
+| Field spell: one per player's field, cast on either player's; new one replaces the old (old to its owner's discard) | `common_pre_move_scripts` on a field spell finds the occupant of `field_spell`, moves it to discard, then allows the move | **EXTEND** |
 | World spell: one in play, shared | Same, on the shared `world_spell` grid | **EXTEND** |
 | Persisting spell with a duration | Counter or token on the spell, decremented by a phase trigger | **CONFIG** |
 | Spell resolves then goes to discard | End of the cast helper | **EXTEND** |
@@ -665,19 +669,22 @@ Stats are Strike/Guard. Stats shown as `?` are missing in the draft.
 | Card | Cost | Type / subtypes | S/G | Draft effect | Mapping | Class |
 |------|------|-----------------|-----|--------------|---------|-------|
 | Rustmarket Tinkerer | 1## | Creature, Goblin Engineer | 1/3 | Occupy: cast 1 relic from your discard by paying its cost | `occ` cost; `cast_card` from discard with relic filter; SYS-SLOT, SYS-ENERGY | B |
-| Steelwork Salvager | 2## | Creature, Goblin Engineer | 2/1 | When it attacks, create a scrap token | `creature_attacks` trigger; `mod_counter` scrap; SYS-COMBAT, SYS-TOKEN | B |
-| Goblin Ledgerkeeper | # | Creature, Goblin Shopkeeper | ? | Occupy: create a scrap token | `occ`; `mod_counter` scrap; stats missing in draft | B |
+| Steelwork Salvager | 1# | Creature, Goblin Engineer | 2/2 | When it attacks, create a scrap token | `creature_attacks` trigger; `mod_counter` scrap; SYS-COMBAT, SYS-TOKEN | B |
+| Goblin Ledgerkeeper | # | Creature, Goblin Shopkeeper | 1/2 | Occupy: create a scrap token | `occ`; `mod_counter` scrap; stats missing in draft, 1/2 set by the Innovation rebalance (docs/FATE_INNOVATION_CARDS.md) | B |
 | Skulking Goblin | 1# | Creature, Goblin Thief | 2/1 | When it attacks you may draw a card then discard a card | Attack trigger, optional key (`is_optional_board`), draw `mcc`, discard `mcc` with `needs_selection`; SYS-COMBAT | B |
 | Acquisition Fabricator | 2# | Creature, Dwarf Engineer | 2/3 | Tap, consume a scrap: create an ingot token (consume for 1 mana of any colour) | `occ`; cost `mod_counter` scrap -1; `mod_counter` ingot +1; ingot payable as mana in SYS-ENERGY | B |
 | Battle Smith | 1## | Creature, Dwarf Brawler | 3/3 | Tap, consume an ingot: create a Battle Hammer token attached to a creature you control (+2 Strike) | `occ`; cost ingot; `spawn_card` Battle Hammer; `attach_to_card`; SYS-MOD (+2 Strike) | B |
 | Factory Crafter | 1## | Creature, Dwarf Engineer | 2/4 | Tap, consume an ingot: create a 3/3 iron automaton token in guard position | `occ`; cost ingot; `spawn_card` Automaton then `rotate_card` 90 | B |
 | Thrang, Perpetual Innovation | 5## | Unique Creature, Construct God | 6/6 | Consume a scrap: unoccupy target permanent you control. Cannot be targeted by spells | Cost scrap; `unoccupy`; untargetable-by-spells flag; SYS-SLOT, SYS-KEYWORD, SYS-FILTER | B |
 | Scrap Cannon | 2# | Relic | - | Consume a scrap: 1 damage to any target (to a creature, reduces the stat for its current position) | Cost scrap; `deal_damage`; SYS-COMBAT, SYS-MOD; arrow targets players too | B |
-| Factory Refinery | ### | Relic | - | Pay 1, consume a scrap: create an ingot token | Cost: pay 1 mana + scrap; `mod_counter` ingot | B |
+| Factory Refinery | 1# | Relic | - | Pay 1, consume a scrap: create an ingot token | Cost: pay 1 mana + scrap; `mod_counter` ingot | B |
+| Clockwork Sentinel | 1# | Creature, Construct | 2/2 | When it is destroyed, create 2 scrap tokens | `on_destroyed`; `mod_counter` scrap +2 | B |
+| Scrapheap Colossus | 2## | Creature, Construct | 2/2 | Gets +1 Strike and +1 Guard for each relic you control | Static self bonus counting the relic zone; SYS-MOD | B |
 | Garbage Heap | 1# | Relic | - | Consume this relic: create 2 scrap tokens | `mcc` self -> discard (cost); `mod_counter` scrap +2 | A |
 | Scrap Recycler | 1# | Relic | - | Once per turn you may consume a relic. If you do, draw a card | Limiter once per turn; cost `mcc` relic; draw | B |
 | Thrang's Crafting Table | 3## | Unique Relic | - | Consume 1 ingot: create Battle Hammer token, attach to a creature. Consume 2: create 3/3 guard automaton. Consume 3: search for Thrang into hand | Modal script (3 titled options); ingot costs; `spawn_card`+`attach_to_card`; `tutor`; SYS-TOKEN | B |
-| Rapid Scavenging | 2 | Spell (regular) | - | Create 2 scrap tokens | `mod_counter` scrap +2 | A |
+| Rapid Scavenging | 2 | Spell (regular) | - | Create 2 scrap tokens. Draw a card | `mod_counter` scrap +2; draw | A |
+| Disassemble | 2 | Spell (regular) | - | Destroy target non-unique creature an opponent controls with 3 or less in the stat of its current position. Create 2 scrap tokens | Target filter on `used_stat`; `mcc` -> discard; `mod_counter` scrap +2 | B |
 | Fabrication Line | 3 | Spell (regular) | - | Create 2 copies of target token you control | Copy mode for counters and token cards (`spawn_card` x2) | C |
 | Factory Shutdown | 2 | Spell (reaction) | - | All attacks against you and your field are negated | SYS-RESPONSE at attack declaration; `negate_attack` for all attackers | B |
 | Safety Measure | 2 | Spell (reaction) | - | Destroy target attacking creature | Response window; target filter `filter_is_attacker`; `mcc` -> discard | B |
@@ -689,7 +696,7 @@ Stats are Strike/Guard. Stats shown as `?` are missing in the draft.
 |------|------|-----------------|-----|--------------|---------|-------|
 | Harbinger of Krelgar | 1## | Creature, Civilian Abomination | 1/1 | When it dies, take control of target creature with mana value 2 or less | `card_moved_to_pile` trigger (board -> discard); `take_control`; `filter_mana_value`; SYS-CONTROL | B |
 | Enthralled Civilian | # | Creature, Civilian Cultist | 1/1 | Main phase: consume it to cast one of your mana cards (it stops being mana) | Cost `mcc` self; `cast_card` from energy zone, paying cost; SYS-ENERGY | B |
-| Unseen Manipulator | 2## | Creature, Abomination | 3/2 | Enters: choose 1: Convert (take control of target non-unique creature an opponent controls) / Intel (draw two) | Modal enters-trigger; `take_control`; draw `mcc`; SYS-CONTROL | B |
+| Unseen Manipulator | 3## | Creature, Abomination | 3/2 | Enters: choose 1: Convert (take control of target non-unique creature an opponent controls) / Intel (draw two) | Modal enters-trigger; `take_control`; draw `mcc`; SYS-CONTROL | B |
 | Dockside Ambusher | 3# | Creature, Abomination | 3/3 | When you flip cast it from your energy zone, target opponent chooses a non-token permanent of mana value 4 or less to give you, placed in your energy zone | Flip-cast signal; opponent-side `SelectionWindow` decision; `take_control` into energy zone; SYS-PLAYER decision routing | C |
 | Cultist Fanatic | 2# | Creature, Civilian Cultist | 3/1 | When it deals damage to a player or creature, you may sacrifice it to flip cast a card from your energy zone without paying | `damage_dealt` trigger; optional; cost `mcc` self; `cast_card` with `pay_cost: false` | B |
 | Unending Echo | 1# | Creature, Ghost | 2/1 | Can be cast from your discard by paying its cost | `pile`-state castability flag; `cast_card` from discard | B |
@@ -702,7 +709,7 @@ Stats are Strike/Guard. Stats shown as `?` are missing in the draft.
 | Unforgotten Sacrifice | 4 | Spell (regular) | - | Flip play a card from your energy zone without paying. Then place the top card of your deck face-down in your energy zone | `cast_card` free; `mcc` deck top -> `mctb` energy grid face-down | B |
 | Claimed by the Abyss | 4 | Spell | - | Take target creature on any field and place it face-down in your energy zone | `mctb` into the caster's energy grid, `flip_card` face-down; SYS-CONTROL (card changes owner of position, keeps owner id) | B |
 | Repurpose | 2 | Spell (regular) | - | Move target card in a player's discard into your energy zone | `mctb` from any discard to energy grid, face-down | B |
-| Double Agent | 2 | Spell (reaction) | - | When a player declares attacks, take control of another creature you do not control until EOT. It enters in guard position | Response window at attack declaration; temporary `take_control` with expiry; `rotate_card` 90 | C |
+| Double Agent | 3 | Spell (reaction) | - | When a player declares attacks, take control of another creature you do not control until EOT. It enters in guard position | Response window at attack declaration; temporary `take_control` with expiry; `rotate_card` 90 | C |
 | Eldritch Knowledge | 2 | Spell (field) | - | Whenever you flip cast, draw a card | Field slot; trigger on the `flip_cast` signal; draw | B |
 
 ### 14.3 Order
@@ -710,22 +717,22 @@ Stats are Strike/Guard. Stats shown as `?` are missing in the draft.
 | Card | Cost | Type / subtypes | S/G | Draft effect | Mapping | Class |
 |------|------|-----------------|-----|--------------|---------|-------|
 | Zelith, Mage Justiciar | 2## | Unique Creature, Human Mage | 3/4 | May attack perpetual spells as if creatures; spells hit are destroyed | Widened attack target set in SYS-COMBAT; destroy `mcc` | C |
-| Moral Captain | 1## | Creature, Human Soldier | 2/2 | When you attack, two target creatures gain +1 Strike until EOT | Attack trigger; two targets; `grant_modifier` (SYS-MOD) | B |
-| Righteous Guard | 1# | Creature, Human Soldier | 1/1 | Enters: create 1/1 soldiers equal to the number of cards named Righteous Guard on your field | Enters-trigger; `per_boardseek` with `filter_card_name` + `filter_controller`; `spawn_card` count | B |
-| Tactical Combatant | 2# | Creature, Human Soldier | 3/3 | After it attacks, switch it to guard position | Attack-resolved trigger; `rotate_card` 90 | B |
+| Moral Captain | 1## | Creature, Human Soldier | 2/3 | When you attack, two target creatures gain +1 Strike until EOT | Attack trigger; two targets; `grant_modifier` (SYS-MOD) | B |
+| Righteous Guard | 1# | Creature, Human Soldier | 1/2 | Enters: create 1/1 soldiers equal to the number of cards named Righteous Guard on your field | Enters-trigger; `per_boardseek` with `filter_card_name` + `filter_controller`; `spawn_card` count | B |
+| Tactical Combatant | 2# | Creature, Human Soldier | 3/4 | After it attacks, switch it to guard position | Attack-resolved trigger; `rotate_card` 90 | B |
 | Devote Paladin | 2## | Creature, Human Soldier | 4/3 | Tap, consume an energy card: your creatures gain +1 Strike and Savage (1) | `occ`; cost `mcc` energy card; `grant_modifier` + keyword grant on all friendly creatures | B |
 | Streetside Recruiter | ## | Creature, Human Soldier | 1/2 | Occupy: create a 1/1 human soldier | `occ`; `spawn_card` | B |
 | Faithful Worshiper | 1# | Creature, Human Cleric | 1/1 | Consume a card in your energy zone: your creatures gain Indomitable until EOT | Cost `mcc` energy card; keyword grant with EOT expiry | B |
-| Lucran, Divine Saviour | 5## | Unique Creature, Angel God | 6/6 | When a creature you control dies choose 1: place the card in your energy zone (not tokens); or remove it from the game and create a Soul Spear relic (consume: 2 damage to any target) | Death trigger with modal choice; `mctb` energy / `mcc` removed; `spawn_card` Soul Spear; `deal_damage` | B |
+| Lucran, Divine Saviour | 3## | Unique Creature, Angel God | 5/5 | When a creature you control dies choose 1: place the card in your energy zone (not tokens); or remove it from the game and create a Soul Spear relic (consume: 2 damage to any target) | Death trigger with modal choice; `mctb` energy / `mcc` removed; `spawn_card` Soul Spear; `deal_damage` | B |
 | Holy Amulet | 1# | Relic | - | Equips to a creature of your choice. Creature gains Occupy: add one Order energy | Enters-trigger target + `attach_to_card`; granted activated ability producing temporary mana (`add_temp_mana`) | C |
 | Spiked Barricade | 1# | Relic | - | Can be used to guard an attacking creature; when it does, destroy that creature and discard the barricade | Relic as legal blocker in SYS-COMBAT; destroy + discard `mcc` | C |
-| Reinforcements | 3 | Spell | - | Create 2 soldier tokens (1/1) | `spawn_card` x2 | A |
+| Reinforcements | 2 | Spell | - | Create 2 soldier tokens (1/1) | `spawn_card` x2 | A |
 | Smite | 2 | Spell | - | Destroy target non-unique creature, or destroy target perpetual spell | Modal; `filter_properties` non-unique; `mcc` -> discard | A |
-| Battle Ready | 3 | Spell | - | Switch up to 3 target creatures to strike position; +1 Strike until EOT | `rotate_card` 0 with `up_to` 3; `grant_modifier` | B |
+| Battle Ready | 2 | Spell | - | Switch up to 3 target creatures to strike position; +1 Strike until EOT | `rotate_card` 0 with `up_to` 3; `grant_modifier` | B |
 | Hold the Line | 2 | Spell (reaction) | - | Cast when your field is attacked: switch any number of your creatures to guard; +1 Guard until EOT | Response window; `rotate_card` 90; `grant_modifier` | B |
 | Equal Footing | 4 | Spell (world) | - | At end of each player's turn, if they do not have the most energy, they may move a card from their discard to their energy zone | World slot; End-step trigger; `per_boardseek` energy comparison; optional `mctb` | B |
 | Recovering Resources | 3 | Spell (field) | - | Once during end of each turn, if a creature you own died, you may draw a card | Field slot; Limiter; "died this turn" flag in SYS-TURN; draw | B |
-| War of Attrition | 3 | Spell (field) | - | At the beginning of your turn, switch of your creatures to occupied (guard but cannot defend) | Phase trigger; `occupy` on a selection of creatures (draft text incomplete, Section 12) | B |
+| War of Attrition | 3 | Spell (field) | - | At the beginning of your turn, switch of your creatures to occupied (guard but cannot defend) | Phase trigger; `occupy` on all your creatures (draft text incomplete, Section 12). Harms the player whose field it is in: cast on the opponent's field (`harms_holder`) | B |
 
 ### 14.4 Primal
 
@@ -756,8 +763,8 @@ Stats are Strike/Guard. Stats shown as `?` are missing in the draft.
 | Brogir, Master Artificer | 4 | Unique Creature, Dwarf Engineer | 3/4 | Productive. Occupy, choose 1: consume scrap -> ingot; or consume ingot -> Battle Hammer | Productive; `occ`; modal with costs | B |
 | Rarink, Crafty Opportunist | 3 | Unique Creature, Goblin Thief | 2/2 | Whenever a non-token relic leaves the battlefield, create 2 scrap tokens | `card_moved_to_pile` trigger with `filter_properties` Type relic and not Token; scrap +2 | B |
 | Self-destruction | 6 | Spell | - | Additional cost: consume X permanents. Opponents consume X permanents | `ask_integer` for X; cost selection; opponent-side selection; SYS-PLAYER | C |
-| Sigil Mage | 2 | Creature, Mage | 1/2 | The first spell you cast each turn is placed in your energy zone instead of your discard | Spell-resolution destination redirect with per-turn flag; SYS-TURN | B |
-| Holy Healer | 2 | Creature, Human Cleric | 1/1 | Enters: take a creature from your discard and put it in your hand | `mcc` discard -> hand with creature filter | A |
+| Sigil Mage | 2 | Creature, Mage | 2/2 | The first spell you cast each turn is placed in your energy zone instead of your discard | Spell-resolution destination redirect with per-turn flag; SYS-TURN | B |
+| Holy Healer | 2 | Creature, Human Cleric | 1/2 | Enters: take a creature from your discard and put it in your hand | `mcc` discard -> hand with creature filter | A |
 | Insightful Investigator | 2 | Creature, Human Soldier | 1/2 | Enters: look at the top two cards of target player's library; you may put one or both on the bottom | `index` subject on any player's deck, optional moves to bottom | B |
 | Toll of War | 6 | Spell | - | Destroy all creatures in strike position | `boardseek` all, `filter_degrees: 0`, `mcc` discard | A |
 | Broadening Influence | 5 | Unique Spell (world) | - | Instead of playing a card from hand into your energy zone, you may take the top card of an opponent's library into your energy zone | World slot; adds an alternative energy-play option to the upkeep choice for all players | C |
@@ -805,8 +812,8 @@ The "cards unlocked" column is an estimate from the Mapping column of Section 14
 | Energy zone | **Done** | `BoardPlacementGrid` "Energy P#", 6 slots, grows (`auto_extend`); cards go in face-down |
 | Creature row | **Done** | "Creatures P#", 6 slots; creatures dropped on the table land here automatically |
 | Occupied row | **Done** | Grid directly behind the creature row. The Occupy action moves creatures in (tilted); maintenance moves them back; occupied creatures can intercept |
-| Relic zone | **Done** | "Relics P#", 3 slots; relics land here |
-| Field spell slot | **Partial** | "Field P#", one slot; the replace-the-old-spell rule is not implemented |
+| Relic zone | **Done** | "Relics P#", no limit: starts with 3 slots and grows like the energy zone; relics land here |
+| Field spell slot | **Done** | "Field P#", one slot. A field spell can be cast on either player's field; it replaces the field spell there (to its owner's discard pile). The player whose slot it is in controls it ("you" in its text), the caster owns it |
 | World spell slot | **Partial** | Shared "World" grid, one slot; replacement rule not implemented |
 | Removed from game | **Done** | Small face-up pile per player (half scale) |
 | Doctrine area | **Partial** | "Doctrines P#" holds three doctrine cards per player; no goals or rewards |

@@ -124,7 +124,7 @@ creatures made up for one test. Key = card name, value = the same object as the 
   `players.1.creatures[3].card: unknown card "Battel Smith" (did you mean "Battle Smith"?)`.
 * Keys the game does not know are ignored with a warning, so notes like `"_comment"` are safe.
 * Numbers must be whole (`2`, not `2.5`). Booleans are `true`/`false`, not text.
-* Slot numbers and zone sizes are checked: six creatures at most, three relics, and so on.
+* Slot numbers and zone sizes are checked: six creatures at most, one field spell, and so on (energy and relics have no limit; 40 is a sanity cap).
 * Pointing the editor at the schema (VS Code: `"json.schemas"`) gives completion and basic checks.
 
 ## Using board states
