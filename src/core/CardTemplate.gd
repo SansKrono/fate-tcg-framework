@@ -2106,7 +2106,11 @@ func _start_dragging(drag_offset: Vector2) -> void:
 	# This is caused because we're using a viewport node and scaling the game
 	# in full-creen.
 	# This is not supported in browsers.
-	if not cfc.ut and not OS.has_feature("web"):
+	# The cursor is only confined in full screen. In a window, a confined cursor is
+	# pinned to the edge of the window (macOS) and the dragged card with it, and the
+	# card is kept inside the viewport anyway (_determine_board_position_from_mouse)
+	if not cfc.ut and not OS.has_feature("web") \
+			and get_window().mode in [Window.MODE_FULLSCREEN, Window.MODE_EXCLUSIVE_FULLSCREEN]:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 #		if ProjectSettings.get("display/window/stretch/mode") != 'disabled':
 #			get_tree().current_scene.get_viewport().warp_mouse(global_position + Vector2(5,5))

@@ -1,25 +1,22 @@
-# A round stat badge on a Fate card: the gold ring of the card art (its centre takes `tint`), an
-# optional faint icon behind the number, and the number itself.
+# A stat on a Fate card (Strike or Guard): the stat's icon and its number, drawn on the parchment
+# box of the card frame (the badge is the size of that box).
 #
-# The number reacts to play: shown above its printed value (`base_value`) it turns green, below it
+# The number reacts to play: shown above its printed value (`base_text`) it turns green, below it
 # red, and every change makes the badge pop. Works in the editor (@tool) so the card scenes preview
 # with real values.
 @tool
 class_name FateStatBadge
 extends Control
 
-const UP_COLOR := Color(0.62, 1.0, 0.55)
-const DOWN_COLOR := Color(1.0, 0.45, 0.38)
-const BASE_COLOR := Color(1.0, 0.97, 0.88)
+# Darker than usual: the number sits on parchment
+const UP_COLOR := Color(0.1, 0.5, 0.12)
+const DOWN_COLOR := Color(0.78, 0.12, 0.1)
+const BASE_COLOR := Color(0.17, 0.1, 0.05)
 const POP_SCALE := 1.3
 
 @export var icon: Texture2D:
 	set(value):
 		icon = value
-		_refresh()
-@export var tint := Color(0.38, 0.62, 0.83):
-	set(value):
-		tint = value
 		_refresh()
 # The number shown. Text, so that values like "X" work; compared as numbers when they are numbers
 @export var text := "0":
@@ -37,7 +34,6 @@ const POP_SCALE := 1.3
 		base_text = value
 		_refresh()
 
-@onready var _ring: TextureRect = $Ring
 @onready var _icon: TextureRect = $Icon
 @onready var _value: Label = $Value
 var _pop: Tween
@@ -56,7 +52,6 @@ func value_label() -> Label:
 func _refresh() -> void:
 	if not is_node_ready():
 		return
-	(_ring.material as ShaderMaterial).set_shader_parameter("tint", tint)
 	_icon.texture = icon
 	_icon.visible = icon != null
 	_value.text = text

@@ -1,13 +1,15 @@
 # Front of a Fate card.
 #
-# The look lives in FateCardFront.tscn, laid out at the pixel art's native size (FateLayout.CARD_SIZE,
-# 195x284): the frame, the art window, the title banner, the type line, the parchment with the rules
-# text, and the stat badges (FateStatBadge) for cost, Strike and Guard. This script only binds the
-# card's properties to those nodes:
+# The look lives in FateCardFront.tscn, laid out at FateLayout.CARD_SIZE (195x284), the size of the
+# frames in assets/fate/cards (their opaque part, cropped by an atlas): the frame, the art window,
+# the title banner, the type banner, the parchment with the rules text, and the stat badges
+# (FateStatBadge) for Strike (bottom left) and Guard (bottom right). The cost pips flow down from the
+# top left corner. This script only binds the card's properties to those nodes:
 # - the framework sets each property's text on its label (card_labels); the labels of the badges and
 #   the hidden Domain / PipText labels keep the plain values, which tests and scripts read
-# - the domain recolours the frame accents, the cost badge and the art icon (fate_hue_tint.gdshader)
-# - the Pips text becomes one FatePip per letter
+# - the domain picks the frame (one per domain) and recolours the art icon (fate_hue_tint.gdshader)
+# - the Pips text becomes one FateCostPip per letter, the domain pips first; the generic cost is the
+#   last pip
 # - the rules text shrinks until it fits the parchment
 # - Strike and Guard are compared with the printed values: a buffed or damaged stat changes colour
 #
@@ -15,7 +17,15 @@
 # the table face (set_table_mode) hides the details and shows the name, the cost and the stats big.
 extends CardFront
 
-const PIP_SCENE := preload("res://src/custom/fate/card/FatePip.tscn")
+const PIP_SCENE := preload("res://src/custom/fate/card/FateCostPip.tscn")
+const FRAME_PATH := "res://assets/fate/cards/%s Card Frame.png"
+# The opaque part of the frames: the art has a transparent margin around the card
+const FRAME_REGION := Rect2(145, 145, 1360, 1960)
+# A card of no domain (debug cards) gets the Order frame, greyed
+const NEUTRAL_FRAME := "Order"
+const NEUTRAL_MODULATE := Color(0.6, 0.62, 0.7)
+# On the table the pips are drawn bigger, to read at the zone's scale
+const TABLE_PIPS_SCALE := 1.5
 const ART_DIR := "res://assets/fantasy-tcg-cards-pixel-art/PNG/"
 # Placeholder art per card type until cards have their own ("_art" property, a texture path): a
 # backdrop and the type's emblem, in the domain's colour
@@ -46,12 +56,11 @@ var table_mode := false
 @onready var _tags: Label = %Tags
 @onready var _abilities: Label = %Abilities
 @onready var _pips: VBoxContainer = %Pips
-@onready var _cost: FateStatBadge = %CostBadge
+@onready var _cost: FateCostPip = %CostPip
 @onready var _strike: FateStatBadge = %StrikeBadge
 @onready var _guard: FateStatBadge = %GuardBadge
 @onready var _table_name: Label = %TableName
 @onready var _table_type: Label = %TableType
-@onready var _table_cost: FateStatBadge = %TableCost
 @onready var _table_strike: FateStatBadge = %TableStrike
 @onready var _table_guard: FateStatBadge = %TableGuard
 
@@ -125,6 +134,7 @@ func set_rarity(rarity: int) -> void:
 # of the card, which starts with whatever the original showed.
 func set_table_mode(on: bool) -> void:
 	table_mode = on
+	_pips.scale = Vector2.ONE * (TABLE_PIPS_SCALE if on else 1.0)
 	_details.visible = not on
 	_table_face.visible = on
 
@@ -132,22 +142,35 @@ func set_table_mode(on: bool) -> void:
 # --- binding ---------------------------------------------------------------------------------
 
 func _set_domain(domain: String) -> void:
+	_frame.texture = _frame_texture(domain if domain in FateTheme.DOMAIN_COLORS else NEUTRAL_FRAME)
+	_frame.modulate = Color.WHITE if domain in FateTheme.DOMAIN_COLORS else NEUTRAL_MODULATE
 	var color := FateTheme.domain_color(domain)
-	(_frame.material as ShaderMaterial).set_shader_parameter("tint", color)
 	(_art_icon.material as ShaderMaterial).set_shader_parameter("tint", color.lightened(0.15))
-	_cost.tint = color
-	_table_cost.tint = color
 
 
-# One pip per letter, in the colour of the domain the letter stands for
+# The frame of a domain, cropped to the card. Shared by all cards
+static var _frames := {}
+
+static func _frame_texture(domain: String) -> AtlasTexture:
+	if not _frames.has(domain):
+		var frame := AtlasTexture.new()
+		frame.atlas = load(FRAME_PATH % domain)
+		frame.region = FRAME_REGION
+		_frames[domain] = frame
+	return _frames[domain]
+
+
+# One pip per letter, showing the emblem of the domain the letter stands for, then the generic cost
 func _set_pips(pips: String) -> void:
 	for pip in _pips.get_children():
-		_pips.remove_child(pip)
-		pip.queue_free()
+		if pip != _cost:
+			_pips.remove_child(pip)
+			pip.queue_free()
 	for letter in pips:
-		var pip: FatePip = PIP_SCENE.instantiate()
-		pip.color = FateTheme.domain_color(FateGame.DOMAIN_BY_INITIAL.get(letter, ""))
+		var pip: FateCostPip = PIP_SCENE.instantiate()
+		pip.domain = FateGame.DOMAIN_BY_INITIAL.get(letter, "")
 		_pips.add_child(pip)
+		_pips.move_child(pip, _cost.get_index())
 	# Whether the colourless cost shows depends on the pips
 	_set_cost(_cost.text)
 
@@ -155,10 +178,7 @@ func _set_pips(pips: String) -> void:
 # A card that costs only pips shows no colourless cost
 func _set_cost(text: String) -> void:
 	_cost.text = text
-	_table_cost.text = text
-	var pips_only: bool = text in ["", "0"] and card_labels["Pips"].text != ""
-	_cost.visible = not pips_only
-	_table_cost.visible = not pips_only
+	_cost.visible = not (text in ["", "0"] and card_labels["Pips"].text != "")
 
 
 func _set_stat(badge: FateStatBadge, table_badge: FateStatBadge, stat: String, text: String) -> void:
@@ -191,17 +211,15 @@ func _set_art(card_type: String) -> void:
 	_art_icon.visible = true
 
 
-# Creatures show their stats along the bottom of the table face, so their type sits on the dark band
-# above; the other cards have the parchment to themselves and show their type there, big
+# Creatures show their stats big on the parchment of the table face, so their type stays in the type
+# banner; the other cards have the parchment to themselves and show their type there, big
 func _place_table_type() -> void:
 	if has_combat_stats:
 		return
-	_table_type.position = Vector2(20, 222)
-	_table_type.size = Vector2(155, 48)
+	_table_type.position = Vector2(20, 195)
+	_table_type.size = Vector2(155, 60)
 	var settings: LabelSettings = _table_type.label_settings.duplicate()
 	settings.font_size = 20
-	settings.font_color = Color(0.25, 0.16, 0.07)
-	settings.outline_size = 0
 	_table_type.label_settings = settings
 
 

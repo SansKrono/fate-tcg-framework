@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/custom/fate/card/FateCostPip.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://bq0rmvay7go8k" path="res://themes/darktheme/fonts/Oxanium/static/Oxanium-Bold.ttf" id="2_font"]
+
+[node name="FateCostPip" type="Control"]
+custom_minimum_size = Vector2(23, 23)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 23.0
+offset_bottom = 23.0
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Art" type="TextureRect" parent="."]
+texture_filter = 3
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.17, 0.1, 0.05, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

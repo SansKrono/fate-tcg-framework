@@ -43,12 +43,11 @@ const SHADOW_LIFT_GROW := 0.08
 const SHADOW_TILT_SHIFT := 10.0   # px shadow slides at full tilt
 
 # Parts of the card where the colour effects are toned down, as (x, y, x2, y2) in 0..1 card space.
-# Full card: pips, rules text, Strike and the rarity gem, Guard. Table face: cost and pips, Strike and
-# Guard badges.
-const PROTECT_FULL := [Vector4(0.0, 0.0, 0.19, 0.5), Vector4(0.06, 0.65, 0.94, 0.715),
-		Vector4(0.0, 0.76, 1.0, 1.0), Vector4(0.45, 0.55, 0.55, 0.61)]
-const PROTECT_TABLE := [Vector4(0.0, 0.0, 0.31, 0.21), Vector4(0.09, 0.22, 0.91, 0.55),
-		Vector4(0.0, 0.64, 1.0, 1.0), Vector4.ZERO]
+# Full card: pips, rules text, Strike, Guard. Table face: pips, name, Strike and Guard badges.
+const PROTECT_FULL := [Vector4(0.0, 0.0, 0.13, 0.42), Vector4(0.07, 0.63, 0.93, 0.88),
+		Vector4(0.03, 0.88, 0.27, 0.97), Vector4(0.73, 0.88, 0.97, 0.97)]
+const PROTECT_TABLE := [Vector4(0.0, 0.0, 0.2, 0.5), Vector4(0.09, 0.22, 0.91, 0.53),
+		Vector4(0.05, 0.69, 0.95, 0.9), Vector4.ZERO]
 # Corner radius of the card art, and the widths of the gold rim and the playable glow, in card pixels
 const CORNER_RADIUS := 6.0
 const RIM_WIDTH := 9.0

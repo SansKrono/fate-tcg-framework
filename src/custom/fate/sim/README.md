@@ -120,4 +120,3 @@ turn it was achieved on, and the win rate of the games with and without it (also
 deck may name its own doctrines (`"doctrines": [names]` in a deck file or config deck); without them it plays its
 domain's three. To see what doctrines are worth to each deck, run the same round robin with and without
 `--no-doctrines` and compare (docs/FATE_DOCTRINES.md).
-

@@ -12,9 +12,9 @@
 [ext_resource type="Texture2D" uid="uid://flujw8t6jvtn" path="res://themes/darktheme/Icons/UnCheckButtonDis.png" id="10_d1526"]
 [ext_resource type="Texture2D" uid="uid://bltarubnmu6vd" path="res://themes/darktheme/Icons/Grapper.png" id="11_wjd24"]
 [ext_resource type="Texture2D" uid="uid://bobaqi0wyqv1n" path="res://themes/darktheme/Icons/GrapperHighlight.png" id="12_cl81l"]
-[ext_resource type="FontFile" uid="uid://b7k3qy71h8ulr" path="res://themes/darktheme/fonts/Reenie_Beanie/ReenieBeanie-Regular.ttf" id="13_4cn1e"]
+[ext_resource type="FontFile" uid="uid://2dh0tkbsd33h" path="res://themes/darktheme/fonts/Reenie_Beanie/ReenieBeanie-Regular.ttf" id="13_4cn1e"]
 [ext_resource type="Texture2D" uid="uid://wehvojyskvks" path="res://themes/darktheme/Icons/spinbox.png" id="14_vjbk7"]
-[ext_resource type="FontFile" uid="uid://vlq2781c8u4b" path="res://themes/darktheme/fonts/Reggae_One/ReggaeOne-Regular.ttf" id="15_hts2c"]
+[ext_resource type="FontFile" uid="uid://c7ndosrw63ge8" path="res://themes/darktheme/fonts/Reggae_One/ReggaeOne-Regular.ttf" id="15_hts2c"]
 
 [sub_resource type="StyleBoxEmpty" id="1511"]
 
