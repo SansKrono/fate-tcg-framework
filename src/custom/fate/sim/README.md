@@ -29,7 +29,7 @@ godot --headless --path . res://src/custom/fate/sim/FateSimCLI.tscn -- --decks=a
 | `--seed=text` | the same seed and options give the same games |
 | `--turn-cap=n` | a game still going on this turn is a draw (60) |
 | `--no-swap` | deck A always goes first (default: alternate, which cancels the first-player advantage) |
-| `--no-doctrines` | start without the doctrine cards |
+| `--no-doctrines` | start without the doctrine cards (their goals are never checked) |
 | `--quiet` | the final report only |
 
 A deck file is `{"label": "My Order", "cards": {"Righteous Guard": 3, ...}}` (or just the `{card: copies}` map).
@@ -112,3 +112,12 @@ profile B wins*; each game is replayed with the same seed whatever the profiles 
 comparison the same `--seed` and compare them with a run of `normal,normal` on that seed: identical profiles do not
 give 50-50 on a given seed, the difference to that run is what the profile changed. Behaviour (attacks per turn, mana
 spent, creatures lost ...) per profile is in the records (`worker_<k>.jsonl`: each seat has `deck` 0/1 = profile A/B).
+
+## Doctrines in the report
+
+The report has a DOCTRINES section: per deck and doctrine, the share of games it was achieved in, the average game
+turn it was achieved on, and the win rate of the games with and without it (also in report.json, "doctrines"). A
+deck may name its own doctrines (`"doctrines": [names]` in a deck file or config deck); without them it plays its
+domain's three. To see what doctrines are worth to each deck, run the same round robin with and without
+`--no-doctrines` and compare (docs/FATE_DOCTRINES.md).
+

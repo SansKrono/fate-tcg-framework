@@ -51,8 +51,8 @@ func fire_phase(pid: int, phase: int) -> void:
 func test_goal_lines_are_parsed() -> void:
 	var expected := {
 		"Subtle Influence": {"kind": "count", "what": "control", "n": 2},
-		"Ensue Chaos": {"kind": "devotion", "domain": "Chaos", "n": 5},
-		"Convert the Masses": {"kind": "count", "what": "control", "n": 6},
+		"Ensue Chaos": {"kind": "devotion", "domain": "Chaos", "n": 4},
+		"Convert the Masses": {"kind": "count", "what": "control", "n": 4},
 		"Maintain Your Presence": {"kind": "count", "what": "creature", "n": 4},
 		"Vanquish Thine Foes": {"kind": "count", "what": "creature", "n": 10},
 		"Be a Fierce Presence": {"kind": "power", "n": 4},
@@ -143,14 +143,17 @@ func test_marker_follows_the_achieved_state() -> void:
 func test_devotion_goal_counts_pips_of_the_domain() -> void:
 	await clear_doctrines()
 	var doctrine := await put_doctrine(1, "Defend the Innocent")
+	var needed: int = game.doctrines.goal_of(doctrine).n
 	var two := creature_with_pips("Order", "OO")
 	var one := creature_with_pips("Order", "O")
 	assert_ne(two, "")
 	assert_ne(one, "")
 	await put_creature(1, two)
 	await put_creature(1, two)
+	for _i in range(needed - 5):
+		await put_creature(1, one)
 	game.doctrines.evaluate()
-	assert_eq(game.doctrines.devotion(1, "Order"), 4)
+	assert_eq(game.doctrines.devotion(1, "Order"), needed - 1)
 	assert_false(game.doctrines.achieved(doctrine))
 	# The opponent's cards and other domains do not count
 	await put_creature(2, one)
@@ -158,7 +161,7 @@ func test_devotion_goal_counts_pips_of_the_domain() -> void:
 	assert_false(game.doctrines.achieved(doctrine))
 	await put_creature(1, one)
 	game.doctrines.evaluate()
-	assert_eq(game.doctrines.devotion(1, "Order"), 5)
+	assert_eq(game.doctrines.devotion(1, "Order"), needed)
 	assert_true(game.doctrines.achieved(doctrine))
 
 

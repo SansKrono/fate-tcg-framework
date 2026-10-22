@@ -362,7 +362,7 @@ func test_without_the_field_spell_a_new_creature_cannot_occupy() -> void:
 func test_clockwork_sentinel_leaves_two_scrap_when_destroyed() -> void:
 	await _main()
 	var c := await put_creature(1, "Clockwork Sentinel")
-	assert_eq([game.stats.current(c, "Strike"), game.stats.current(c, "Guard")], [2, 3])
+	assert_eq([game.stats.current(c, "Strike"), game.stats.current(c, "Guard")], [2, 2])
 	game.effects.destroy(c)
 	await get_tree().process_frame
 	assert_eq(_scrap(), 2)
